@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Numens Loop Calculator</title>
+    
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- 引入 Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <style>
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; height: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* 强制 Checkbox 样式优化 */
+        input[type="checkbox"] { 
+            accent-color: #2563eb; 
+            cursor: pointer !important; 
+        }
+        
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { opacity: 1; }
+        .dragging { opacity: 0.5; background-color: #e0f2fe; }
+        
+        /* 拖拽手柄样式 */
+        .drag-handle { cursor: grab; color: #94a3b8; }
+        .drag-handle:active { cursor: grabbing; color: #475569; }
+        
+        /* 只读输入框样式 - 排除 checkbox */
+        input:read-only:not([type="checkbox"]) { 
+            background-color: transparent; 
+            color: #64748b; 
+            cursor: not-allowed; 
+        }
+        input:read-only:focus { outline: none; border-color: transparent; }
+        
+        /* 简单的加载动画 */
+        .calculating-spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* 结果面板动画 */
+        .fade-enter-active, .fade-leave-active {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .fade-enter-from, .fade-leave-to {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <div id="app"></div>
+
+    <script>
+        const { createApp, ref, computed, watch, reactive, onMounted } = Vue;
+
+        // --- 1. 常量定义 & 多语言 ---
+        const ADDRESS_LIMIT = 125; 
+        const MAX_ALARM_LEDS = 10; 
+        const MAX_SOUNDER_LIMIT = 32; 
+        const RESTRICTED_SERIES = ['622', '640', '641']; 
+        const MAX_CABLE_LENGTH = 1000; 
+        
+        const TRANSLATIONS = {
+            'en-US': {
+                title: "Numens Loop Calculator",
+                systemParams: "System Parameters",
+                panelModel: "Panel Model",
+                defaultSpacing: "Default Spacing (m)",
+                maxCurrent: "Max Loop Current (mA)",
+                minVoltage: "Min Device Voltage (V)",
+                cableSpec: "Cable Specification",
+                deviceList: "Device List",
+                colNo: "No.",
+                add: "Add",
+                custom: "Custom", 
+                deleteSelected: "Delete Selected",
+                colName: "Device Name",
+                colAlarm: "Alarm(mA)",
+                colSpacing: "Interval/Dist(m)",
+                colQty: "Qty",
+                resultTitle: "Calculation Results",
+                btnCalculate: "Start Calculation",
+                reCalculateHint: "Data changed. Click 'Start' to update results.",
+                tipNoDevices: "Please add devices before calculating.", 
+                tipAddLimit: "Cannot add: Total quantity of 622/640/641 series exceeds 32 limit.",
+                tipLengthLimit: "Total cable length exceeds 1000m! Please reduce spacing or quantity.",
+                showDetails: "Show Details",
+                hideDetails: "Hide Details",
+                addrCount: "Address",
+                totalCurrent: "Current",
+                endVoltage: "Lowest Volt",
+                deviceCountLabel: "Device Count",
+                currentLabel: "Current Consumption (Alarm)",
+                currentTotal: "Total:",
+                limit: "Limit:",
+                endVoltageLabel: "Lowest Device Voltage",
+                cableRes: "Cable Resistance (Ref):",
+                maxDrop: "Max Voltage Drop:",
+                endRes: "Lowest V:",
+                minReq: "Min Req:",
+                statusOK: "OK",
+                statusOver: "Over",
+                statusOverload: "Overload",
+                statusLow: "Low",
+                warningVoltage: "Lowest voltage is below minimum requirement. Increase cable size or reduce load.",
+                warningSounderLimit: "Total quantity of 622, 640, 641 series cannot exceed 32.",
+                warningLength: "Total cable length exceeds 1000m limit.",
+                customDeviceName: "Custom Device",
+                unitMeters: "m",
+                unitPcs: "",
+                calculating: "Calculating...",
+                chartTitle: "Voltage Drop Trend",
+                chartX: "Distance (m)",
+                chartY: "Voltage (V)",
+                tipDistPanel: "Distance from Control Panel to the 1st device.",
+                tipDistPrev: "Cable distance from the previous device.",
+                tipDistInterval: "Uniform Spacing: The cable length between EACH adjacent device in this batch.",
+                tipQtyFirst: "The first row represents the start of the loop. Quantity is fixed at 1.",
+                tipQtyChange: "Note: If Qty > 1, 'Distance' becomes the uniform spacing between these devices.",
+                tipQtyConfirm: "Please confirm spacing is consistent for this batch.",
+                delete: "Delete",
+                tipTitle: "Note:",
+                tipText: "Spacing/Distance: The first device refers to the line distance from the Panel; The second and subsequent devices refer to the line distance from the previous device.",
+                totalCableLen: "Total Cable Length"
+            },
+            'zh-CN': {
+                title: "Numens 回路计算器",
+                systemParams: "系统参数",
+                panelModel: "主机型号",
+                defaultSpacing: "默认间距 (m)",
+                maxCurrent: "回路最大电流 (mA)",
+                minVoltage: "设备最低电压 (V)",
+                cableSpec: "电缆规格",
+                deviceList: "设备清单",
+                colNo: "序号",
+                add: "添加",
+                custom: "自定义",
+                deleteSelected: "删除选中",
+                colName: "设备名称",
+                colAlarm: "报警(mA)",
+                colSpacing: "间距/距离(m)",
+                colQty: "数量",
+                resultTitle: "计算结果",
+                btnCalculate: "开始计算",
+                reCalculateHint: "数据已变更，请点击“开始计算”以更新结果。",
+                tipNoDevices: "请先添加设备再进行计算。", 
+                tipAddLimit: "无法添加：622/640/641 系列的总数量不能超过 32 个。",
+                tipLengthLimit: "累计线长超过 1000m！请减少间距或数量。",
+                showDetails: "显示详细信息",
+                hideDetails: "隐藏详细信息",
+                addrCount: "地址数",
+                totalCurrent: "总电流",
+                endVoltage: "最低电压",
+                deviceCountLabel: "设备数量",
+                currentLabel: "电流消耗 (报警状态)",
+                currentTotal: "总电流:",
+                limit: "上限:",
+                endVoltageLabel: "最低设备电压",
+                cableRes: "线缆阻抗 (参考):",
+                maxDrop: "累积最大压降:",
+                endRes: "最低电压:",
+                minReq: "最低要求:",
+                statusOK: "OK",
+                statusOver: "超出",
+                statusOverload: "超载",
+                statusLow: "不足",
+                warningVoltage: "最低电压低于最低要求，建议增加线径或减少设备。",
+                warningSounderLimit: "622、640、641 系列的总数量不能超过 32 个。",
+                warningLength: "回路累计长度超过 1000m 上限。",
+                customDeviceName: "自定义设备",
+                unitMeters: "米",
+                unitPcs: "个",
+                calculating: "计算中...",
+                tipDistPanel: "这是从主机到第一个设备的进线距离。",
+                tipDistPrev: "这是距离上一台设备的线长。",
+                tipDistInterval: "【等间距部署】表示该批次中，每两台相邻设备之间的线长均为该数值。",
+                tipQtyFirst: "第一行代表回路起点，数量固定为1。",
+                tipQtyChange: "注意：若数量 > 1，则“距离”代表设备间的均匀间距。",
+                tipQtyConfirm: "请确认该型号的间距一致。",
+                delete: "删除",
+                tipTitle: "提示：",
+                tipText: "间距 / 距离：首个装置指与主机的线距；第二个及后续装置指与前一装置的线距。",
+                totalCableLen: "当前累计线长"
+            },
+             'ru-RU': {
+                title: "Калькулятор шлейфа Numens",
+                systemParams: "Параметры системы",
+                panelModel: "Модель панели",
+                defaultSpacing: "Интервал по ум. (м)",
+                maxCurrent: "Макс. ток шлейфа (мА)",
+                minVoltage: "Мин. напр. устр. (В)",
+                cableSpec: "Характеристики кабеля",
+                deviceList: "Список устройств",
+                colNo: "№",
+                add: "Добавить",
+                custom: "Свой",
+                deleteSelected: "Удалить",
+                colName: "Название",
+                colAlarm: "Тревога(мА)",
+                colSpacing: "Интервал(м)",
+                colQty: "Кол-во",
+                resultTitle: "Результаты",
+                btnCalculate: "Рассчитать",
+                reCalculateHint: "Данные изменены. Нажмите Рассчитать.",
+                tipNoDevices: "Пожалуйста, добавьте устройства перед расчетом.", 
+                tipAddLimit: "Невозможно добавить: лимит серий 622/640/641 превышен (32).",
+                tipLengthLimit: "Общая длина кабеля превышает 1000 м! Пожалуйста, уменьшите.",
+                showDetails: "Показать детали",
+                hideDetails: "Скрыть детали",
+                addrCount: "Адреса",
+                totalCurrent: "Ток",
+                endVoltage: "Мин. напр.",
+                deviceCountLabel: "Количество устройств",
+                currentLabel: "Потребление тока (Тревога)",
+                currentTotal: "Всего:",
+                limit: "Лимит:",
+                endVoltageLabel: "Минимальное напряжение",
+                cableRes: "Сопр. кабеля (Справ.):",
+                maxDrop: "Макс. падение напр.:",
+                endRes: "Мин. напр.:",
+                minReq: "Мин. треб.:",
+                statusOK: "OK",
+                statusOver: "Превыш.",
+                statusOverload: "Перегр.",
+                statusLow: "Низкое",
+                warningVoltage: "Напряжение ниже минимума. Увеличьте сечение кабеля.",
+                warningSounderLimit: "Общее количество серий 622, 640, 641 не может превышать 32.",
+                warningLength: "Общая длина кабеля превышает 1000 м.",
+                customDeviceName: "Свое устройство",
+                unitMeters: "м",
+                unitPcs: "шт",
+                calculating: "вычисление...",
+                chartTitle: "График падения напряжения",
+                chartX: "Расстояние (м)",
+                chartY: "Напряжение (В)",
+                tipDistPanel: "Расстояние от панели до 1-го устройства.",
+                tipDistPrev: "Расстояние от предыдущего устройства.",
+                tipDistInterval: "Равный интервал: Длина кабеля между КАЖДЫМ соседним устройством.",
+                tipQtyFirst: "Первая строка - начало шлейфа. Кол-во фиксировано на 1.",
+                tipQtyChange: "Примечание: Если кол-во > 1, 'Интервал' — это расстояние между устройствами.",
+                tipQtyConfirm: "Пожалуйста, подтвердите, что интервал для этой модели одинаков.",
+                delete: "Удалить",
+                tipTitle: "Примечание:",
+                tipText: "Интервал/Расстояние: Первое устройство — это расстояние линии от панели; Второе и последующие устройства — это расстояние линии от предыдущего устройства.",
+                totalCableLen: "Общая длина кабеля"
+            },
+            'es-ES': {
+                title: "Calculadora de Bucle Numens",
+                systemParams: "Parámetros del Sistema",
+                panelModel: "Modelo de Panel",
+                defaultSpacing: "Espaciado Pred. (m)",
+                maxCurrent: "Corriente Máx Bucle (mA)",
+                minVoltage: "Voltaje Mín Disp. (V)",
+                cableSpec: "Especificación del Cable",
+                deviceList: "Lista de Dispositivos",
+                colNo: "Nº",
+                add: "Añadir",
+                custom: "Personalizado",
+                deleteSelected: "Eliminar",
+                colName: "Nombre",
+                colAlarm: "Alarma(mA)",
+                colSpacing: "Intervalo(m)",
+                colQty: "Cant.",
+                resultTitle: "Resultados",
+                btnCalculate: "Calcular",
+                reCalculateHint: "Datos cambiados. Haga clic en Calcular.",
+                tipNoDevices: "Por favor, agregue dispositivos antes de calcular.", 
+                tipAddLimit: "No se puede añadir: El límite de series 622/640/641 excede 32.",
+                tipLengthLimit: "¡La longitud total excede 1000m! Por favor reduzca.",
+                showDetails: "Mostrar detalles",
+                hideDetails: "Ocultar detalles",
+                addrCount: "Dirección",
+                totalCurrent: "Corriente",
+                endVoltage: "Volt. Mín.",
+                deviceCountLabel: "Cantidad de Dispositivos",
+                currentLabel: "Consumo de Corriente (Alarma)",
+                currentTotal: "Total:",
+                limit: "Límite:",
+                endVoltageLabel: "Voltaje Mínimo",
+                cableRes: "Resistencia Cable (Ref):",
+                maxDrop: "Caída Voltaje Máx:",
+                endRes: "Volt. Mín.:",
+                minReq: "Mín Req:",
+                statusOK: "OK",
+                statusOver: "Exceso",
+                statusOverload: "Sobrecarga",
+                statusLow: "Bajo",
+                warningVoltage: "El voltaje mínimo es bajo. Aumente el calibre del cable.",
+                warningSounderLimit: "La cantidad total de series 622, 640, 641 no puede exceder 32.",
+                warningLength: "La longitud total del cable excede 1000 m.",
+                customDeviceName: "Disp. Personalizado",
+                unitMeters: "m",
+                unitPcs: "uds",
+                calculating: "Calculando...",
+                chartTitle: "Caída de Voltaje",
+                chartX: "Distancia (m)",
+                chartY: "Voltaje (V)",
+                tipDistPanel: "Distancia desde el Panel al 1er dispositivo.",
+                tipDistPrev: "Distancia desde el dispositivo anterior.",
+                tipDistInterval: "Espaciado uniforme: Longitud del cable entre CADA dispositivo adyacente.",
+                tipQtyFirst: "La 1ra fila es el inicio. La cantidad se fija en 1.",
+                tipQtyChange: "Nota: Si Cant. > 1, la 'Distancia' es el espacio entre dispositivos.",
+                tipQtyConfirm: "Por favor, confirme que el espaciado para este modelo es consistente.",
+                delete: "Eliminar",
+                tipTitle: "Nota:",
+                tipText: "Espaciado/Distancia: El primer dispositivo se refiere a la distancia de línea desde el Panel; El segundo y los siguientes se refieren a la distancia de línea desde el dispositivo anterior.",
+                totalCableLen: "Longitud Total Cable"
+            },
+            'pt-PT': {
+                title: "Calculadora de Loop Numens",
+                systemParams: "Parâmetros do Sistema",
+                panelModel: "Modelo do Painel",
+                defaultSpacing: "Espaçamento Padrão (m)",
+                maxCurrent: "Corrente Máx Loop (mA)",
+                minVoltage: "Tensão Mín Disp. (V)",
+                cableSpec: "Especificação do Cabo",
+                deviceList: "Lista de Dispositivos",
+                colNo: "Nº",
+                add: "Adicionar",
+                custom: "Person.",
+                deleteSelected: "Apagar",
+                colName: "Nome",
+                colAlarm: "Alarme(mA)",
+                colSpacing: "Intervalo(m)",
+                colQty: "Qtd",
+                resultTitle: "Resultados",
+                btnCalculate: "Calcular",
+                reCalculateHint: "Dados alterados. Clique em Calcular.",
+                tipNoDevices: "Por favor, adicione dispositivos antes de calcular.", 
+                tipAddLimit: "Não é possível adicionar: O limite das séries 622/640/641 excede 32.",
+                tipLengthLimit: "O comprimento total excede 1000m! Por favor reduza.",
+                showDetails: "Mostrar detalhes",
+                hideDetails: "Ocultar detalhes",
+                addrCount: "Endereços",
+                totalCurrent: "Corrente",
+                endVoltage: "Tensão Mín.",
+                deviceCountLabel: "Contagem de Dispositivos",
+                currentLabel: "Consumo de Corrente (Alarme)",
+                currentTotal: "Total:",
+                limit: "Limite:",
+                endVoltageLabel: "Tensão Mínima",
+                cableRes: "Resistência Cabo (Ref):",
+                maxDrop: "Queda Tensão Máx:",
+                endRes: "Tensão Mín.:",
+                minReq: "Mín Req:",
+                statusOK: "OK",
+                statusOver: "Exc.",
+                statusOverload: "Sobrecarga",
+                statusLow: "Baixa",
+                warningVoltage: "Tensão mínima abaixo do mínimo. Aumente a secção do cabo.",
+                warningSounderLimit: "A quantidade total das séries 622, 640, 641 não pode exceder 32.",
+                warningLength: "O comprimento total do cabo excede 1000 m.",
+                customDeviceName: "Disp. Personalizado",
+                unitMeters: "m",
+                unitPcs: "un",
+                calculating: "Calculando...",
+                chartTitle: "Queda de Tensão",
+                chartX: "Distância (m)",
+                chartY: "Tensão (V)",
+                tipDistPanel: "Distância do Painel ao 1º dispositivo.",
+                tipDistPrev: "Distância do dispositivo anterior.",
+                tipDistInterval: "Espaçamento uniforme: Comprimento do cabo entre CADA dispositivo adjacente.",
+                tipQtyFirst: "A 1ª linha é o início. Quantidade fixa em 1.",
+                tipQtyChange: "Nota: Se Qtd > 1, a 'Distância' é o espaço entre dispositivos.",
+                tipQtyConfirm: "Por favor, confirme se o espaçamento para este modelo é consistente.",
+                delete: "Apagar",
+                tipTitle: "Nota:",
+                tipText: "Espaçamento/Distância: O primeiro dispositivo refere-se à distância de linha do Painel; O segundo e os subsequentes referem-se à distância de linha do dispositivo anterior.",
+                totalCableLen: "Comprimento Total Cabo"
+            }
+        };
+
+        const CABLE_TYPES = [
+            { size: '1.0', resistance: 18.1, label: '1.0 mm²' },
+            { size: '1.5', resistance: 12.1, label: '1.5 mm²' },
+            { size: '2.5', resistance: 7.41, label: '2.5 mm²' },
+            { size: '4.0', resistance: 4.61, label: '4.0 mm²' },
+        ];
+
+        // --- 预设数据 (已反转顺序) ---
+        const PRESET_DEVICES = [
+            { name: 'SNA-360-SL', standby: 0.46, alarm: 2.0, ledCost: 1, type: 'Detector' },
+            { name: 'SNA-360-S2', standby: 0.46, alarm: 5.0, ledCost: 1, type: 'Detector' },
+            { name: 'SNA-360-CL', standby: 0.46, alarm: 2.0, ledCost: 1, type: 'Detector' },
+            { name: 'SNA-360-C2', standby: 0.46, alarm: 5.0, ledCost: 1, type: 'Detector' },
+            { name: 'HNA-360-HL', standby: 0.46, alarm: 5.0, ledCost: 1, type: 'Detector' },
+            { name: 'HNA-360-H2', standby: 0.46, alarm: 2.0, ledCost: 1, type: 'Detector' },
+            { name: '680-001', standby: 0.60, alarm: 0.0, ledCost: 0, type: 'Sounder' },
+            { name: '660-005', standby: 0.60, alarm: 2.0, ledCost: 1, type: 'Detector' },
+            { name: '660-001', standby: 0.40, alarm: 2.0, ledCost: 1, type: 'Detector' },
+            { name: '641-006', standby: 0.35, alarm: 16.0, ledCost: 0, type: 'Sounder' },
+            { name: '641-005', standby: 0.35, alarm: 16.0, ledCost: 0, type: 'Sounder' },
+            { name: '641-004', standby: 0.35, alarm: 5.0, ledCost: 0, type: 'Sounder' },
+            { name: '641-003', standby: 0.35, alarm: 13.0, ledCost: 0, type: 'Sounder' },
+            { name: '641-002', standby: 0.35, alarm: 13.0, ledCost: 0, type: 'Sounder' },
+            { name: '641-001', standby: 0.35, alarm: 5.0, ledCost: 0, type: 'Sounder' },
+            { name: '640-004', standby: 0.65, alarm: 5.0, ledCost: 0, type: 'Sounder' },
+            { name: '640-003', standby: 0.65, alarm: 8.0, ledCost: 0, type: 'Sounder' },
+            { name: '640-002', standby: 0.65, alarm: 10.0, ledCost: 0, type: 'Sounder' },
+            { name: '640-001', standby: 0.65, alarm: 10.0, ledCost: 0, type: 'Sounder' },
+            { name: '626-004', standby: 0.70, alarm: 4.0, ledCost: 0, type: 'Sounder' },
+            { name: '626-003', standby: 0.70, alarm: 2.3, ledCost: 0, type: 'Sounder' },
+            { name: '626-002', standby: 0.50, alarm: 3.8, ledCost: 0, type: 'Sounder' },
+            { name: '626-001', standby: 0.50, alarm: 2.1, ledCost: 0, type: 'Sounder' },
+            { name: '622-001', standby: 0.65, alarm: 1.5, ledCost: 0, type: 'Sounder' },
+            { name: '621-007', standby: 0.70, alarm: 2.0, ledCost: 1, type: 'Detector' },
+            { name: '621-006', standby: 0.70, alarm: 2.0, ledCost: 1, type: 'Detector' },
+            { name: '621-005', standby: 0.65, alarm: 2.0, ledCost: 1, type: 'Detector' },
+            { name: '621-004', standby: 1.00, alarm: 1.2, ledCost: 4, type: 'LSM' },  
+            { name: '621-003', standby: 0.50, alarm: 25.0, ledCost: 4, type: 'LSM' }, 
+            { name: '621-002', standby: 0.40, alarm: 3.0, ledCost: 1, type: 'Detector' },
+            { name: '621-001', standby: 0.40, alarm: 3.0, ledCost: 1, type: 'Detector' },
+            { name: '620-004', standby: 1.00, alarm: 12.0, ledCost: 0, type: 'Sounder' },
+            { name: '620-003', standby: 1.00, alarm: 12.0, ledCost: 0, type: 'Sounder' },
+            { name: '620-002', standby: 1.00, alarm: 12.0, ledCost: 0, type: 'Sounder' },
+            { name: '620-001', standby: 1.00, alarm: 12.0, ledCost: 0, type: 'Sounder' },
+            { name: '600-006', standby: 0.26, alarm: 5.0, ledCost: 1, type: 'Detector' },
+            { name: '600-005', standby: 0.26, alarm: 2.0, ledCost: 1, type: 'Detector' },
+            { name: '600-004', standby: 0.26, alarm: 5.0, ledCost: 1, type: 'Detector' },
+            { name: '600-003', standby: 0.26, alarm: 2.0, ledCost: 1, type: 'Detector' },
+            { name: '600-002', standby: 0.26, alarm: 2.0, ledCost: 1, type: 'Detector' },
+            { name: '600-001', standby: 0.26, alarm: 5.0, ledCost: 1, type: 'Detector' },
+        ];
+
+        // --- 2. 工具函数 (防抖) ---
+        function debounce(func, wait) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), wait);
+            };
+        }
+
+        const SvgIcon = {
+            props: ['name', 'className'],
+            template: `
+                <svg v-if="name === 'CheckCircle'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                <svg v-else-if="name === 'XCircle'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                <svg v-else-if="name === 'Plus'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                <svg v-else-if="name === 'Trash2'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                <svg v-else-if="name === 'AlertTriangle'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                <svg v-else-if="name === 'Info'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                <svg v-else-if="name === 'Zap'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                <svg v-else-if="name === 'Server'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><rect width="20" height="8" x="2" y="2" rx="2" ry="2"/><rect width="20" height="8" x="2" y="14" rx="2" ry="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+                <svg v-else-if="name === 'FileText'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <svg v-else-if="name === 'Edit'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <svg v-else-if="name === 'Cable'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
+                <svg v-else-if="name === 'GripVertical'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+                <svg v-else-if="name === 'Globe'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+                <svg v-else-if="name === 'Loader'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                <svg v-else-if="name === 'Search'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <svg v-else-if="name === 'Filter'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                <svg v-else-if="name === 'ChevronDown'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><path d="m6 9 6 6 6-6"/></svg>
+                <svg v-else-if="name === 'ChevronUp'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><path d="m18 15-6-6-6 6"/></svg>
+                <svg v-else-if="name === 'Play'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                <svg v-else-if="name === 'Calculator'" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="className"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+            `
+        };
+
+        const App = {
+            components: { SvgIcon },
+            setup() {
+                // --- State ---
+                const lang = ref('en-US'); 
+                const panelModel = ref('6004'); 
+                const voltageOutput = ref(28); 
+                const maxCurrent = ref(400);
+                const minVoltage = ref(17);
+                const defaultSpacing = ref(10); // 设置默认间距为 10
+                const cableType = ref(CABLE_TYPES[1]); 
+                const isCalculating = ref(false);
+                const hasCalculated = ref(false);
+                const showDetails = ref(false);
+                const showNoDeviceWarning = ref(false); 
+                const showLimitWarning = ref(false); 
+                
+                // 核心数据
+                const devices = ref([]);
+                const selectedPreset = ref(PRESET_DEVICES[0].name); 
+                const draggedItemIndex = ref(null);
+                
+                // 实时计算总线长
+                const currentTotalDistance = computed(() => {
+                    return devices.value.reduce((sum, d) => {
+                         const q = parseFloat(d.qty) || 0;
+                         const s = parseFloat(d.spacing) || 0;
+                         return sum + (q * s);
+                    }, 0);
+                });
+
+                // 结果容器
+                const results = ref({
+                    totalAlarm: 0,
+                    totalDevices: 0,
+                    cableResistance: 0,
+                    voltDropAlarm: 0,
+                    voltageAtEndAlarm: 0,
+                    isCurrentPass: true,
+                    isVoltagePass: true,
+                    isCountPass: true,
+                    isSounderLimitPass: true,
+                    isLengthPass: true, // 新增
+                    totalDistance: 0,
+                    usedLedSlots: 0,
+                    totalLitDevices: 0,
+                    deviceRows: [],
+                    chartPoints: [] 
+                });
+
+                const t = computed(() => TRANSLATIONS[lang.value]);
+                const selectedCount = computed(() => devices.value.filter(d => d.selected).length);
+                const isAllSelected = computed(() => devices.value.length > 0 && selectedCount.value === devices.value.length);
+
+                // --- 逻辑函数 ---
+                const sanitizeInput = (device, index) => {
+                    const isRestricted = RESTRICTED_SERIES.some(prefix => device.name.startsWith(prefix));
+                    
+                    let qty = parseFloat(device.qty) || 0;
+                    
+                    // 强制第一行数量为1
+                    if (index === 0) {
+                        qty = 1;
+                    } else {
+                        qty = Math.max(1, Math.min(ADDRESS_LIMIT, qty)); 
+                    }
+                    
+                    const spacing = Math.max(0, parseFloat(device.spacing) || 0);
+                    
+                    const cost = device.ledCost !== undefined ? device.ledCost : 1;
+                    const type = device.type || 'Detector';
+                    return { ...device, qty, spacing, ledCost: cost, type };
+                };
+
+                const calculateDeviceStates = (rawDevices) => {
+                    const cleanDevices = rawDevices.map((d, idx) => sanitizeInput(d, idx));
+                    let totalSlotsNeededByPriority = 0;
+                    let restrictedSeriesCount = 0;
+                    
+                    cleanDevices.forEach(dev => {
+                        if (dev.type === 'LSM' || dev.ledCost > 1) { 
+                            totalSlotsNeededByPriority += dev.qty * dev.ledCost;
+                        }
+                        if (RESTRICTED_SERIES.some(prefix => dev.name.startsWith(prefix))) {
+                            restrictedSeriesCount += dev.qty;
+                        }
+                    });
+
+                    const maxSlotsForNormal = Math.max(0, MAX_ALARM_LEDS - totalSlotsNeededByPriority);
+                    let slotsOccupiedByNormal = 0;
+                    let totalLitCount = 0;
+                    let totalQty = 0;
+                    let totalCurrentMA = 0;
+
+                    const processedRows = cleanDevices.map(dev => {
+                        let activeAlarmQty = 0;
+                        let standbyQty = 0;
+                        
+                        if (dev.type === 'LSM' || dev.ledCost > 1) {
+                            activeAlarmQty = dev.qty;
+                        } else if (dev.ledCost === 0) {
+                            activeAlarmQty = dev.qty;
+                        } else {
+                            const remaining = maxSlotsForNormal - slotsOccupiedByNormal;
+                            if (remaining > 0) {
+                                const canLight = Math.floor(remaining / dev.ledCost);
+                                const actuallyLit = Math.min(dev.qty, canLight);
+                                activeAlarmQty = actuallyLit;
+                                slotsOccupiedByNormal += actuallyLit * dev.ledCost;
+                            } else {
+                                activeAlarmQty = 0;
+                            }
+                        }
+                        standbyQty = dev.qty - activeAlarmQty;
+                        
+                        const rowCurrent = (activeAlarmQty * dev.alarm) + (standbyQty * dev.standby);
+                        const isNotLit = activeAlarmQty === 0 && dev.qty > 0;
+                        
+                        totalLitCount += activeAlarmQty;
+                        totalQty += dev.qty;
+                        totalCurrentMA += rowCurrent;
+
+                        return { ...dev, activeAlarmQty, standbyQty, rowCurrent, isNotLit };
+                    });
+
+                    return {
+                        processedRows,
+                        totalQty,
+                        totalCurrentMA,
+                        usedLedSlots: totalSlotsNeededByPriority + slotsOccupiedByNormal,
+                        totalLitCount,
+                        isSounderLimitPass: restrictedSeriesCount <= MAX_SOUNDER_LIMIT
+                    };
+                };
+
+                const calculateVoltageDrop = (processedData) => {
+                    const { processedRows, totalCurrentMA } = processedData;
+                    let currentAccumulatedVoltageDrop = 0;
+                    let currentFlowing = totalCurrentMA; 
+                    let totalDist = 0;
+
+                    for (const dev of processedRows) {
+                        if (dev.qty <= 0) continue;
+
+                        const unitRes = (cableType.value.resistance * (dev.spacing / 1000)) * 2;
+                        const avgDeviceCurrent = dev.rowCurrent / dev.qty; 
+                        
+                        const sumCurrentFactors = dev.qty * currentFlowing - (avgDeviceCurrent * dev.qty * (dev.qty - 1) / 2);
+                        const groupDrop = (sumCurrentFactors / 1000) * unitRes; 
+                        
+                        currentAccumulatedVoltageDrop += groupDrop;
+                        currentFlowing -= dev.rowCurrent;
+                        
+                        totalDist += dev.qty * dev.spacing;
+                    }
+
+                    return {
+                        voltDropAlarm: currentAccumulatedVoltageDrop,
+                        totalDistance: totalDist
+                    };
+                };
+
+                const runCalculation = () => {
+                    if (devices.value.length === 0) {
+                         showNoDeviceWarning.value = true;
+                         setTimeout(() => { showNoDeviceWarning.value = false; }, 3000);
+                         return;
+                    }
+                    
+                    // Check cable length limit before calculation
+                    if (currentTotalDistance.value > MAX_CABLE_LENGTH) {
+                        // We can just show the length warning in result or as a toast
+                        // Since user asked to prompt before calculation, we will show a warning and maybe stop?
+                        // Let's proceed but ensure the result shows failure.
+                        // Or we can just rely on the real-time red text.
+                    }
+
+                    isCalculating.value = true;
+                    showNoDeviceWarning.value = false;
+                    showLimitWarning.value = false;
+                    
+                    setTimeout(() => {
+                        const stateData = calculateDeviceStates(devices.value);
+                        const dropData = calculateVoltageDrop(stateData);
+
+                        const vEnd = voltageOutput.value - dropData.voltDropAlarm;
+                        const cableResTotal = (cableType.value.resistance * (dropData.totalDistance / 1000)) * 2;
+
+                        results.value = {
+                            totalAlarm: stateData.totalCurrentMA,
+                            totalDevices: stateData.totalQty,
+                            cableResistance: cableResTotal,
+                            voltDropAlarm: dropData.voltDropAlarm,
+                            voltageAtEndAlarm: vEnd,
+                            isCurrentPass: stateData.totalCurrentMA <= maxCurrent.value,
+                            isVoltagePass: vEnd >= minVoltage.value,
+                            isCountPass: stateData.totalQty <= ADDRESS_LIMIT,
+                            isSounderLimitPass: stateData.isSounderLimitPass,
+                            isLengthPass: dropData.totalDistance <= MAX_CABLE_LENGTH,
+                            totalDistance: dropData.totalDistance,
+                            usedLedSlots: stateData.usedLedSlots,
+                            totalLitDevices: stateData.totalLitCount,
+                            deviceRows: stateData.processedRows
+                        };
+                        
+                        hasCalculated.value = true;
+                        isCalculating.value = false;
+                        
+                        if (!results.value.isCurrentPass || !results.value.isVoltagePass || !results.value.isCountPass || !results.value.isSounderLimitPass || !results.value.isLengthPass) {
+                            showDetails.value = true;
+                        }
+                    }, 300);
+                };
+
+                watch([devices, voltageOutput, minVoltage, cableType], () => { hasCalculated.value = false; }, { deep: true });
+                
+                const validateQtyInput = (device, index) => {
+                    let val = parseInt(device.qty);
+                    if (isNaN(val) || val < 1) val = 1;
+                    
+                    if (index === 0) {
+                        device.qty = 1;
+                        return;
+                    }
+                    if (val > ADDRESS_LIMIT) val = ADDRESS_LIMIT;
+                    
+                    if (RESTRICTED_SERIES.some(prefix => device.name.startsWith(prefix))) {
+                        if (val > MAX_SOUNDER_LIMIT) {
+                            val = MAX_SOUNDER_LIMIT;
+                        }
+                    }
+                    device.qty = val;
+                };
+                
+                const getSpacingPlaceholder = (index, qty) => {
+                    if (index === 0) {
+                        return t.value.phDistPanel;
+                    }
+                    if (qty === 1) {
+                        return t.value.phDistPrev;
+                    }
+                    return t.value.phSpacing;
+                };
+
+                const addDevice = () => {
+                    const preset = PRESET_DEVICES.find(p => p.name === selectedPreset.value);
+                    if (!preset) return;
+
+                    const isRestricted = RESTRICTED_SERIES.some(prefix => preset.name.startsWith(prefix));
+                    if (isRestricted) {
+                         let currentRestrictedTotal = 0;
+                         devices.value.forEach(d => {
+                             if (RESTRICTED_SERIES.some(prefix => d.name.startsWith(prefix))) {
+                                 currentRestrictedTotal += (parseInt(d.qty) || 0);
+                             }
+                         });
+                         if (currentRestrictedTotal >= MAX_SOUNDER_LIMIT) {
+                             showLimitWarning.value = true;
+                             setTimeout(() => { showLimitWarning.value = false; }, 3000);
+                             return;
+                         }
+                    }
+
+                    let deviceName = preset.name;
+                    const newDevice = {
+                        id: Date.now(),
+                        name: deviceName,
+                        qty: 1, spacing: parseFloat(defaultSpacing.value) || 5,
+                        alarm: preset.alarm, standby: preset.standby, ledCost: preset.ledCost, type: preset.type || 'Detector',
+                        selected: false
+                    };
+                    devices.value.push(newDevice);
+                    hasCalculated.value = false;
+                    showLimitWarning.value = false;
+                };
+
+                const deleteSelected = () => { devices.value = devices.value.filter(dev => !dev.selected); hasCalculated.value = false; };
+                const removeDevice = (id) => { devices.value = devices.value.filter(dev => dev.id !== id); hasCalculated.value = false; };
+                const toggleSelectAll = () => { const newStatus = !isAllSelected.value; devices.value.forEach(d => d.selected = newStatus); };
+                const toggleSelect = (id) => { const dev = devices.value.find(d => d.id === id); if(dev) dev.selected = !dev.selected; };
+                const getSpacingTooltip = (index, qty) => { if (index === 0) return t.value.tipDistPanel; if (qty === 1) return t.value.tipDistPrev; return t.value.tipDistInterval; };
+                const getQtyTooltip = (index) => { if (index === 0) return t.value.tipQtyFirst; return t.value.tipQtyChange; };
+                
+                const onDragStart = (e, index) => { draggedItemIndex.value = index; e.dataTransfer.effectAllowed = "move"; };
+                const onDragOver = (e, index) => { e.preventDefault(); if (draggedItemIndex.value === null || draggedItemIndex.value === index) return; const items = [...devices.value]; const draggedItem = items[draggedItemIndex.value]; items.splice(draggedItemIndex.value, 1); items.splice(index, 0, draggedItem); devices.value = items; draggedItemIndex.value = index; hasCalculated.value = false; };
+                const onDragEnd = () => { draggedItemIndex.value = null; };
+
+                onMounted(() => { });
+
+                return {
+                    lang, t, panelModel, defaultSpacing, voltageOutput, maxCurrent, minVoltage, cableType,
+                    devices, selectedPreset, results, draggedItemIndex, isCalculating, hasCalculated, showDetails,
+                    CABLE_TYPES, PRESET_DEVICES, selectedCount, isAllSelected, ADDRESS_LIMIT, showNoDeviceWarning, showLimitWarning,
+                    addDevice, deleteSelected, removeDevice, toggleSelectAll, toggleSelect,
+                    onDragStart, onDragOver, onDragEnd, getSpacingTooltip, getQtyTooltip, validateQtyInput, runCalculation,
+                    getSpacingPlaceholder, currentTotalDistance, MAX_CABLE_LENGTH
+                };
+            },
+            template: `
+                <div class="max-w-5xl mx-auto p-4 min-h-screen">
+                    <header class="bg-slate-800 text-white p-6 rounded-xl shadow-lg mb-6 flex justify-between items-center">
+                        <div class="flex items-center gap-4">
+                            <h1 class="text-2xl font-bold flex items-center gap-2">
+                                {{ t.title }}
+                            </h1>
+                            <div v-if="isCalculating" class="flex items-center gap-2 text-xs text-blue-300">
+                                <SvgIcon name="Loader" className="w-4 h-4 calculating-spinner" /> {{ t.calculating }}
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 bg-slate-700 p-1 rounded no-print">
+                            <SvgIcon name="Globe" className="w-4 h-4 text-slate-300 ml-2" />
+                            <select v-model="lang" class="bg-slate-700 text-white text-sm outline-none border-none cursor-pointer py-1 pr-2">
+                                <option value="en-US">English</option>
+                                <option value="zh-CN">中文</option>
+                                <option value="ru-RU">Русский</option>
+                                <option value="es-ES">Español</option>
+                                <option value="pt-PT">Português</option>
+                            </select>
+                        </div>
+                    </header>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 space-y-6">
+                            <!-- 系统参数 -->
+                            <section class="bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+                                <h2 class="font-bold text-sm mb-2 flex items-center gap-2 text-slate-700 border-b pb-1">
+                                    <SvgIcon name="Zap" className="w-4 h-4 text-yellow-500" /> {{ t.systemParams }}
+                                </h2>
+                                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-semibold text-slate-500 uppercase">{{ t.panelModel }}</label>
+                                        <select v-model="panelModel" class="w-full p-1 border rounded bg-white text-sm h-8">
+                                            <option value="6004">6004</option>
+                                            <option value="6002">6002</option>
+                                        </select>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-semibold text-slate-500 uppercase">{{ t.maxCurrent }}</label>
+                                        <input type="number" v-model.number="maxCurrent" disabled class="w-full p-1 border rounded text-sm h-8 bg-gray-100 text-gray-500 cursor-not-allowed" />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-semibold text-slate-500 uppercase">{{ t.minVoltage }}</label>
+                                        <input type="number" v-model.number="minVoltage" class="w-full p-1 border rounded text-sm h-8" />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-semibold text-slate-500 uppercase">{{ t.defaultSpacing }}</label>
+                                        <input type="number" v-model.number="defaultSpacing" min="0" class="w-full p-1 border rounded text-sm h-8" />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[10px] font-semibold text-slate-500 uppercase">{{ t.cableSpec }}</label>
+                                        <select v-model="cableType" class="w-full p-1 border rounded bg-white text-sm h-8">
+                                            <option v-for="type in CABLE_TYPES" :key="type.size" :value="type">{{ type.label }} ({{ type.resistance }}Ω/km)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- 设备清单 -->
+                            <section class="bg-white p-5 rounded-lg shadow-sm border border-slate-200 flex flex-col h-[650px]">
+                                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 border-b pb-4 gap-4 flex-shrink-0 no-print">
+                                    <div class="flex items-center gap-3">
+                                        <h2 class="font-bold text-lg flex items-center gap-2 text-slate-700">
+                                            <SvgIcon name="Server" className="w-5 h-5 text-blue-600" /> {{ t.deviceList }}
+                                        </h2>
+                                        <button v-if="selectedCount > 0" @click="deleteSelected" class="flex items-center gap-1 bg-red-50 text-red-600 px-2 py-1 rounded text-xs hover:bg-red-100 border border-red-200 transition-colors" :title="t.deleteSelected">
+                                            <SvgIcon name="Trash2" className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                                        <select v-model="selectedPreset" class="text-sm p-2 border rounded bg-slate-50 w-full sm:w-48 font-medium text-slate-700">
+                                            <option v-for="(dev, idx) in PRESET_DEVICES" :key="idx" :value="dev.name">
+                                                {{ dev.name }}
+                                            </option>
+                                        </select>
+                                        <div class="flex gap-2 shrink-0">
+                                            <button @click="addDevice" class="flex items-center gap-1 bg-blue-600 text-white px-4 py-1.5 rounded text-sm hover:bg-blue-700 shadow-sm whitespace-nowrap">
+                                                <SvgIcon name="Plus" className="w-4 h-4" /> {{ t.add }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="bg-blue-50 p-3 text-xs text-blue-700 rounded mb-4 flex items-start gap-2 flex-shrink-0">
+                                    <SvgIcon name="Info" className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                    <div>
+                                        <strong>{{ t.tipTitle }}</strong> 
+                                        <p>{{ t.tipText }}</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- 实时累计线长显示 -->
+                                <div class="pl-6 pt-1 border-t border-blue-200 mt-1 mb-2 text-right flex items-center justify-end gap-2">
+                                    <div v-if="currentTotalDistance > MAX_CABLE_LENGTH" class="flex items-center gap-1 text-red-600 text-xs font-bold animate-pulse">
+                                        <SvgIcon name="AlertTriangle" className="w-4 h-4" />
+                                        {{ t.tipLengthLimit }}
+                                    </div>
+                                    <div>
+                                        {{ t.totalCableLen }}: 
+                                        <span :class="['font-bold text-sm', currentTotalDistance > MAX_CABLE_LENGTH ? 'text-red-600' : 'text-blue-800']">
+                                            {{ currentTotalDistance.toFixed(2) }} {{ t.unitMeters }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- 添加设备限制警告 -->
+                                <div v-if="showLimitWarning" class="mb-2 p-2 bg-red-100 text-red-700 text-center text-xs font-bold rounded animate-pulse">
+                                    {{ t.tipAddLimit }}
+                                </div>
+
+                                <div class="flex-grow overflow-hidden border rounded-md bg-white relative">
+                                    <div class="absolute inset-0 overflow-auto custom-scrollbar">
+                                        <table class="w-full text-sm text-left border-collapse">
+                                            <thead class="bg-slate-50 text-slate-600 uppercase text-xs sticky top-0 z-10 shadow-sm ring-1 ring-slate-200">
+                                                <tr>
+                                                    <th class="p-3 w-10 text-center border-r border-slate-100 align-middle no-print">
+                                                        <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                                    </th>
+                                                    <th class="p-3 w-12 text-center align-middle text-slate-400 font-bold">{{ t.colNo }}</th>
+                                                    <th class="p-3 align-middle w-32">{{ t.colName }}</th>
+                                                    <th class="p-3 w-20 text-center align-middle">{{ t.colAlarm }}</th>
+                                                    <th class="p-3 w-24 text-center bg-blue-50 text-blue-700 align-middle">{{ t.colSpacing }}</th>
+                                                    <th class="p-3 w-20 text-center align-middle">{{ t.colQty }}</th>
+                                                    <th class="p-3 w-10 text-center align-middle no-print"></th> 
+                                                    <th class="p-3 w-10 text-center align-middle no-print"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-slate-100">
+                                                <tr 
+                                                    v-for="(d, index) in devices" 
+                                                    :key="d.id"
+                                                    :class="['hover:bg-slate-50 group transition-colors duration-150', d.selected ? 'bg-blue-50/50' : '', draggedItemIndex === index ? 'dragging' : '', (results.deviceRows[index] && results.deviceRows[index].isNotLit) ? '' : '']"
+                                                >
+                                                    <td class="p-3 w-10 text-center border-r border-slate-100 align-middle no-print">
+                                                        <input type="checkbox" :checked="d.selected" @change="toggleSelect(d.id)" class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+                                                    </td>
+                                                    
+                                                    <td class="p-3 w-12 text-center align-middle font-mono text-xs text-slate-400">
+                                                        {{ index + 1 }}
+                                                    </td>
+
+                                                    <td class="p-2 align-middle w-32">
+                                                        <input type="text" v-model="d.name" class="w-full bg-transparent border-b border-transparent focus:border-blue-400 outline-none transition-colors hover:border-slate-300 h-8" placeholder="Device" />
+                                                    </td>
+                                                    
+                                                    <td class="p-2 w-20 align-middle">
+                                                        <input 
+                                                            type="number" 
+                                                            step="0.001" 
+                                                            v-model.number="d.alarm" 
+                                                            :readonly="true"
+                                                            :class="['w-full text-center border-b border-transparent focus:border-blue-400 outline-none h-8 font-mono text-lg', 'cursor-not-allowed text-slate-500']"
+                                                            placeholder="0" 
+                                                        />
+                                                    </td>
+
+                                                    <td class="p-2 w-24 bg-blue-50/30 align-middle">
+                                                        <div class="flex justify-center" :title="getSpacingTooltip(index, d.qty)">
+                                                            <input type="number" min="0" v-model.number="d.spacing" :placeholder="getSpacingPlaceholder(index, d.qty)" class="w-full max-w-[80px] bg-white p-1 rounded border border-blue-200 text-center text-blue-700 font-medium h-8 cursor-help placeholder-blue-300" />
+                                                        </div>
+                                                    </td>
+                                                    
+                                                    <td class="p-2 w-20 align-middle">
+                                                        <div class="flex justify-center" :title="getQtyTooltip(index)">
+                                                            <input 
+                                                                type="number" 
+                                                                min="1" 
+                                                                max="125" 
+                                                                v-model.number="d.qty" 
+                                                                @change="validateQtyInput(d, index)"
+                                                                :readonly="index === 0"
+                                                                :class="['w-16 p-1 rounded border text-center font-bold h-8 focus:ring-2 focus:ring-yellow-200', index === 0 ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-slate-50 cursor-help']"
+                                                            />
+                                                        </div>
+                                                    </td>
+
+                                                    <td 
+                                                        class="p-3 w-10 text-center drag-handle hover:text-slate-600 align-middle no-print"
+                                                        draggable="true"
+                                                        @dragstart="onDragStart($event, index)"
+                                                        @dragover="onDragOver($event, index)"
+                                                        @dragend="onDragEnd"
+                                                    >
+                                                        <SvgIcon name="GripVertical" className="w-5 h-5 mx-auto" />
+                                                    </td>
+
+                                                    <td class="p-3 w-10 text-center align-middle no-print">
+                                                        <button @click="removeDevice(d.id)" class="text-slate-300 hover:text-red-500 transition-colors" :title="t.delete">
+                                                            <SvgIcon name="Trash2" className="w-4 h-4 mx-auto" />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+
+                        <!-- 结果面板 -->
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200 sticky top-6">
+                                <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
+                                    <h3 class="font-bold text-lg flex items-center gap-2"><SvgIcon name="Calculator" className="w-5 h-5" /> {{ t.resultTitle }}</h3>
+                                    <!-- 展开/收起按钮 -->
+                                    <button v-if="hasCalculated" @click="showDetails = !showDetails" class="text-xs flex items-center gap-1 text-slate-300 hover:text-white transition-colors no-print">
+                                        {{ showDetails ? t.hideDetails : t.showDetails }}
+                                        <SvgIcon :name="showDetails ? 'ChevronUp' : 'ChevronDown'" className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <div class="p-5 space-y-6">
+                                
+                                    <!-- 开始计算按钮 -->
+                                    <button 
+                                        @click="runCalculation" 
+                                        :disabled="isCalculating || currentTotalDistance > MAX_CABLE_LENGTH"
+                                        :class="['w-full font-bold py-3 px-4 rounded-lg shadow transition-colors flex justify-center items-center gap-2 mb-4 no-print', currentTotalDistance > MAX_CABLE_LENGTH ? 'bg-gray-400 cursor-not-allowed text-gray-200' : 'bg-blue-600 hover:bg-blue-700 text-white']"
+                                    >
+                                        <SvgIcon v-if="!isCalculating" name="Play" className="w-5 h-5 fill-current" />
+                                        <SvgIcon v-else name="Loader" className="w-5 h-5 animate-spin" />
+                                        {{ t.btnCalculate }}
+                                    </button>
+                                    
+                                    <!-- 未计算时的提示 -->
+                                    <div v-if="!hasCalculated && !showNoDeviceWarning" class="text-center text-slate-400 py-4 text-sm bg-slate-50 rounded border border-dashed border-slate-200">
+                                        {{ t.reCalculateHint }}
+                                    </div>
+                                    
+                                    <!-- 未添加设备警告 -->
+                                    <div v-if="showNoDeviceWarning" class="mb-4 p-3 bg-red-100 text-red-700 rounded border border-red-200 text-center text-sm font-bold animate-pulse">
+                                        {{ t.tipNoDevices }}
+                                    </div>
+
+                                    <!-- 只有计算后才显示结果摘要 -->
+                                    <div v-if="hasCalculated" class="grid grid-cols-3 gap-2">
+                                        <div 
+                                            @click="showDetails = true"
+                                            :class="['p-2 rounded border text-center cursor-pointer transition-colors', results.isCountPass ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100']"
+                                        >
+                                            <div class="text-[10px] uppercase font-bold">{{ t.addrCount }}</div>
+                                            <div class="flex justify-center items-center gap-1 font-bold">
+                                                <SvgIcon :name="results.isCountPass ? 'CheckCircle' : 'XCircle'" className="w-4 h-4"/> 
+                                                {{ results.isCountPass ? t.statusOK : t.statusOver }}
+                                            </div>
+                                        </div>
+                                        <div 
+                                            @click="showDetails = true"
+                                            :class="['p-2 rounded border text-center cursor-pointer transition-colors', results.isCurrentPass ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100']"
+                                        >
+                                            <div class="text-[10px] uppercase font-bold">{{ t.totalCurrent }}</div>
+                                            <div class="flex justify-center items-center gap-1 font-bold">
+                                                <SvgIcon :name="results.isCurrentPass ? 'CheckCircle' : 'XCircle'" className="w-4 h-4"/> 
+                                                {{ results.isCurrentPass ? t.statusOK : t.statusOverload }}
+                                            </div>
+                                        </div>
+                                        <div 
+                                            @click="showDetails = true"
+                                            :class="['p-2 rounded border text-center cursor-pointer transition-colors', results.isVoltagePass ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100']"
+                                        >
+                                            <div class="text-[10px] uppercase font-bold">{{ t.endVoltage }}</div>
+                                            <div class="flex justify-center items-center gap-1 font-bold">
+                                                <SvgIcon :name="results.isVoltagePass ? 'CheckCircle' : 'XCircle'" className="w-4 h-4"/> 
+                                                {{ results.isVoltagePass ? t.statusOK : t.statusLow }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 详细信息：默认隐藏，可折叠 -->
+                                    <div v-if="hasCalculated && showDetails" class="space-y-4 text-sm border-t pt-4 animate-fade-in">
+                                        <div>
+                                            <h4 class="font-semibold text-slate-700 border-b pb-1 mb-2">{{ t.deviceCountLabel }}</h4>
+                                            <div class="flex justify-between"><span class="text-slate-500">{{ t.addrCount }}:</span><span class="font-mono font-bold">{{ results.totalDevices }} / {{ ADDRESS_LIMIT }}</span></div>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-slate-700 border-b pb-1 mb-2">{{ t.currentLabel }}</h4>
+                                            <div class="flex justify-between bg-red-50 px-2 -mx-2 rounded"><span class="text-black font-bold">{{ t.currentTotal }}</span><span :class="['font-mono font-bold', results.isCurrentPass ? 'text-black' : 'text-red-600']">{{ results.totalAlarm.toFixed(0) }} mA</span></div>
+                                            <div class="flex justify-between text-xs text-slate-400 mt-1"><span>{{ t.limit }}</span><span>&le; {{ maxCurrent }} mA</span></div>
+                                        </div>
+                                        <div>
+                                            <h4 class="font-semibold text-slate-700 border-b pb-1 mb-2">{{ t.endVoltageLabel }}</h4>
+                                            <div class="flex justify-between"><span class="text-slate-500">{{ t.cableRes }}</span><span class="font-mono text-xs">{{ results.cableResistance.toFixed(4) }} &Omega;</span></div>
+                                            <div class="flex justify-between"><span class="text-slate-500">{{ t.maxDrop }}</span><span class="font-mono font-bold text-black">-{{ results.voltDropAlarm.toFixed(4) }} V</span></div>
+                                            <div class="flex justify-between items-center mt-2 pt-2 border-t border-dashed">
+                                                <span class="font-bold text-slate-800">{{ t.endRes }}</span>
+                                                <span :class="['font-mono text-xl font-bold', results.isVoltagePass ? 'text-green-600' : 'text-red-600']">{{ results.voltageAtEndAlarm.toFixed(4) }} V</span>
+                                            </div>
+                                            <div class="flex justify-between text-xs text-slate-400 mt-1"><span>{{ t.minReq }}</span><span>&ge; {{ minVoltage }} V</span></div>
+                                        </div>
+                                        
+                                        <div v-if="!results.isVoltagePass" class="p-3 bg-red-50 text-red-700 text-xs rounded border border-red-100 flex gap-2">
+                                            <SvgIcon name="AlertTriangle" className="w-4 h-4 shrink-0" /> {{ t.warningVoltage }}
+                                        </div>
+                                        
+                                        <div v-if="!results.isSounderLimitPass" class="p-3 bg-orange-50 text-orange-700 text-xs rounded border border-orange-100 flex gap-2">
+                                            <SvgIcon name="AlertTriangle" className="w-4 h-4 shrink-0" /> {{ t.warningSounderLimit }}
+                                        </div>
+                                        
+                                        <div v-if="!results.isLengthPass" class="p-3 bg-red-50 text-red-700 text-xs rounded border border-red-100 flex gap-2">
+                                            <SvgIcon name="AlertTriangle" className="w-4 h-4 shrink-0" /> {{ t.warningLength }}
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `
+        };
+
+        createApp(App).mount('#app');
+    </script>
+</body>
+</html>
