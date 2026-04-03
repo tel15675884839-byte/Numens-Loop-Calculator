@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Circuit Configuration</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Space+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#e60a15",
+                        "background-light": "#f8f5f6",
+                        "background-dark": "#221011",
+                        "success": "#08A045",
+                        "surface": "#ffffff",
+                        "surface-dark": "#121417",
+                        "text-main": "#1B1D21",
+                        "text-inv": "#F8F9FA",
+                        "muted": "#868E96",
+                        "border-hard": "#CED4DA"
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["Space Mono", "monospace"]
+                    },
+                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .mono-text {
+            font-family: 'Space Mono', monospace;
+        }
+        /* Hard edges overrides */
+        * {
+            border-radius: 0 !important;
+        }
+    </style>
+</head>
+<body class="bg-background-light text-text-main h-screen flex overflow-hidden">
+<!-- Left Sidebar -->
+<aside class="w-[240px] bg-surface-dark text-text-inv flex flex-col flex-shrink-0 border-r border-[#343A40]">
+<div class="h-12 flex items-center px-4 border-b border-[#343A40]">
+<h1 class="text-[18px] font-semibold tracking-[1px] text-white">BIOSENSOR_V2</h1>
+</div>
+<nav class="flex-1 py-4 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-2 text-[14px] bg-[#1B1D21] text-white border-l-4 border-primary" href="#">
+<span class="material-symbols-outlined text-[20px]">cable</span>
+                回路配置
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-[14px] text-text-inv hover:bg-[#1B1D21] transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">inventory_2</span>
+                产品库
+            </a>
+<a class="flex items-center gap-3 px-4 py-2 text-[14px] text-text-inv hover:bg-[#1B1D21] transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+                系统设置
+            </a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col min-w-0 bg-surface">
+<!-- Top Header -->
+<header class="h-12 border-b border-border-hard flex items-center justify-between px-6 bg-surface-dark text-text-inv">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<h2 class="text-[16px] font-semibold uppercase tracking-wider">DASHBOARD</h2>
+</div>
+<div class="flex items-center gap-6 text-[13px] font-medium">
+<button class="hover:text-white flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">palette</span> 主题</button>
+<button class="hover:text-white flex items-center gap-1"><span class="material-symbols-outlined text-[16px]">language</span> 语言</button>
+</div>
+</header>
+<!-- Circuit Workspace -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Central Main Workspace -->
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+<!-- Tabs -->
+<div class="flex border-b border-border-hard px-4 bg-surface">
+<button class="px-6 py-3 border-b-[3px] border-primary text-text-main font-bold text-[14px]">回路1</button>
+<button class="px-6 py-3 border-b-[3px] border-transparent text-muted font-medium text-[14px] hover:text-text-main flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">add</span> 添加回路
+                    </button>
+</div>
+<div class="p-6 flex flex-col gap-6">
+<!-- Section 1: System Parameters -->
+<section>
+<div class="flex justify-between items-end mb-2">
+<h3 class="text-[14px] font-bold text-text-main uppercase">系统参数 (System Parameters)</h3>
+<div class="text-[12px] font-bold text-muted uppercase tracking-widest border border-border-hard px-2 py-1">NUMENS LOGO</div>
+</div>
+<div class="bg-background-light border border-border-hard p-4 grid grid-cols-4 gap-4">
+<div class="flex flex-col gap-1">
+<label class="text-[11px] font-semibold text-muted uppercase tracking-wider">回路设备数 (Device Count)</label>
+<input class="w-full border-border-hard focus:border-primary focus:ring-0 text-[13px] mono-text text-right py-1.5 px-2 bg-white" type="number" value="45"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[11px] font-semibold text-muted uppercase tracking-wider">回路电流 (Loop Current mA)</label>
+<input class="w-full border-border-hard focus:border-primary focus:ring-0 text-[13px] mono-text text-right py-1.5 px-2 bg-white" type="number" value="120.5"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[11px] font-semibold text-muted uppercase tracking-wider">最低电压 (Min Voltage V)</label>
+<input class="w-full border-border-hard focus:border-primary focus:ring-0 text-[13px] mono-text text-right py-1.5 px-2 bg-white" type="number" value="17.0"/>
+</div>
+<div class="flex flex-col gap-1">
+<label class="text-[11px] font-semibold text-muted uppercase tracking-wider">电缆规格 (Cable Spec mm²)</label>
+<select class="w-full border-border-hard focus:border-primary focus:ring-0 text-[13px] py-1.5 px-2 bg-white">
+<option>1.5</option>
+<option>2.5</option>
+<option>4.0</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Section 2: Device List -->
+<section class="flex-1 flex flex-col min-h-[400px]">
+<div class="flex justify-between items-center mb-2">
+<h3 class="text-[14px] font-bold text-text-main uppercase">设备清单 (Device List)</h3>
+<div class="flex gap-2">
+<button class="text-[12px] font-medium border border-border-hard px-3 py-1 hover:bg-background-light flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">database</span> 数据库管理
+                                </button>
+<button class="text-[12px] font-medium border border-border-hard px-3 py-1 text-primary hover:bg-primary/10 flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">delete</span> 删除选中
+                                </button>
+</div>
+</div>
+<!-- Add Device Toolbar -->
+<div class="flex gap-2 mb-3">
+<button class="bg-white border border-surface-dark px-4 py-2 text-[13px] font-bold hover:bg-surface-dark hover:text-white transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">sensors</span> Detector
+                            </button>
+<button class="bg-white border border-surface-dark px-4 py-2 text-[13px] font-bold hover:bg-surface-dark hover:text-white transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">touch_app</span> MCP
+                            </button>
+<button class="bg-white border border-surface-dark px-4 py-2 text-[13px] font-bold hover:bg-surface-dark hover:text-white transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">campaign</span> Sounder
+                            </button>
+<button class="bg-white border border-surface-dark px-4 py-2 text-[13px] font-bold hover:bg-surface-dark hover:text-white transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">developer_board</span> I/O Module
+                            </button>
+<button class="bg-white border border-surface-dark px-4 py-2 text-[13px] font-bold hover:bg-surface-dark hover:text-white transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">power_off</span> Isolator
+                            </button>
+</div>
+<!-- Data Table -->
+<div class="border border-border-hard bg-white flex-1 overflow-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-background-light sticky top-0 border-b border-border-hard shadow-sm">
+<tr>
+<th class="w-12 p-2 border-r border-border-hard text-center"><input class="border-border-hard text-primary focus:ring-primary" type="checkbox"/></th>
+<th class="p-2 border-r border-border-hard text-[11px] font-semibold text-muted uppercase tracking-wider">序号 (ID)</th>
+<th class="p-2 border-r border-border-hard text-[11px] font-semibold text-muted uppercase tracking-wider">设备名称 (Device Name)</th>
+<th class="p-2 border-r border-border-hard text-[11px] font-semibold text-muted uppercase tracking-wider text-right">距前节点 (Dist m)</th>
+<th class="p-2 border-r border-border-hard text-[11px] font-semibold text-muted uppercase tracking-wider text-right">组内间距 (Space m)</th>
+<th class="p-2 text-[11px] font-semibold text-muted uppercase tracking-wider text-right">数量 (Qty)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-border-hard hover:bg-background-light group">
+<td class="p-2 border-r border-border-hard text-center"><input class="border-border-hard text-primary focus:ring-primary" type="checkbox"/></td>
+<td class="p-2 border-r border-border-hard text-[13px] mono-text text-muted">001</td>
+<td class="p-2 border-r border-border-hard text-[13px] font-medium">Optical Smoke Detector</td>
+<td class="p-2 border-r border-border-hard"><input class="w-full border-transparent focus:border-primary focus:ring-0 text-[13px] mono-text text-right py-1 px-1 bg-transparent group-hover:bg-white" type="number" value="10"/></td>
+<td class="p-2 border-r border-border-hard"><input class="w-full border-transparent focus:border-primary focus:ring-0 text-[13px] mono-text text-right py-1 px-1 bg-transparent group-hover:bg-white" type="number" value="5"/></td>
+<td class="p-2"><input class="w-full border-transparent focus:border-primary focus:ring-0 text-[13px] mono-text text-right py-1 px-1 bg-transparent group-hover:bg-white text-primary font-bold" type="number" value="15"/></td>
+</tr>
+<tr class="border-b border-border-hard hover:bg-background-light group">
+<td class="p-2 border-r border-border-hard text-center"><input class="border-border-hard text-primary focus:ring-primary" type="checkbox"/></td>
+<td class="p-2 border-r border-border-hard text-[13px] mono-text text-muted">002</td>
+<td class="p-2 border-r border-border-hard text-[13px] font-medium">Manual Call Point</td>
+<td class="p-2 border-r border-border-hard"><input class="w-full border-transparent focus:border-primary focus:ring-0 text-[13px] mono-text text-right py-1 px-1 bg-transparent group-hover:bg-white" type="number" value="50"/></td>
+<td class="p-2 border-r border-border-hard"><input class="w-full border-transparent focus:border-primary focus:ring-0 text-[13px] mono-text text-right py-1 px-1 bg-transparent group-hover:bg-white" type="number" value="0"/></td>
+<td class="p-2"><input class="w-full border-transparent focus:border-primary focus:ring-0 text-[13px] mono-text text-right py-1 px-1 bg-transparent group-hover:bg-white" type="number" value="2"/></td>
+</tr>
+<tr class="border-b border-border-hard hover:bg-background-light group bg-primary/10">
+<td class="p-2 border-r border-border-hard text-center"><input class="border-border-hard text-primary focus:ring-primary" type="checkbox"/></td>
+<td class="p-2 border-r border-border-hard text-[13px] mono-text text-muted">003</td>
+<td class="p-2 border-r border-border-hard text-[13px] font-medium">Sounder Beacon</td>
+<td class="p-2 border-r border-border-hard"><input class="w-full border-transparent focus:border-primary focus:ring-0 text-[13px] mono-text text-right py-1 px-1 bg-transparent group-hover:bg-white" type="number" value="20"/></td>
+<td class="p-2 border-r border-border-hard"><input class="w-full border-transparent focus:border-primary focus:ring-0 text-[13px] mono-text text-right py-1 px-1 bg-transparent group-hover:bg-white" type="number" value="15"/></td>
+<td class="p-2"><input class="w-full border-transparent focus:border-primary focus:ring-0 text-[13px] mono-text text-right py-1 px-1 bg-transparent group-hover:bg-white" type="number" value="8"/></td>
+</tr>
+<!-- Empty Row -->
+<tr>
+<td class="p-4 border-dashed border-2 border-border-hard text-center text-muted text-[13px]" colspan="6">
+                                            Click an Add button above to insert a device
+                                        </td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</main>
+<!-- Right Sidebar: Calculation Results -->
+<aside class="w-[320px] bg-surface-dark text-text-inv flex flex-col flex-shrink-0 border-l border-[#343A40] overflow-y-auto">
+<div class="p-5 flex-1 flex flex-col gap-6">
+<div>
+<h3 class="text-[12px] font-bold text-muted uppercase tracking-widest mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">monitoring</span> CALCULATION_RESULTS
+                        </h3>
+<!-- Loop Status -->
+<div class="mb-6">
+<h4 class="text-[11px] font-semibold text-white uppercase tracking-wider mb-3 border-b border-[#343A40] pb-1">当前回路状态 (Loop Status)</h4>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-center">
+<span class="text-[13px] text-muted">Point Load</span>
+<span class="text-[14px] mono-text text-white">45 / 250</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[13px] text-muted">Total Current</span>
+<span class="text-[14px] mono-text text-white">120.5 mA</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[13px] text-muted">End Voltage</span>
+<!-- Red if threshold breached -->
+<span class="text-[14px] mono-text text-primary font-bold">16.8 V</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[13px] text-muted">Total Length</span>
+<span class="text-[14px] mono-text text-white">850 m</span>
+</div>
+</div>
+</div>
+<!-- Optimization -->
+<div class="mb-6">
+<h4 class="text-[11px] font-semibold text-white uppercase tracking-wider mb-3 border-b border-[#343A40] pb-1">安全优化建议 (Optimization)</h4>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-center">
+<span class="text-[13px] text-muted">Max Distance</span>
+<span class="text-[14px] mono-text text-white">1200 m</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[13px] text-muted">Rec. Diameter</span>
+<span class="text-[14px] mono-text text-white">2.5 mm²</span>
+</div>
+</div>
+</div>
+<!-- Battery Life -->
+<div>
+<h4 class="text-[11px] font-semibold text-white uppercase tracking-wider mb-3 border-b border-[#343A40] pb-1">BATTERY LIFE</h4>
+<div class="flex flex-col gap-3">
+<div class="flex justify-between items-center">
+<span class="text-[13px] text-muted">AUX Load</span>
+<span class="text-[14px] mono-text text-white">0.5 A</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[13px] text-muted">Standby</span>
+<span class="text-[14px] mono-text text-white">24.5 h</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-[13px] text-muted">Alarm</span>
+<span class="text-[14px] mono-text text-white">0.5 h</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Diagnostic Box (Fixed Bottom) -->
+<!-- Error State shown based on End Voltage (16.8 < 17.0) -->
+<div class="bg-primary p-4 border-t-4 border-white/20">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-[20px] text-white">warning</span>
+<h4 class="text-[12px] font-bold text-white uppercase tracking-widest">系统诊断 (DIAGNOSTIC)</h4>
+</div>
+<p class="text-[13px] mono-text text-white mt-2 leading-tight">
+                        VOLTAGE_DROP_ALERT: End voltage (16.8V) is below minimum threshold (17.0V). Increase cable diameter or reduce load.
+                    </p>
+</div>
+</aside>
+</div>
+</div>
+</body></html>

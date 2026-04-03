@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Export Success - Data Extractor</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&amp;family=Space+Grotesk:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FFCC00",
+                        "background-light": "#E5E5E5",
+                        "background-dark": "#0A0A0A",
+                        "surface-dark": "#0A0A0A",
+                        "surface-light": "#FFFFFF",
+                        "text-light": "#F4F4F5",
+                        "text-dark": "#0A0A0A",
+                        "muted": "#52525B",
+                        "accent": "#00E676",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "0px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: #0A0A0A; /* surface-dark */
+            color: #F4F4F5; /* text-light */
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        h1, h2, h3, h4, h5, h6, .font-display {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+    </style>
+</head>
+<body class="flex h-screen w-full antialiased">
+<!-- Left Settings Panel (Success State) -->
+<aside class="w-full md:w-[35%] bg-surface-dark border-r border-muted h-full flex flex-col relative z-10">
+<!-- Header -->
+<header class="flex items-center justify-between border-b border-muted px-6 py-4">
+<div class="flex items-center gap-3 text-text-light">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<h2 class="font-display text-sm font-bold tracking-widest uppercase">DATA_EXTRACTOR</h2>
+</div>
+</header>
+<!-- Success Content -->
+<div class="flex-1 overflow-y-auto p-6 flex flex-col justify-center">
+<div class="flex flex-col items-start gap-6 w-full max-w-sm mx-auto">
+<!-- Status Icon -->
+<div class="size-16 border border-accent flex items-center justify-center bg-accent/10">
+<span class="material-symbols-outlined text-[40px] text-accent" data-icon="check" style="font-variation-settings: 'FILL' 1;">check</span>
+</div>
+<!-- Messaging -->
+<div>
+<h3 class="font-display text-2xl font-bold text-text-light mb-2 uppercase">EXPORT_COMPLETE</h3>
+<p class="text-sm text-muted">File generation successful. Download starting automatically.</p>
+</div>
+<!-- Technical Readout -->
+<div class="w-full border border-muted p-4 space-y-3 bg-[#111111]">
+<div class="flex justify-between items-center text-xs">
+<span class="text-muted uppercase tracking-wider">FILE_NAME</span>
+<span class="text-primary font-bold">report_2023_q4.pdf</span>
+</div>
+<div class="flex justify-between items-center text-xs border-t border-muted pt-3">
+<span class="text-muted uppercase tracking-wider">FILE_SIZE</span>
+<span class="text-text-light">4.8 MB</span>
+</div>
+<div class="flex justify-between items-center text-xs border-t border-muted pt-3">
+<span class="text-muted uppercase tracking-wider">TIMESTAMP</span>
+<span class="text-text-light">2023-10-27T14:32:01Z</span>
+</div>
+<div class="flex justify-between items-center text-xs border-t border-muted pt-3">
+<span class="text-muted uppercase tracking-wider">CHECKSUM</span>
+<span class="text-text-light truncate max-w-[150px]" title="a8f5f167f44f4964e6c998dee827110c">a8f5f16...</span>
+</div>
+</div>
+<!-- Return Action -->
+<a class="inline-flex items-center gap-2 text-sm text-muted hover:text-text-light transition-colors mt-8 group" href="#">
+<span class="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1" data-icon="arrow_back">arrow_back</span>
+<span class="underline underline-offset-4">Return to configuration</span>
+</a>
+</div>
+</div>
+<!-- Manual Download Trigger (Fallback) -->
+<div class="p-6 border-t border-muted mt-auto">
+<button class="w-full bg-transparent border border-muted hover:border-text-light text-text-light font-display font-semibold text-sm py-4 px-6 transition-colors flex justify-center items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="download">download</span>
+                FORCE_DOWNLOAD
+            </button>
+</div>
+</aside>
+<!-- Right Preview Panel (Blurred out/Inactive context) -->
+<main class="hidden md:flex flex-1 bg-background-light relative overflow-hidden flex-col items-center justify-center p-8">
+<!-- Grid overlay for brutalist feel -->
+<div class="absolute inset-0 pointer-events-none opacity-[0.03]" style="background-image: linear-gradient(#0A0A0A 1px, transparent 1px), linear-gradient(90deg, #0A0A0A 1px, transparent 1px); background-size: 20px 20px;"></div>
+<!-- A4 Document Container (Blurred to show focus is on the left) -->
+<div class="relative bg-surface-light shadow-[10px_10px_0px_#0A0A0A] w-full max-w-[600px] aspect-[1/1.414] border border-muted flex flex-col p-12 opacity-50 blur-[2px] pointer-events-none filter grayscale">
+<!-- Mock Content -->
+<header class="border-b-2 border-text-dark pb-4 mb-8 flex justify-between items-end">
+<h1 class="font-display text-3xl font-bold text-text-dark uppercase tracking-tight">Q4 Analysis</h1>
+<div class="text-xs text-text-dark text-right">
+                    DOC_ID: 099-X<br/>
+                    CONFIDENTIAL
+                </div>
+</header>
+<div class="flex-1 space-y-6">
+<!-- Data Blocks -->
+<div class="grid grid-cols-2 gap-4">
+<div class="border border-muted p-3">
+<div class="text-[10px] text-muted mb-1 uppercase">Metric Alpha</div>
+<div class="font-display text-xl text-text-dark font-bold">14,290.00</div>
+</div>
+<div class="border border-muted p-3">
+<div class="text-[10px] text-muted mb-1 uppercase">Metric Beta</div>
+<div class="font-display text-xl text-text-dark font-bold">8.45%</div>
+</div>
+</div>
+<!-- Chart placeholder -->
+<div class="h-48 border border-muted bg-background-light w-full flex items-center justify-center" data-alt="Placeholder for data visualization graph">
+<span class="material-symbols-outlined text-muted text-4xl" data-icon="bar_chart">bar_chart</span>
+</div>
+<!-- Table -->
+<div class="w-full text-xs">
+<div class="flex border-b border-text-dark pb-2 mb-2 font-bold uppercase">
+<div class="flex-1">ID</div>
+<div class="flex-1">Date</div>
+<div class="flex-1 text-right">Value</div>
+</div>
+<div class="flex border-b border-muted py-1">
+<div class="flex-1">A-01</div>
+<div class="flex-1">10/24</div>
+<div class="flex-1 text-right">450</div>
+</div>
+<div class="flex border-b border-muted py-1">
+<div class="flex-1">A-02</div>
+<div class="flex-1">10/25</div>
+<div class="flex-1 text-right">620</div>
+</div>
+<div class="flex border-b border-muted py-1">
+<div class="flex-1">A-03</div>
+<div class="flex-1">10/26</div>
+<div class="flex-1 text-right">890</div>
+</div>
+</div>
+</div>
+<footer class="mt-8 border-t border-muted pt-4 flex justify-between text-[10px] text-muted">
+<span>SYSTEM GENERATED</span>
+<span>PAGE 1 OF 1</span>
+</footer>
+</div>
+<!-- Zoom Controls (Disabled state) -->
+<div class="absolute bottom-8 right-8 flex border border-muted bg-surface-dark text-muted opacity-50">
+<button class="w-10 h-10 flex items-center justify-center border-r border-muted cursor-not-allowed">
+<span class="material-symbols-outlined text-sm" data-icon="remove">remove</span>
+</button>
+<div class="px-4 flex items-center justify-center font-mono text-xs cursor-not-allowed">
+                100%
+            </div>
+<button class="w-10 h-10 flex items-center justify-center border-l border-muted cursor-not-allowed">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+</button>
+</div>
+</main>
+</body></html>

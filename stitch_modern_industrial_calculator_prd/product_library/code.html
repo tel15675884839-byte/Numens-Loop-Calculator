@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BIOSENSOR_V2 - 产品库 / Product Library</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#e60a15",
+              "background-light": "#f2f4f7",
+              "background-dark": "#121417",
+              "surface": "#ffffff",
+              "surface-dark": "#121417",
+              "text-main": "#1b1d21",
+              "text-inv": "#f8f9fa",
+              "muted": "#868e96",
+              "border-color": "#ced4da",
+              "success": "#08a045",
+            },
+            fontFamily: {
+              "display": ["Space Grotesk", "sans-serif"]
+            },
+            borderRadius: {
+                "DEFAULT": "0.125rem", 
+                "lg": "0.25rem", 
+                "xl": "0.5rem", 
+                "full": "0.75rem",
+                "none": "0px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: #f2f4f7;
+            color: #1b1d21;
+        }
+        .table-row-alt:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .table-row-alt:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        .hard-border {
+            border-radius: 0px;
+        }
+    </style>
+</head>
+<body class="bg-background-light flex h-screen overflow-hidden font-display">
+<!-- Sidebar Navigation -->
+<aside class="w-[240px] bg-surface-dark flex flex-col h-full shrink-0 border-r border-[#343a40]">
+<div class="h-12 flex items-center px-4 border-b border-[#343a40]">
+<h1 class="text-text-inv text-[18px] font-semibold tracking-[1px] uppercase">BIOSENSOR_V2</h1>
+</div>
+<nav class="flex-1 py-4 flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-2 text-text-inv hover:bg-[#1b1d21] transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">house</span>
+<span class="text-[14px]">首页</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-text-inv hover:bg-[#1b1d21] transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">computer</span>
+<span class="text-[14px]">回路配置</span>
+</a>
+<!-- Active State -->
+<a class="flex items-center gap-3 px-4 py-2 text-text-inv bg-[#1b1d21] border-l-4 border-primary" href="#">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">database</span>
+<span class="text-[14px] font-medium">产品库</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-2 text-text-inv hover:bg-[#1b1d21] transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-[14px]">系统设置</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col h-full overflow-hidden">
+<!-- Top Header -->
+<header class="h-12 bg-surface-dark border-b border-[#343a40] flex items-center justify-between px-6 shrink-0">
+<h2 class="text-text-inv text-[14px] font-bold tracking-wider uppercase">DASHBOARD</h2>
+<div class="flex gap-3">
+<button class="flex items-center justify-center h-8 px-4 bg-surface text-text-main text-[13px] font-semibold hard-border hover:bg-gray-200 transition-colors">
+                    主题
+                </button>
+<button class="flex items-center justify-center h-8 px-4 bg-surface text-text-main text-[13px] font-semibold hard-border hover:bg-gray-200 transition-colors">
+                    语言
+                </button>
+</div>
+</header>
+<!-- Content Workspace -->
+<div class="flex-1 overflow-auto p-6 flex flex-col gap-6">
+<!-- Page Header & Actions -->
+<div class="flex flex-col gap-4">
+<div class="flex items-center justify-between">
+<h2 class="text-[24px] font-bold text-text-main uppercase tracking-tight">产品库 / Product Library</h2>
+<button class="bg-primary text-white px-4 py-2 text-[13px] font-semibold flex items-center gap-2 hard-border hover:bg-red-700 transition-colors">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                        新增设备
+                    </button>
+</div>
+<!-- Filters & Search Toolbar -->
+<div class="flex items-center justify-between bg-surface p-4 border border-border-color hard-border">
+<!-- Search -->
+<div class="relative w-[400px]">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted text-[20px]">search</span>
+<input class="w-full h-10 pl-10 pr-4 border border-border-color text-[13px] text-text-main focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary hard-border bg-white placeholder-muted" placeholder="Search devices by model, type..." type="text"/>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-2">
+<button class="h-10 px-4 text-[13px] font-medium border border-primary bg-primary text-white hard-border">All</button>
+<button class="h-10 px-4 text-[13px] font-medium border border-border-color text-text-main bg-white hover:bg-gray-50 hard-border">Detector</button>
+<button class="h-10 px-4 text-[13px] font-medium border border-border-color text-text-main bg-white hover:bg-gray-50 hard-border">Sounder</button>
+<button class="h-10 px-4 text-[13px] font-medium border border-border-color text-text-main bg-white hover:bg-gray-50 hard-border">I/O Module</button>
+<button class="h-10 px-4 text-[13px] font-medium border border-border-color text-text-main bg-white hover:bg-gray-50 hard-border">Isolator</button>
+</div>
+</div>
+</div>
+<!-- Data Grid -->
+<div class="bg-surface border border-border-color hard-border flex-1 overflow-hidden flex flex-col">
+<div class="overflow-x-auto flex-1">
+<table class="w-full text-left border-collapse min-w-[1000px]">
+<thead class="bg-[#f2f4f7] border-b border-border-color sticky top-0 z-10">
+<tr>
+<th class="h-8 px-4 text-[11px] font-semibold text-text-main uppercase tracking-[0.5px] border-r border-border-color w-16">ID</th>
+<th class="h-8 px-4 text-[11px] font-semibold text-text-main uppercase tracking-[0.5px] border-r border-border-color">Model</th>
+<th class="h-8 px-4 text-[11px] font-semibold text-text-main uppercase tracking-[0.5px] border-r border-border-color">Type</th>
+<th class="h-8 px-4 text-[11px] font-semibold text-text-main uppercase tracking-[0.5px] border-r border-border-color text-right">Standby (mA)</th>
+<th class="h-8 px-4 text-[11px] font-semibold text-text-main uppercase tracking-[0.5px] border-r border-border-color text-right">Alarm (mA)</th>
+<th class="h-8 px-4 text-[11px] font-semibold text-text-main uppercase tracking-[0.5px] border-r border-border-color text-right">Op. Volt (V)</th>
+<th class="h-8 px-4 text-[11px] font-semibold text-text-main uppercase tracking-[0.5px] text-center w-24">Actions</th>
+</tr>
+</thead>
+<tbody class="text-[13px] text-text-main">
+<!-- Row 1 -->
+<tr class="table-row-alt border-b border-border-color hover:bg-[#f0f2f5] transition-colors group">
+<td class="h-8 px-4 border-r border-border-color font-mono text-muted">001</td>
+<td class="h-8 px-4 border-r border-border-color font-medium">ND-8201</td>
+<td class="h-8 px-4 border-r border-border-color">Optical Smoke Detector</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">0.12</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">2.50</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">15-30</td>
+<td class="h-8 px-4 text-center">
+<button class="text-muted hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">edit</span></button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="table-row-alt border-b border-border-color hover:bg-[#f0f2f5] transition-colors group">
+<td class="h-8 px-4 border-r border-border-color font-mono text-muted">002</td>
+<td class="h-8 px-4 border-r border-border-color font-medium">ND-8301</td>
+<td class="h-8 px-4 border-r border-border-color">Heat Detector</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">0.10</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">2.00</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">15-30</td>
+<td class="h-8 px-4 text-center">
+<button class="text-muted hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">edit</span></button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="table-row-alt border-b border-border-color hover:bg-[#f0f2f5] transition-colors group">
+<td class="h-8 px-4 border-r border-border-color font-mono text-muted">003</td>
+<td class="h-8 px-4 border-r border-border-color font-medium">NM-8001</td>
+<td class="h-8 px-4 border-r border-border-color">Manual Call Point</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">0.08</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">1.50</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">15-30</td>
+<td class="h-8 px-4 text-center">
+<button class="text-muted hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">edit</span></button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="table-row-alt border-b border-border-color hover:bg-[#f0f2f5] transition-colors group">
+<td class="h-8 px-4 border-r border-border-color font-mono text-muted">004</td>
+<td class="h-8 px-4 border-r border-border-color font-medium">NS-8101</td>
+<td class="h-8 px-4 border-r border-border-color">Loop Sounder</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">0.45</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">8.50</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">15-30</td>
+<td class="h-8 px-4 text-center">
+<button class="text-muted hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">edit</span></button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="table-row-alt border-b border-border-color hover:bg-[#f0f2f5] transition-colors group">
+<td class="h-8 px-4 border-r border-border-color font-mono text-muted">005</td>
+<td class="h-8 px-4 border-r border-border-color font-medium">NI-8401</td>
+<td class="h-8 px-4 border-r border-border-color">Short Circuit Isolator</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">0.05</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">0.05</td>
+<td class="h-8 px-4 border-r border-border-color text-right font-mono">15-30</td>
+<td class="h-8 px-4 text-center">
+<button class="text-muted hover:text-primary transition-colors"><span class="material-symbols-outlined text-[16px]">edit</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="h-10 bg-[#f2f4f7] border-t border-border-color flex items-center justify-between px-4">
+<span class="text-[11px] text-muted font-mono uppercase tracking-[0.5px]">Showing 1-5 of 124 entries</span>
+<div class="flex gap-1">
+<button class="h-6 w-6 flex items-center justify-center bg-white border border-border-color hard-border text-muted hover:bg-gray-50 disabled:opacity-50"><span class="material-symbols-outlined text-[14px]">chevron_left</span></button>
+<button class="h-6 px-2 flex items-center justify-center bg-primary border border-primary hard-border text-white text-[11px] font-mono">1</button>
+<button class="h-6 px-2 flex items-center justify-center bg-white border border-border-color hard-border text-text-main hover:bg-gray-50 text-[11px] font-mono">2</button>
+<button class="h-6 px-2 flex items-center justify-center bg-white border border-border-color hard-border text-text-main hover:bg-gray-50 text-[11px] font-mono">3</button>
+<button class="h-6 w-6 flex items-center justify-center bg-white border border-border-color hard-border text-muted hover:bg-gray-50"><span class="material-symbols-outlined text-[14px]">chevron_right</span></button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

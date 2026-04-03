@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Export Preview - Initial State</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FFCC00",
+                        "background-light": "#E5E5E5",
+                        "background-dark": "#0A0A0A",
+                        "surface-dark": "#0A0A0A",
+                        "surface-light": "#FFFFFF",
+                        "text-light": "#F4F4F5",
+                        "text-dark": "#0A0A0A",
+                        "muted": "#52525B",
+                        "accent": "#00E676"
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "sm": "0px",
+                        "md": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "2xl": "0px",
+                        "3xl": "0px",
+                        "full": "0px"
+                    },
+                    boxShadow: {
+                        'brutal': '10px 10px 0px #0A0A0A',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background-color: theme('colors.background-light');
+            color: theme('colors.text-dark');
+        }
+        h1, h2, h3, h4, h5, h6, .font-display {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        
+        /* Custom Checkbox Styles */
+        .brutal-checkbox {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 1px solid theme('colors.text-light');
+            background-color: transparent;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .brutal-checkbox:checked {
+            background-color: theme('colors.primary');
+            border-color: theme('colors.primary');
+        }
+        .brutal-checkbox:checked::after {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 8px;
+            border: solid theme('colors.text-dark');
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            margin-top: -2px;
+        }
+
+        /* Custom Scrollbar for dark panel */
+        .dark-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .dark-scroll::-webkit-scrollbar-track {
+            background: theme('colors.surface-dark');
+        }
+        .dark-scroll::-webkit-scrollbar-thumb {
+            background: theme('colors.muted');
+        }
+        .dark-scroll::-webkit-scrollbar-thumb:hover {
+            background: theme('colors.text-light');
+        }
+
+        .a4-container {
+            aspect-ratio: 1 / 1.414;
+            max-height: 85vh;
+            width: auto;
+        }
+    </style>
+</head>
+<body class="h-screen w-screen overflow-hidden flex flex-col md:flex-row antialiased">
+<!-- Left Panel: Settings (35%) -->
+<aside class="w-full md:w-[35%] lg:w-[35%] bg-surface-dark text-text-light flex flex-col border-r border-muted z-10 h-[512px] md:h-full relative">
+<!-- Header -->
+<header class="p-6 border-b border-muted">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl" data-icon="description">description</span>
+<h1 class="font-display text-2xl font-bold tracking-tight uppercase text-text-light">Export Setup</h1>
+</div>
+<p class="text-xs text-muted mt-2 font-mono uppercase tracking-widest">Sys_Config_v2.1</p>
+</header>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto dark-scroll p-6 space-y-8">
+<!-- Output Format -->
+<section>
+<h2 class="font-display text-sm font-bold uppercase border-b border-muted pb-4 mb-4 text-text-light tracking-wide">Output Format</h2>
+<div class="relative group cursor-pointer">
+<select class="w-full bg-transparent border border-muted text-text-light font-mono text-sm p-3 appearance-none focus:outline-none focus:border-primary hover:border-text-light transition-colors cursor-pointer rounded-none">
+<option class="bg-surface-dark text-text-light" value="pdf">PDF (Print Ready)</option>
+<option class="bg-surface-dark text-text-light" value="csv">CSV (Raw Data)</option>
+<option class="bg-surface-dark text-text-light" value="json">JSON (API Payload)</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-3 text-muted pointer-events-none group-hover:text-text-light" data-icon="expand_more">expand_more</span>
+</div>
+</section>
+<!-- Document Layout -->
+<section>
+<h2 class="font-display text-sm font-bold uppercase border-b border-muted pb-4 mb-4 text-text-light tracking-wide">Page Settings</h2>
+<div class="grid grid-cols-2 gap-4">
+<div>
+<label class="block text-xs text-muted mb-2 uppercase">Size</label>
+<select class="w-full bg-transparent border border-muted text-text-light font-mono text-sm p-2 appearance-none focus:outline-none focus:border-primary rounded-none">
+<option class="bg-surface-dark" value="a4">A4 Standard</option>
+<option class="bg-surface-dark" value="letter">US Letter</option>
+</select>
+</div>
+<div>
+<label class="block text-xs text-muted mb-2 uppercase">Orientation</label>
+<select class="w-full bg-transparent border border-muted text-text-light font-mono text-sm p-2 appearance-none focus:outline-none focus:border-primary rounded-none">
+<option class="bg-surface-dark" value="portrait">Portrait</option>
+<option class="bg-surface-dark" value="landscape">Landscape</option>
+</select>
+</div>
+</div>
+</section>
+<!-- Data Configuration -->
+<section>
+<div class="flex justify-between items-end border-b border-muted pb-4 mb-4">
+<h2 class="font-display text-sm font-bold uppercase text-text-light tracking-wide">Data Fields</h2>
+<span class="text-[10px] text-primary">8/12 SELECTED</span>
+</div>
+<div class="space-y-3 font-mono text-sm">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="brutal-checkbox" type="checkbox"/>
+<span class="group-hover:text-primary transition-colors">Record_ID</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="brutal-checkbox" type="checkbox"/>
+<span class="group-hover:text-primary transition-colors">Timestamp_UTC</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="brutal-checkbox" type="checkbox"/>
+<span class="group-hover:text-primary transition-colors">Client_Name</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group text-muted">
+<input class="brutal-checkbox" type="checkbox"/>
+<span class="group-hover:text-text-light transition-colors">User_Metadata</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group text-muted">
+<input class="brutal-checkbox" type="checkbox"/>
+<span class="group-hover:text-text-light transition-colors">Geoloc_Data</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="brutal-checkbox" type="checkbox"/>
+<span class="group-hover:text-primary transition-colors">Transaction_Vol</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input checked="" class="brutal-checkbox" type="checkbox"/>
+<span class="group-hover:text-primary transition-colors">Status_Code</span>
+</label>
+</div>
+</section>
+<!-- Advanced Settings -->
+<section class="pb-20">
+<h2 class="font-display text-sm font-bold uppercase border-b border-muted pb-4 mb-4 text-text-light tracking-wide">Advanced</h2>
+<div class="space-y-4">
+<label class="flex items-center justify-between cursor-pointer group">
+<span class="text-sm font-mono text-muted group-hover:text-text-light transition-colors">Include Header Row</span>
+<div class="relative inline-block w-10 h-5 border border-muted bg-surface-dark group-hover:border-primary">
+<div class="absolute right-0 top-0 bottom-0 w-1/2 bg-primary border-l border-surface-dark"></div>
+</div>
+</label>
+<label class="flex items-center justify-between cursor-pointer group">
+<span class="text-sm font-mono text-muted group-hover:text-text-light transition-colors">Strict Pagination</span>
+<div class="relative inline-block w-10 h-5 border border-muted bg-surface-dark group-hover:border-primary">
+<div class="absolute left-0 top-0 bottom-0 w-1/2 bg-muted border-r border-surface-dark"></div>
+</div>
+</label>
+</div>
+</section>
+</div>
+<!-- Fixed CTA Bottom -->
+<div class="absolute bottom-0 left-0 w-full p-0">
+<button class="w-full h-14 bg-primary text-surface-dark font-display font-bold text-sm uppercase tracking-wider hover:bg-surface-light hover:text-surface-dark transition-colors flex items-center justify-center gap-2 border-t border-surface-dark">
+<span class="material-symbols-outlined" data-icon="print">print</span>
+                Compile &amp; Export
+            </button>
+</div>
+</aside>
+<!-- Right Panel: Preview Area (65%) -->
+<main class="w-full md:w-[65%] lg:w-[65%] bg-background-light flex-1 relative flex items-center justify-center p-8 overflow-hidden h-[512px] md:h-full">
+<!-- Grid Background Pattern overlay -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: linear-gradient(#0A0A0A 1px, transparent 1px), linear-gradient(90deg, #0A0A0A 1px, transparent 1px); background-size: 20px 20px;"></div>
+<!-- Status Bar Top Right -->
+<div class="absolute top-4 right-6 flex items-center gap-4 z-20">
+<div class="flex items-center gap-2 text-xs font-mono font-bold text-text-dark opacity-50">
+<span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+                LIVE PREVIEW
+            </div>
+<div class="text-xs font-mono text-muted">A4 • 210×297mm</div>
+</div>
+<!-- The A4 Document Container -->
+<!-- transform scale applied inline to simulate 100% zoom state -->
+<div class="a4-container bg-surface-light shadow-brutal relative z-10 flex flex-col p-8 md:p-12 transition-transform duration-200" style="transform: scale(0.95); min-width: 600px;">
+<!-- Document Header -->
+<div class="border-b-2 border-text-dark pb-6 mb-8 flex justify-between items-end">
+<div>
+<h2 class="font-display text-3xl font-bold text-text-dark uppercase tracking-tighter">System Report</h2>
+<p class="font-mono text-sm text-muted mt-2">Generated: 2023-10-27T14:32:00Z</p>
+</div>
+<div class="text-right">
+<p class="font-mono text-sm font-bold text-text-dark">CONFIDENTIAL</p>
+<p class="font-mono text-xs text-muted mt-1">Page 1 of 4</p>
+</div>
+</div>
+<!-- Wireframe Data Table -->
+<div class="flex-1 w-full flex flex-col">
+<!-- Table Header -->
+<div class="grid grid-cols-4 border-b border-text-dark pb-2 mb-4">
+<div class="font-display text-xs font-bold uppercase text-text-dark">Record_ID</div>
+<div class="font-display text-xs font-bold uppercase text-text-dark">Timestamp_UTC</div>
+<div class="font-display text-xs font-bold uppercase text-text-dark">Client_Name</div>
+<div class="font-display text-xs font-bold uppercase text-text-dark text-right">Vol</div>
+</div>
+<!-- Table Rows (Mock Data) -->
+<div class="space-y-3 font-mono text-xs text-text-dark">
+<div class="grid grid-cols-4 py-2 border-b border-muted border-dashed opacity-80 hover:bg-background-light transition-colors">
+<div>#REQ-9901</div>
+<div>14:32:01.001</div>
+<div>Acme_Corp_Ltd</div>
+<div class="text-right">1,024</div>
+</div>
+<div class="grid grid-cols-4 py-2 border-b border-muted border-dashed opacity-80 hover:bg-background-light transition-colors">
+<div>#REQ-9902</div>
+<div>14:32:05.420</div>
+<div>Globex_Inc</div>
+<div class="text-right">512</div>
+</div>
+<div class="grid grid-cols-4 py-2 border-b border-muted border-dashed opacity-80 hover:bg-background-light transition-colors">
+<div>#REQ-9903</div>
+<div>14:32:10.888</div>
+<div>Soylent_Corp</div>
+<div class="text-right">8,192</div>
+</div>
+<div class="grid grid-cols-4 py-2 border-b border-muted border-dashed opacity-80 hover:bg-background-light transition-colors">
+<div class="text-primary font-bold">#REQ-9904</div>
+<div>14:32:15.000</div>
+<div>Initech</div>
+<div class="text-right">256</div>
+</div>
+<div class="grid grid-cols-4 py-2 border-b border-muted border-dashed opacity-80 hover:bg-background-light transition-colors">
+<div>#REQ-9905</div>
+<div>14:32:22.111</div>
+<div>Umbrella_Corp</div>
+<div class="text-right">4,096</div>
+</div>
+<div class="grid grid-cols-4 py-2 border-b border-muted border-dashed opacity-80 hover:bg-background-light transition-colors">
+<div>#REQ-9906</div>
+<div>14:32:30.555</div>
+<div>Stark_Ind</div>
+<div class="text-right">16,384</div>
+</div>
+<!-- Empty rows to fill space -->
+<div class="grid grid-cols-4 py-2 opacity-30">
+<div class="h-3 bg-muted w-16"></div>
+<div class="h-3 bg-muted w-24"></div>
+<div class="h-3 bg-muted w-20"></div>
+<div class="h-3 bg-muted w-10 justify-self-end"></div>
+</div>
+<div class="grid grid-cols-4 py-2 opacity-30">
+<div class="h-3 bg-muted w-16"></div>
+<div class="h-3 bg-muted w-24"></div>
+<div class="h-3 bg-muted w-20"></div>
+<div class="h-3 bg-muted w-10 justify-self-end"></div>
+</div>
+</div>
+</div>
+<!-- Document Footer -->
+<div class="mt-8 border-t border-muted pt-4 flex justify-between items-center opacity-50">
+<div class="font-mono text-[10px]">INTERNAL USE ONLY</div>
+<div class="font-mono text-[10px]">END OF REPORT</div>
+</div>
+</div>
+<!-- Zoom Controls Bottom Right -->
+<div class="absolute bottom-6 right-6 flex bg-surface-dark text-text-light border border-text-dark shadow-brutal z-20">
+<button class="w-10 h-10 flex items-center justify-center hover:bg-surface-light hover:text-text-dark transition-colors border-r border-muted" title="Zoom Out">
+<span class="material-symbols-outlined text-sm" data-icon="remove">remove</span>
+</button>
+<button class="px-4 h-10 flex items-center justify-center font-mono text-xs hover:bg-surface-light hover:text-text-dark transition-colors border-r border-muted font-bold" title="Reset Zoom">
+                100%
+            </button>
+<button class="w-10 h-10 flex items-center justify-center hover:bg-surface-light hover:text-text-dark transition-colors" title="Zoom In">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+</button>
+</div>
+</main>
+</body></html>

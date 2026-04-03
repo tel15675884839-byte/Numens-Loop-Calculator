@@ -1,4 +1,15 @@
 {
+  "categories": [
+    "I/O Module",
+    "Detector",
+    "MCP",
+    "Isolator",
+    "Sounder",
+    "A",
+    "B",
+    "C",
+    "D"
+  ],
   "products": [
     {
       "id": "product-0001",
@@ -9,7 +20,8 @@
       "alarm": 2.1,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input Module, Single Input"
+      "product_name": "Input Module, Single Input",
+      "built_in": true
     },
     {
       "id": "product-0002",
@@ -20,7 +32,8 @@
       "alarm": 3.8,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input/Output Module, Single Input/Output"
+      "product_name": "Input/Output Module, Single Input/Output",
+      "built_in": true
     },
     {
       "id": "product-0003",
@@ -31,7 +44,8 @@
       "alarm": 2.3,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input Module, Twin Inputs"
+      "product_name": "Input Module, Twin Inputs",
+      "built_in": true
     },
     {
       "id": "product-0004",
@@ -42,7 +56,8 @@
       "alarm": 4,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input/Output Module, Twin Input/Outputs"
+      "product_name": "Input/Output Module, Twin Input/Outputs",
+      "built_in": true
     },
     {
       "id": "product-0005",
@@ -53,7 +68,8 @@
       "alarm": 2.1,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input Module, Single Input, Isolator"
+      "product_name": "Input Module, Single Input, Isolator",
+      "built_in": true
     },
     {
       "id": "product-0006",
@@ -64,7 +80,8 @@
       "alarm": 3.8,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input/Output Module, Single Input/Output, Isolator"
+      "product_name": "Input/Output Module, Single Input/Output, Isolator",
+      "built_in": true
     },
     {
       "id": "product-0007",
@@ -75,7 +92,8 @@
       "alarm": 2.3,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input Module, Twin Inputs, Isolator"
+      "product_name": "Input Module, Twin Inputs, Isolator",
+      "built_in": true
     },
     {
       "id": "product-0008",
@@ -86,7 +104,8 @@
       "alarm": 4,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input/Output Module, Twin Input/Outputs, Isolator"
+      "product_name": "Input/Output Module, Twin Input/Outputs, Isolator",
+      "built_in": true
     },
     {
       "id": "product-0009",
@@ -97,7 +116,8 @@
       "alarm": 3.8,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Mains Switching Input/Output Module"
+      "product_name": "Mains Switching Input/Output Module",
+      "built_in": true
     },
     {
       "id": "product-0010",
@@ -108,7 +128,8 @@
       "alarm": 3.8,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Mains Switching Input/Output Module, Isolator"
+      "product_name": "Mains Switching Input/Output Module, Isolator",
+      "built_in": true
     },
     {
       "id": "product-0011",
@@ -119,7 +140,8 @@
       "alarm": 4,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Mains Switching Input/Output Module, Twin Input/Outputs"
+      "product_name": "Mains Switching Input/Output Module, Twin Input/Outputs",
+      "built_in": true
     },
     {
       "id": "product-0012",
@@ -130,7 +152,8 @@
       "alarm": 4,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Mains Switching Input/Output Module, Twin Input/Outputs, Isolator"
+      "product_name": "Mains Switching Input/Output Module, Twin Input/Outputs, Isolator",
+      "built_in": true
     },
     {
       "id": "product-0013",
@@ -141,7 +164,8 @@
       "alarm": 2,
       "ledCost": 1,
       "type": "Detector",
-      "product_name": "Smoke/Heat Detector"
+      "product_name": "Smoke/Heat Detector",
+      "built_in": true
     },
     {
       "id": "product-0014",
@@ -152,7 +176,8 @@
       "alarm": 5,
       "ledCost": 1,
       "type": "Detector",
-      "product_name": "Smoke/Heat Detector, Remote LED Output"
+      "product_name": "Smoke/Heat Detector, Remote LED Output",
+      "built_in": true
     },
     {
       "id": "product-0015",
@@ -163,7 +188,8 @@
       "alarm": 2,
       "ledCost": 1,
       "type": "Detector",
-      "product_name": "Smoke Detector"
+      "product_name": "Smoke Detector",
+      "built_in": true
     },
     {
       "id": "product-0016",
@@ -174,7 +200,8 @@
       "alarm": 5,
       "ledCost": 1,
       "type": "Detector",
-      "product_name": "Smoke Detector, Remote LED Output"
+      "product_name": "Smoke Detector, Remote LED Output",
+      "built_in": true
     },
     {
       "id": "product-0017",
@@ -185,7 +212,8 @@
       "alarm": 2,
       "ledCost": 1,
       "type": "Detector",
-      "product_name": "Heat Detector"
+      "product_name": "Heat Detector",
+      "built_in": true
     },
     {
       "id": "product-0018",
@@ -196,7 +224,8 @@
       "alarm": 5,
       "ledCost": 1,
       "type": "Detector",
-      "product_name": "Heat Detector, Remote LED Output"
+      "product_name": "Heat Detector, Remote LED Output",
+      "built_in": true
     },
     {
       "id": "product-0019",
@@ -207,7 +236,8 @@
       "alarm": 2,
       "ledCost": 1,
       "type": "Detector",
-      "product_name": "Smoke/Heat Detector"
+      "product_name": "Smoke/Heat Detector",
+      "built_in": true
     },
     {
       "id": "product-0020",
@@ -218,7 +248,8 @@
       "alarm": 5,
       "ledCost": 1,
       "type": "Detector",
-      "product_name": "Smoke/Heat Detector, Remote LED Output"
+      "product_name": "Smoke/Heat Detector, Remote LED Output",
+      "built_in": true
     },
     {
       "id": "product-0021",
@@ -229,7 +260,8 @@
       "alarm": 2,
       "ledCost": 1,
       "type": "Detector",
-      "product_name": "Smoke Detector"
+      "product_name": "Smoke Detector",
+      "built_in": true
     },
     {
       "id": "product-0022",
@@ -240,7 +272,8 @@
       "alarm": 5,
       "ledCost": 1,
       "type": "Detector",
-      "product_name": "Smoke Detector, Remote LED Output"
+      "product_name": "Smoke Detector, Remote LED Output",
+      "built_in": true
     },
     {
       "id": "product-0023",
@@ -251,7 +284,8 @@
       "alarm": 2,
       "ledCost": 1,
       "type": "Detector",
-      "product_name": "Heat Detector"
+      "product_name": "Heat Detector",
+      "built_in": true
     },
     {
       "id": "product-0024",
@@ -262,7 +296,8 @@
       "alarm": 5,
       "ledCost": 1,
       "type": "Detector",
-      "product_name": "Heat Detector, Remote LED Output"
+      "product_name": "Heat Detector, Remote LED Output",
+      "built_in": true
     },
     {
       "id": "product-0025",
@@ -273,7 +308,8 @@
       "alarm": 2,
       "ledCost": 1,
       "type": "MCP",
-      "product_name": "Manual Call Point"
+      "product_name": "Manual Call Point",
+      "built_in": true
     },
     {
       "id": "product-0026",
@@ -284,7 +320,8 @@
       "alarm": 2,
       "ledCost": 1,
       "type": "MCP",
-      "product_name": "Manual Call Point, with Isolator"
+      "product_name": "Manual Call Point, with Isolator",
+      "built_in": true
     },
     {
       "id": "product-0027",
@@ -295,7 +332,8 @@
       "alarm": 12,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Mini Input Module, Single Detector Input"
+      "product_name": "Mini Input Module, Single Detector Input",
+      "built_in": true
     },
     {
       "id": "product-0028",
@@ -306,7 +344,8 @@
       "alarm": 12,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Mini Input Module, Single Contact Input"
+      "product_name": "Mini Input Module, Single Contact Input",
+      "built_in": true
     },
     {
       "id": "product-0029",
@@ -317,7 +356,8 @@
       "alarm": 12,
       "ledCost": 0,
       "type": "I/O Module",
-      "product_name": "Mini Output Module, Single Output"
+      "product_name": "Mini Output Module, Single Output",
+      "built_in": true
     },
     {
       "id": "product-0030",
@@ -328,7 +368,8 @@
       "alarm": 12,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Mini Input Module, Detector Input, without Enclosure"
+      "product_name": "Mini Input Module, Detector Input, without Enclosure",
+      "built_in": true
     },
     {
       "id": "product-0031",
@@ -339,7 +380,8 @@
       "alarm": 3,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input Module, Single Input Monitored"
+      "product_name": "Input Module, Single Input Monitored",
+      "built_in": true
     },
     {
       "id": "product-0032",
@@ -350,7 +392,8 @@
       "alarm": 3,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input/Output Module, Single Input/Output, with Output Relay"
+      "product_name": "Input/Output Module, Single Input/Output, with Output Relay",
+      "built_in": true
     },
     {
       "id": "product-0033",
@@ -361,7 +404,8 @@
       "alarm": 25,
       "ledCost": 4,
       "type": "I/O Module",
-      "product_name": "Alarm Zone Input Module, Loop Powered"
+      "product_name": "Alarm Zone Input Module, Loop Powered",
+      "built_in": true
     },
     {
       "id": "product-0034",
@@ -372,7 +416,8 @@
       "alarm": 1.2,
       "ledCost": 4,
       "type": "I/O Module",
-      "product_name": "Alarm Zone Input Module, Externally Powered"
+      "product_name": "Alarm Zone Input Module, Externally Powered",
+      "built_in": true
     },
     {
       "id": "product-0035",
@@ -383,7 +428,8 @@
       "alarm": 2,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input Module, Isolator Monitored Input"
+      "product_name": "Input Module, Isolator Monitored Input",
+      "built_in": true
     },
     {
       "id": "product-0036",
@@ -394,7 +440,8 @@
       "alarm": 2,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input/Output Module, Isolator, with Output Relay"
+      "product_name": "Input/Output Module, Isolator, with Output Relay",
+      "built_in": true
     },
     {
       "id": "product-0037",
@@ -405,7 +452,8 @@
       "alarm": 2,
       "ledCost": 1,
       "type": "I/O Module",
-      "product_name": "Input Module, Single Input, Switched External DC Supply"
+      "product_name": "Input Module, Single Input, Switched External DC Supply",
+      "built_in": true
     },
     {
       "id": "product-0038",
@@ -416,7 +464,8 @@
       "alarm": 1.5,
       "ledCost": 4,
       "type": "I/O Module",
-      "product_name": "LSM, Audio/Visual Alarm Control Module"
+      "product_name": "LSM, Audio/Visual Alarm Control Module",
+      "built_in": true
     },
     {
       "id": "product-0039",
@@ -427,7 +476,8 @@
       "alarm": 5,
       "ledCost": 1,
       "type": "Isolator",
-      "product_name": "Loop Isolator"
+      "product_name": "Loop Isolator",
+      "built_in": true
     },
     {
       "id": "product-0040",
@@ -438,7 +488,8 @@
       "alarm": 8,
       "ledCost": 0,
       "type": "Sounder",
-      "product_name": "Sounder, Audible Alarm, Red"
+      "product_name": "Sounder, Audible Alarm, Red",
+      "built_in": true
     },
     {
       "id": "product-0041",
@@ -449,7 +500,8 @@
       "alarm": 5,
       "ledCost": 0,
       "type": "Sounder",
-      "product_name": "Sounder, Visual Alarm/Audio Alarm Device, White"
+      "product_name": "Sounder, Visual Alarm/Audio Alarm Device, White",
+      "built_in": true
     },
     {
       "id": "product-0042",
@@ -460,7 +512,8 @@
       "alarm": 10,
       "ledCost": 0,
       "type": "Sounder",
-      "product_name": "Sounder, Audible/Visual Alarm/Visual Alarm Device, Red"
+      "product_name": "Sounder, Audible/Visual Alarm/Visual Alarm Device, Red",
+      "built_in": true
     },
     {
       "id": "product-0043",
@@ -471,7 +524,8 @@
       "alarm": 10,
       "ledCost": 0,
       "type": "Sounder",
-      "product_name": "Sounder, Audible/Visual Alarm Device, Red/White"
+      "product_name": "Sounder, Audible/Visual Alarm Device, Red/White",
+      "built_in": true
     },
     {
       "id": "product-0044",
@@ -482,7 +536,8 @@
       "alarm": 13,
       "ledCost": 0,
       "type": "Sounder",
-      "product_name": "Sounder, Audible Alarm"
+      "product_name": "Sounder, Audible Alarm",
+      "built_in": true
     },
     {
       "id": "product-0045",
@@ -493,7 +548,8 @@
       "alarm": 13,
       "ledCost": 0,
       "type": "Sounder",
-      "product_name": "Sounder, Audible Alarm, Weatherproof"
+      "product_name": "Sounder, Audible Alarm, Weatherproof",
+      "built_in": true
     },
     {
       "id": "product-0046",
@@ -504,7 +560,8 @@
       "alarm": 5,
       "ledCost": 0,
       "type": "Sounder",
-      "product_name": "Sounder, Visual Alarm"
+      "product_name": "Sounder, Visual Alarm",
+      "built_in": true
     },
     {
       "id": "product-0047",
@@ -515,7 +572,8 @@
       "alarm": 5,
       "ledCost": 0,
       "type": "Sounder",
-      "product_name": "Sounder, Visual Alarm, Weatherproof"
+      "product_name": "Sounder, Visual Alarm, Weatherproof",
+      "built_in": true
     },
     {
       "id": "product-0048",
@@ -526,7 +584,8 @@
       "alarm": 16,
       "ledCost": 0,
       "type": "Sounder",
-      "product_name": "Sounder, Audible/Visual Alarm"
+      "product_name": "Sounder, Audible/Visual Alarm",
+      "built_in": true
     },
     {
       "id": "product-0049",
@@ -537,7 +596,56 @@
       "alarm": 16,
       "ledCost": 0,
       "type": "Sounder",
-      "product_name": "Sounder, Audible/Visual Alarm, Weatherproof"
+      "product_name": "Sounder, Audible/Visual Alarm, Weatherproof",
+      "built_in": true
+    },
+    {
+      "id": "product-0050",
+      "category": "A",
+      "factory_name": "A",
+      "customer_name": "A",
+      "product_name": "",
+      "standby": 0.5,
+      "alarm": 2.0,
+      "ledCost": 1,
+      "type": "A",
+      "built_in": false
+    },
+    {
+      "id": "product-0051",
+      "category": "B",
+      "factory_name": "B",
+      "customer_name": "B",
+      "product_name": "",
+      "standby": 0.5,
+      "alarm": 2.0,
+      "ledCost": 1,
+      "type": "B",
+      "built_in": false
+    },
+    {
+      "id": "product-0052",
+      "category": "C",
+      "factory_name": "C",
+      "customer_name": "C",
+      "product_name": "C",
+      "standby": 0.5,
+      "alarm": 2.0,
+      "ledCost": 1,
+      "type": "C",
+      "built_in": false
+    },
+    {
+      "id": "product-0053",
+      "category": "D",
+      "factory_name": "D",
+      "customer_name": "D",
+      "product_name": "D",
+      "standby": 0.5,
+      "alarm": 2.0,
+      "ledCost": 1,
+      "type": "D",
+      "built_in": false
     }
   ]
 }

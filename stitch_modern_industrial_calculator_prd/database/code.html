@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BIOSENSOR_V2 - DATABASE - I/O Module</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700;900&amp;family=JetBrains+Mono:wght@400;700&amp;family=Inter:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "industrial-red": "#E11D48",
+                    },
+                    fontFamily: {
+                        "headline": ["Public Sans", "sans-serif"],
+                        "body": ["Public Sans", "sans-serif"],
+                        "label": ["Inter", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "0px",
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Public Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+        .monospace-data {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+</head>
+<body class="antialiased overflow-hidden">
+<!-- SideNavBar (JSON Derived) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col h-screen w-64 border-r-2 border-slate-300 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-950 z-50">
+<div class="p-6 flex flex-col gap-1">
+<div class="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">DATABASE</div>
+<div class="font-mono text-[10px] tracking-widest text-slate-500 dark:text-zinc-500">V2.0.4 CORE</div>
+</div>
+<nav class="flex-1 mt-4">
+<!-- Active Navigation: I/O Module -->
+<a class="flex items-center gap-3 px-4 py-3 bg-slate-200 dark:bg-zinc-800 text-blue-700 dark:text-cyan-400 border-l-4 border-blue-600 dark:border-cyan-400 transition-colors duration-75" href="#">
+<span class="material-symbols-outlined" data-icon="input">input</span>
+<span class="font-medium">I/O Module</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-zinc-500 hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors duration-75" href="#">
+<span class="material-symbols-outlined" data-icon="sensors">sensors</span>
+<span class="font-medium">Detector</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-zinc-500 hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors duration-75" href="#">
+<span class="material-symbols-outlined" data-icon="emergency">emergency</span>
+<span class="font-medium">MCP</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-zinc-500 hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors duration-75" href="#">
+<span class="material-symbols-outlined" data-icon="settings_input_component">settings_input_component</span>
+<span class="font-medium">Isolator</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-zinc-500 hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors duration-75" href="#">
+<span class="material-symbols-outlined" data-icon="volume_up">volume_up</span>
+<span class="font-medium">Sounder</span>
+</a>
+</nav>
+<div class="mt-auto border-t border-slate-200 dark:border-zinc-800">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-zinc-500 hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors duration-75" href="#">
+<span class="material-symbols-outlined" data-icon="terminal">terminal</span>
+<span class="font-medium">Diagnostics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-500 dark:text-zinc-500 hover:bg-slate-100 dark:hover:bg-zinc-900 transition-colors duration-75" href="#">
+<span class="material-symbols-outlined" data-icon="build">build</span>
+<span class="font-medium">Settings</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar (JSON Derived) -->
+<header class="fixed top-0 right-0 left-64 flex justify-between items-center px-6 h-16 z-40 bg-white dark:bg-zinc-900 border-b-2 border-slate-300 dark:border-zinc-800">
+<div class="flex items-center gap-6">
+<span class="text-lg font-black tracking-widest text-slate-900 dark:text-zinc-100">BIOSENSOR_V2</span>
+<div class="flex gap-8 items-center h-full pt-4">
+<a class="text-slate-500 dark:text-zinc-500 pb-4 border-b-2 border-transparent hover:text-blue-500" href="#">Dashboard</a>
+<a class="text-slate-500 dark:text-zinc-500 pb-4 border-b-2 border-transparent hover:text-blue-500" href="#">Calculations</a>
+<a class="text-blue-600 dark:text-cyan-400 border-b-2 border-blue-600 dark:border-cyan-400 pb-4" href="#">Database</a>
+<a class="text-slate-500 dark:text-zinc-500 pb-4 border-b-2 border-transparent hover:text-blue-500" href="#">Reports</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 scale-75" data-icon="search">search</span>
+<input class="bg-slate-100 dark:bg-zinc-800 border-none pl-10 pr-4 py-1.5 text-xs font-mono focus:ring-1 focus:ring-blue-500 outline-none w-64" placeholder="SEARCH ENTRIES..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="p-1 hover:text-blue-600 dark:hover:text-cyan-400 transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+<button class="p-1 hover:text-blue-600 dark:hover:text-cyan-400 transition-colors">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="ml-64 mt-16 pb-14 h-[calc(100vh-120px)] overflow-auto bg-slate-50 dark:bg-zinc-950">
+<!-- Breadcrumb / Header Area -->
+<div class="px-8 py-6 border-b border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
+<div class="flex items-center gap-2 text-[10px] font-mono tracking-tighter text-slate-400 mb-1">
+<span>DATABASE</span>
+<span class="material-symbols-outlined text-[12px]" data-icon="chevron_right">chevron_right</span>
+<span class="text-industrial-red">I/O MODULE</span>
+</div>
+<div class="flex justify-between items-end">
+<h1 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">MODULE REGISTRY</h1>
+<div class="flex gap-4 mb-1">
+<div class="flex flex-col items-end">
+<span class="text-[9px] font-mono text-slate-400 uppercase">Total Capacity</span>
+<span class="text-lg font-mono font-bold text-slate-900 dark:text-white">1,024/2,000</span>
+</div>
+<div class="w-[1px] h-10 bg-slate-200 dark:bg-zinc-800"></div>
+<div class="flex flex-col items-end">
+<span class="text-[9px] font-mono text-slate-400 uppercase">System Status</span>
+<span class="text-lg font-mono font-bold text-emerald-600">NOMINAL</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Dense Table Content -->
+<div class="px-8 py-4">
+<div class="border-2 border-slate-300 dark:border-zinc-800 overflow-hidden">
+<table class="w-full text-left border-collapse bg-white dark:bg-zinc-900">
+<thead class="bg-slate-100 dark:bg-zinc-800 border-b-2 border-slate-300 dark:border-zinc-800">
+<tr>
+<th class="px-4 py-3 font-mono text-xs font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider">序号 (ID)</th>
+<th class="px-4 py-3 font-mono text-xs font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider">FACTORY NAME</th>
+<th class="px-4 py-3 font-mono text-xs font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider">CUSTOMER NAME</th>
+<th class="px-4 py-3 font-mono text-xs font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider">PRODUCT_NAME</th>
+<th class="px-4 py-3 font-mono text-xs font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider text-right">STANDBY (mA)</th>
+<th class="px-4 py-3 font-mono text-xs font-bold text-slate-600 dark:text-zinc-400 uppercase tracking-wider text-right">ALARM (mA)</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-zinc-800 monospace-data text-xs">
+<tr class="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors">
+<td class="px-4 py-3 text-slate-500">001</td>
+<td class="px-4 py-3 font-bold text-slate-900 dark:text-zinc-100">SHENZHEN_CORP_A1</td>
+<td class="px-4 py-3 text-slate-600 dark:text-zinc-400">TECH_LOGISTICS_HUB</td>
+<td class="px-4 py-3 text-slate-900 dark:text-zinc-100">BS-IO-4000-X</td>
+<td class="px-4 py-3 text-right">0.85</td>
+<td class="px-4 py-3 text-right">24.50</td>
+</tr>
+<!-- Highlighted Row -->
+<tr class="bg-rose-50 dark:bg-rose-950/20 border-l-4 border-industrial-red">
+<td class="px-4 py-3 text-industrial-red font-bold">002</td>
+<td class="px-4 py-3 font-bold text-industrial-red">GUANGZHOU_IND_SYSTEMS</td>
+<td class="px-4 py-3 text-slate-600 dark:text-zinc-400">METRO_STATION_B4</td>
+<td class="px-4 py-3 text-slate-900 dark:text-zinc-100">BS-IO-200-MINI</td>
+<td class="px-4 py-3 text-right">0.42</td>
+<td class="px-4 py-3 text-right">12.10</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors">
+<td class="px-4 py-3 text-slate-500">003</td>
+<td class="px-4 py-3 font-bold text-slate-900 dark:text-zinc-100">DONGGUAN_PRECISION</td>
+<td class="px-4 py-3 text-slate-600 dark:text-zinc-400">CENTRAL_DATA_PARK</td>
+<td class="px-4 py-3 text-slate-900 dark:text-zinc-100">BS-IO-9000-HD</td>
+<td class="px-4 py-3 text-right">1.20</td>
+<td class="px-4 py-3 text-right">45.00</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors">
+<td class="px-4 py-3 text-slate-500">004</td>
+<td class="px-4 py-3 font-bold text-slate-900 dark:text-zinc-100">BEIJING_SEC_SOLUTIONS</td>
+<td class="px-4 py-3 text-slate-600 dark:text-zinc-400">GOVT_OFFICE_BLDG</td>
+<td class="px-4 py-3 text-slate-900 dark:text-zinc-100">BS-IO-4000-X</td>
+<td class="px-4 py-3 text-right">0.85</td>
+<td class="px-4 py-3 text-right">24.50</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors">
+<td class="px-4 py-3 text-slate-500">005</td>
+<td class="px-4 py-3 font-bold text-slate-900 dark:text-zinc-100">SHANGHAI_MFG_CORE</td>
+<td class="px-4 py-3 text-slate-600 dark:text-zinc-400">SMART_FACTORY_7</td>
+<td class="px-4 py-3 text-slate-900 dark:text-zinc-100">BS-IO-4100-PRO</td>
+<td class="px-4 py-3 text-right">0.92</td>
+<td class="px-4 py-3 text-right">28.00</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors">
+<td class="px-4 py-3 text-slate-500">006</td>
+<td class="px-4 py-3 font-bold text-slate-900 dark:text-zinc-100">WUHAN_CIRCUIT_TECH</td>
+<td class="px-4 py-3 text-slate-600 dark:text-zinc-400">TECH_UNIVERSITY_LAB</td>
+<td class="px-4 py-3 text-slate-900 dark:text-zinc-100">BS-IO-100-BASE</td>
+<td class="px-4 py-3 text-right">0.30</td>
+<td class="px-4 py-3 text-right">10.00</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors">
+<td class="px-4 py-3 text-slate-500">007</td>
+<td class="px-4 py-3 font-bold text-slate-900 dark:text-zinc-100">CHENGDU_INDUSTRIAL</td>
+<td class="px-4 py-3 text-slate-600 dark:text-zinc-400">AIRPORT_TERMINAL_2</td>
+<td class="px-4 py-3 text-slate-900 dark:text-zinc-100">BS-IO-4000-X</td>
+<td class="px-4 py-3 text-right">0.85</td>
+<td class="px-4 py-3 text-right">24.50</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="mt-4 flex justify-between items-center text-[10px] font-mono text-slate-400 uppercase">
+<div class="flex gap-4">
+<span>Rows: 01 - 07</span>
+<span>Selection: 01 row active</span>
+</div>
+<div class="flex gap-2">
+<button class="px-2 py-1 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 hover:bg-slate-100">PREV</button>
+<button class="px-2 py-1 bg-white dark:bg-zinc-900 border border-slate-300 dark:border-zinc-800 hover:bg-slate-100">NEXT</button>
+</div>
+</div>
+</div>
+<!-- Reference Visual Component -->
+<div class="px-8 py-6 opacity-30 pointer-events-none grayscale">
+<div class="border-t border-slate-300 dark:border-zinc-800 pt-4">
+<span class="text-[9px] font-mono">REFERENCE SYSTEM UI_V1_SNAPSHOT</span>
+<img class="mt-2 w-full h-24 object-cover" data-alt="Screenshot showing data management software grid and form fields" src="https://lh3.googleusercontent.com/aida-public/AB6AXuClgDKV-zZNN7GmZcBAaC520l5BM_-HOfWe1mMiuqQJqInSswzbj6SCm5hIPFxj8gWnk9dImDhsC3Nmgalw-9bTcBR3XvTGuU03wdspNbTjLlw0qDt2WZB0aOiwwV1elHBREna-blPTwt1P1h0FiArb24c9W_SvbwJ8zxKXD0JVt4LAimBioeaAixsFXN6BQAFp08zalpOHpbZRvpXQcx0aCrhUbKB4KOvukOzsjpB6Lf6TRS2QMVxeuqbLi51ZM8yA4Ga3s5TbitU"/>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (JSON Derived) -->
+<footer class="fixed bottom-0 right-0 left-64 h-14 flex justify-end items-center gap-0 px-0 z-50 bg-slate-100 dark:bg-zinc-950 border-t-2 border-slate-300 dark:border-zinc-800">
+<!-- Add Product -->
+<button class="h-full flex items-center gap-2 px-8 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800 transition-transform active:scale-95 font-mono text-xs uppercase tracking-tighter border-r border-slate-300 dark:border-zinc-800">
+<span class="material-symbols-outlined" data-icon="add_box">add_box</span>
+<span>Add Product</span>
+</button>
+<!-- Delete Product (Industrial Red themed) -->
+<button class="h-full flex items-center gap-2 px-8 bg-industrial-red text-white hover:brightness-110 transition-transform active:scale-95 font-mono text-xs uppercase tracking-tighter border-r border-slate-300 dark:border-zinc-800">
+<span class="material-symbols-outlined" data-icon="delete_forever">delete_forever</span>
+<span>Delete Product</span>
+</button>
+<!-- Save -->
+<button class="h-full flex items-center gap-2 px-8 bg-blue-600 dark:bg-cyan-600 text-white dark:text-black hover:brightness-110 transition-transform active:scale-95 font-mono text-xs uppercase tracking-tighter border-r border-slate-300 dark:border-zinc-800">
+<span class="material-symbols-outlined" data-icon="save">save</span>
+<span>Save</span>
+</button>
+<!-- Close -->
+<button class="h-full flex items-center gap-2 px-8 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800 transition-transform active:scale-95 font-mono text-xs uppercase tracking-tighter">
+<span class="material-symbols-outlined" data-icon="cancel">cancel</span>
+<span>Close</span>
+</button>
+</footer>
+</body></html>

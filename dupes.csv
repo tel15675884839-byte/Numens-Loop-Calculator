@@ -1,0 +1,40 @@
+name,standby,alarm,ledCost,type
+600-001 (Smoke/Heat Detector),0.26,2.0,1,Detector
+600-003 (Smoke Detector),0.26,2.0,1,Detector
+600-005 (Heat Detector),0.26,2.0,1,Detector
+"600-002 (Smoke/Heat Detector, Remote LED Output)",0.26,5.0,1,Detector
+"600-004 (Smoke Detector, Remote LED Output)",0.26,5.0,1,Detector
+"600-006 (Heat Detector, Remote LED Output)",0.26,5.0,1,Detector
+SNA-360-C2 (Smoke/Heat Detector),0.46,2.0,1,Detector
+SNA-360-S2 (Smoke Detector),0.46,2.0,1,Detector
+HNA-360-H2 (Heat Detector),0.46,2.0,1,Detector
+"SNA-360-CL (Smoke/Heat Detector, Remote LED Output)",0.46,5.0,1,Detector
+"SNA-360-SL (Smoke Detector, Remote LED Output)",0.46,5.0,1,Detector
+"HNA-360-HL (Heat Detector, Remote LED Output)",0.46,5.0,1,Detector
+"621-001 (Input Module, Single Input Monitored)",0.4,3.0,1,IO module
+"621-002 (Input/Output Module, Single Input/Output, with Output Relay)",0.4,3.0,1,IO module
+"626-001 (Input Module, Single Input)",0.5,2.1,1,IO module
+"626-005 (Input Module, Single Input, Isolator)",0.5,2.1,1,IO module
+"626-002 (Input/Output Module, Single Input/Output)",0.5,3.8,1,IO module
+"626-006 (Input/Output Module, Single Input/Output, Isolator)",0.5,3.8,1,IO module
+626-009 (Mains Switching Input/Output Module),0.5,3.8,1,IO module
+"626-010 (Mains Switching Input/Output Module, Isolator)",0.5,3.8,1,IO module
+"621-005 (Input Module, Isolator Monitored Input)",0.7,2.0,1,IO module
+"621-006 (Input/Output Module, Isolator, with Output Relay)",0.7,2.0,1,IO module
+"626-003 (Input Module, Twin Inputs)",0.7,2.3,1,IO module
+"626-007 (Input Module, Twin Inputs, Isolator)",0.7,2.3,1,IO module
+"626-004 (Input/Output Module, Twin Input/Outputs)",0.7,4.0,1,IO module
+"626-008 (Input/Output Module, Twin Input/Outputs, Isolator)",0.7,4.0,1,IO module
+"626-011 (Mains Switching Input/Output Module, Twin Input/Outputs)",0.7,4.0,1,IO module
+"626-012 (Mains Switching Input/Output Module, Twin Input/Outputs, Isolator)",0.7,4.0,1,IO module
+"620-001 (Mini Input Module, Single Detector Input)",1.0,12.0,1,IO module
+"620-002 (Mini Input Module, Single Contact Input)",1.0,12.0,1,IO module
+"620-004 (Mini Input Module, Detector Input, without Enclosure)",1.0,12.0,1,IO module
+"641-003 (Sounder, Visual Alarm)",0.35,5.0,0,Sounder
+"641-004 (Sounder, Visual Alarm, Weatherproof)",0.35,5.0,0,Sounder
+"641-001 (Sounder, Audible Alarm)",0.35,13.0,0,Sounder
+"641-002 (Sounder, Audible Alarm, Weatherproof)",0.35,13.0,0,Sounder
+"641-005 (Sounder, Audible/Visual Alarm)",0.35,16.0,0,Sounder
+"641-006 (Sounder, Audible/Visual Alarm, Weatherproof)",0.35,16.0,0,Sounder
+"640-003 (Sounder, Audible/Visual Alarm/Visual Alarm Device, Red)",0.65,10.0,0,Sounder
+"640-004 (Sounder, Audible/Visual Alarm Device, Red/White)",0.65,10.0,0,Sounder
