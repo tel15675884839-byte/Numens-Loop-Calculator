@@ -4,11 +4,7 @@
     "Detector",
     "MCP",
     "Isolator",
-    "Sounder",
-    "A",
-    "B",
-    "C",
-    "D"
+    "Sounder"
   ],
   "products": [
     {
@@ -598,54 +594,6 @@
       "type": "Sounder",
       "product_name": "Sounder, Audible/Visual Alarm, Weatherproof",
       "built_in": true
-    },
-    {
-      "id": "product-0050",
-      "category": "A",
-      "factory_name": "A",
-      "customer_name": "A",
-      "product_name": "",
-      "standby": 0.5,
-      "alarm": 2.0,
-      "ledCost": 1,
-      "type": "A",
-      "built_in": false
-    },
-    {
-      "id": "product-0051",
-      "category": "B",
-      "factory_name": "B",
-      "customer_name": "B",
-      "product_name": "",
-      "standby": 0.5,
-      "alarm": 2.0,
-      "ledCost": 1,
-      "type": "B",
-      "built_in": false
-    },
-    {
-      "id": "product-0052",
-      "category": "C",
-      "factory_name": "C",
-      "customer_name": "C",
-      "product_name": "C",
-      "standby": 0.5,
-      "alarm": 2.0,
-      "ledCost": 1,
-      "type": "C",
-      "built_in": false
-    },
-    {
-      "id": "product-0053",
-      "category": "D",
-      "factory_name": "D",
-      "customer_name": "D",
-      "product_name": "D",
-      "standby": 0.5,
-      "alarm": 2.0,
-      "ledCost": 1,
-      "type": "D",
-      "built_in": false
     }
   ]
 }

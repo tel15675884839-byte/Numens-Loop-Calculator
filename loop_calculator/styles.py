@@ -107,8 +107,8 @@ QFrame#pageHeader {{ background-color: {p['surface']}; border: 1px solid {p['bor
 QLabel#pageContext {{ color: {p['muted']}; }}
 QLabel#loopSummary {{ color: {p['muted']}; }}
 QFrame#accessRoleCard {{ background-color: {p['surface_alt']}; border: 1px solid {p['border']}; border-radius: {s(10)}px; }}
-QLabel#accessRoleCardTitle {{ color: {p['text']}; font-size: {s(14)}px; font-weight: 800; }}
-QLabel#accessRoleCardBody {{ color: {p['muted']}; font-size: {s(12)}px; line-height: 1.4; }}
+QLabel#accessRoleCardTitle {{ background: transparent; color: {p['text']}; font-size: {s(17)}px; font-weight: 800; }}
+QLabel#accessRoleCardBody {{ background: transparent; color: {p['text']}; font-size: {s(15)}px; line-height: 1.45; }}
 #resultSidebar {{
     background-color: {p.get('sidebar', p['window'])};
     border: 1px solid {p['border']};

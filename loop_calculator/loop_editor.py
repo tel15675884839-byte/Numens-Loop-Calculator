@@ -191,16 +191,19 @@ class LoopEditorWidget(QWidget):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(8, 8, 8, 8)
         main_layout.setSpacing(12)
+        self.main_content_grid = QGridLayout()
+        self.main_content_grid.setHorizontalSpacing(18)
+        self.main_content_grid.setVerticalSpacing(12)
 
         self.sys_group = QGroupBox()
-        sys_layout = QGridLayout(self.sys_group)
-        sys_layout.setContentsMargins(14, 18, 14, 14)
-        sys_layout.setHorizontalSpacing(18)
-        sys_layout.setVerticalSpacing(12)
+        self.sys_layout = QGridLayout(self.sys_group)
+        self.sys_layout.setContentsMargins(14, 18, 14, 14)
+        self.sys_layout.setHorizontalSpacing(18)
+        self.sys_layout.setVerticalSpacing(12)
         self.lbl_addr_limit = QLabel()
         self.combo_addr_limit = QComboBox()
         self.combo_addr_limit.addItems(['125', '250'])
-        param_input_width = self._s(260)
+        param_input_width = self._s(150)
         self.combo_addr_limit.setFixedWidth(param_input_width)
         self.combo_addr_limit.setMinimumContentsLength(3)
         self.combo_addr_limit.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
@@ -214,14 +217,15 @@ class LoopEditorWidget(QWidget):
         self.edit_min_voltage.setValidator(QDoubleValidator(0.0, 30.0, 1))
         self.lbl_cable = QLabel()
         self.combo_cable = QComboBox()
-        self.combo_cable.setFixedWidth(param_input_width)
+        self.combo_cable.setFixedWidth(self._s(220))
+        self.system_parameter_fields = []
         fields = (
             (self.lbl_addr_limit, self.combo_addr_limit),
             (self.lbl_max_current, self.edit_max_current),
             (self.lbl_min_voltage, self.edit_min_voltage),
             (self.lbl_cable, self.combo_cable),
         )
-        for index, (label, widget) in enumerate(fields):
+        for label, widget in fields:
             label.setStyleSheet("font-weight: bold; font-size: 11px; text-transform: uppercase;")
             field = QWidget()
             field_layout = QVBoxLayout(field)
@@ -229,16 +233,10 @@ class LoopEditorWidget(QWidget):
             field_layout.setSpacing(6)
             field_layout.addWidget(label)
             field_layout.addWidget(widget)
-            sys_layout.addWidget(field, 0, index)
-        sys_layout.setColumnStretch(0, 1)
-        sys_layout.setColumnStretch(1, 1)
-        sys_layout.setColumnStretch(2, 1)
-        sys_layout.setColumnStretch(3, 1)
+            self.system_parameter_fields.append(field)
+        self._layout_system_parameters()
         # Logo is displayed in the left sidebar; keep system-parameter row clean here.
-        main_layout.addWidget(self.sys_group)
-
-        work_area = QHBoxLayout()
-        work_area.setSpacing(18)
+        self.main_content_grid.addWidget(self.sys_group, 0, 0)
         self.dev_group = QGroupBox()
         dev_layout = QVBoxLayout(self.dev_group)
         dev_layout.setContentsMargins(14, 18, 14, 14)
@@ -277,7 +275,7 @@ class LoopEditorWidget(QWidget):
         self.table.setItemDelegateForColumn(DeviceListQtColumns.Quantity, DeviceQtyDelegate(self, self.table))
         self.table.verticalHeader().setVisible(False)
         dev_layout.addWidget(self.table)
-        work_area.addWidget(self.dev_group, 6)
+        self.main_content_grid.addWidget(self.dev_group, 1, 0)
         self.res_group = QGroupBox()
         res_layout = QVBoxLayout(self.res_group)
         res_layout.setContentsMargins(14, 18, 14, 14)
@@ -338,9 +336,26 @@ class LoopEditorWidget(QWidget):
         res_layout.addWidget(self.website_label)
         res_layout.addSpacing(10)
         
-        work_area.addWidget(self.res_group, 4)
+        self.main_content_grid.addWidget(self.res_group, 0, 1, 2, 1)
+        self.main_content_grid.setColumnStretch(0, 7)
+        self.main_content_grid.setColumnStretch(1, 4)
+        self.main_content_grid.setRowStretch(0, 0)
+        self.main_content_grid.setRowStretch(1, 1)
 
-        main_layout.addLayout(work_area)
+        main_layout.addLayout(self.main_content_grid)
+
+    def _layout_system_parameters(self) -> None:
+        while self.sys_layout.count():
+            self.sys_layout.takeAt(0)
+        host_width = self.sys_group.width() if self.sys_group.width() > 0 else self.width()
+        compact = host_width > 0 and host_width < self._s(820)
+        columns = 2 if compact else 4
+        for index, field in enumerate(self.system_parameter_fields):
+            row = index // columns
+            col = index % columns
+            self.sys_layout.addWidget(field, row, col)
+        for col in range(4):
+            self.sys_layout.setColumnStretch(col, 1 if col < columns else 0)
 
     def _bind(self) -> None:
         self.btn_delete.clicked.connect(self.delete_selected)
@@ -588,4 +603,5 @@ class LoopEditorWidget(QWidget):
 
     def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
+        self._layout_system_parameters()
         self._layout_category_buttons()

@@ -21,6 +21,8 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QScrollArea,
+    QSizePolicy,
     QTabBar,
     QTabWidget,
     QVBoxLayout,
@@ -86,8 +88,11 @@ class CIEMainWindow(QMainWindow):
         if screen is None:
             return 1.0
         available = screen.availableGeometry()
-        design_w, design_h = 1400, 900
-        if available.width() < design_w or available.height() < design_h:
+        if available.width() < 1150 or available.height() < 720:
+            return 0.78
+        if available.width() < 1280 or available.height() < 800:
+            return 0.84
+        if available.width() < 1400 or available.height() < 900:
             return 0.9
         return 1.0
 
@@ -98,8 +103,8 @@ class CIEMainWindow(QMainWindow):
             return
         available = app.primaryScreen().availableGeometry()
         margin = 24
-        target_w = min(self._s(1400), max(800, available.width() - margin))
-        target_h = min(self._s(900), max(620, available.height() - margin))
+        target_w = min(self._s(1400), max(720, available.width() - margin))
+        target_h = min(self._s(900), max(560, available.height() - margin))
         self.resize(target_w, target_h)
 
     def _create_pref_controls(self, layout):
@@ -130,21 +135,33 @@ class CIEMainWindow(QMainWindow):
         layout.addLayout(col)
 
     def _create_access_page(self) -> QWidget:
+        scroll = QScrollArea()
+        scroll.setObjectName("accessScroll")
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        scroll.setMinimumSize(0, 0)
+
         page = QWidget()
+        page.setObjectName("accessPageContent")
+        page.setMinimumSize(0, 0)
         layout = QVBoxLayout(page)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(16)
+        layout.setSpacing(20)
 
         self.lbl_access_intro = QLabel()
         self.lbl_access_intro.setWordWrap(True)
         layout.addWidget(self.lbl_access_intro)
 
-        top_row = QHBoxLayout()
-        top_row.setSpacing(16)
+        self.access_top_layout = QGridLayout()
+        self.access_top_layout.setHorizontalSpacing(20)
+        self.access_top_layout.setVerticalSpacing(20)
 
         self.access_status_group = QGroupBox()
         status_layout = QVBoxLayout(self.access_status_group)
-        status_layout.setSpacing(10)
+        status_layout.setContentsMargins(24, 24, 24, 24)
+        status_layout.setSpacing(14)
         self.lbl_access_status_card = QLabel()
         self.lbl_access_status_card.setObjectName("accessStatusValue")
         self.lbl_access_status_hint = QLabel()
@@ -152,12 +169,13 @@ class CIEMainWindow(QMainWindow):
         status_layout.addWidget(self.lbl_access_status_card)
         status_layout.addWidget(self.lbl_access_status_hint)
         status_layout.addStretch()
-        top_row.addWidget(self.access_status_group, 1)
+        self.access_top_layout.addWidget(self.access_status_group, 0, 0)
 
         self.access_actions_group = QGroupBox()
         actions_layout = QGridLayout(self.access_actions_group)
-        actions_layout.setHorizontalSpacing(14)
-        actions_layout.setVerticalSpacing(12)
+        actions_layout.setContentsMargins(28, 30, 28, 28)
+        actions_layout.setHorizontalSpacing(18)
+        actions_layout.setVerticalSpacing(18)
         self.btn_admin_login = QPushButton()
         self.btn_factory_login = QPushButton()
         self.btn_logout = QPushButton()
@@ -170,25 +188,28 @@ class CIEMainWindow(QMainWindow):
         actions_layout.addWidget(self.btn_factory_login, 0, 1)
         actions_layout.addWidget(self.btn_logout, 1, 0)
         actions_layout.addWidget(self.btn_passwords, 1, 1)
-        top_row.addWidget(self.access_actions_group, 1)
+        self.access_top_layout.addWidget(self.access_actions_group, 0, 1)
 
-        layout.addLayout(top_row)
+        layout.addLayout(self.access_top_layout)
 
         self.access_notes_group = QGroupBox()
         notes_layout = QVBoxLayout(self.access_notes_group)
-        notes_layout.setSpacing(12)
+        notes_layout.setContentsMargins(24, 24, 24, 24)
+        notes_layout.setSpacing(18)
         self.lbl_access_notes = QLabel()
         self.lbl_access_notes.setWordWrap(True)
         notes_layout.addWidget(self.lbl_access_notes)
-        role_cards = QHBoxLayout()
-        role_cards.setSpacing(12)
+        self.access_role_grid = QGridLayout()
+        self.access_role_grid.setHorizontalSpacing(16)
+        self.access_role_grid.setVerticalSpacing(16)
         self.access_role_cards: dict[str, tuple[QLabel, QLabel]] = {}
+        self.access_role_card_frames: dict[str, QFrame] = {}
         for role_key in ("view", "admin", "factory"):
             card = QFrame()
             card.setObjectName("accessRoleCard")
             card_layout = QVBoxLayout(card)
-            card_layout.setContentsMargins(14, 14, 14, 14)
-            card_layout.setSpacing(8)
+            card_layout.setContentsMargins(20, 18, 20, 18)
+            card_layout.setSpacing(10)
             title = QLabel()
             title.setObjectName("accessRoleCardTitle")
             body = QLabel()
@@ -197,12 +218,48 @@ class CIEMainWindow(QMainWindow):
             card_layout.addWidget(title)
             card_layout.addWidget(body)
             card_layout.addStretch()
-            role_cards.addWidget(card, 1)
+            self.access_role_card_frames[role_key] = card
             self.access_role_cards[role_key] = (title, body)
-        notes_layout.addLayout(role_cards)
+        notes_layout.addLayout(self.access_role_grid)
         layout.addWidget(self.access_notes_group)
         layout.addStretch()
-        return page
+        scroll.setWidget(page)
+        self.access_page_content = page
+        self._update_access_responsive_layout()
+        return scroll
+
+    def _clear_layout_items(self, layout) -> None:
+        while layout.count():
+            layout.takeAt(0)
+
+    def _update_access_responsive_layout(self) -> None:
+        if not hasattr(self, "access_top_layout") or not hasattr(self, "access_role_grid"):
+            return
+        available_width = self.stack.width() if hasattr(self, "stack") and self.stack.width() > 0 else self.width()
+        compact = available_width < self._s(900)
+        medium = available_width < self._s(1120)
+
+        self._clear_layout_items(self.access_top_layout)
+        if compact:
+            self.access_top_layout.addWidget(self.access_status_group, 0, 0)
+            self.access_top_layout.addWidget(self.access_actions_group, 1, 0)
+            self.access_top_layout.setColumnStretch(0, 1)
+            self.access_top_layout.setColumnStretch(1, 0)
+        else:
+            self.access_top_layout.addWidget(self.access_status_group, 0, 0)
+            self.access_top_layout.addWidget(self.access_actions_group, 0, 1)
+            self.access_top_layout.setColumnStretch(0, 1)
+            self.access_top_layout.setColumnStretch(1, 1)
+
+        self._clear_layout_items(self.access_role_grid)
+        columns = 1 if compact else (2 if medium else 3)
+        for index, role_key in enumerate(("view", "admin", "factory")):
+            card = self.access_role_card_frames[role_key]
+            row = index // columns
+            col = index % columns
+            self.access_role_grid.addWidget(card, row, col)
+        for col in range(3):
+            self.access_role_grid.setColumnStretch(col, 1 if col < columns else 0)
 
     def _create_workspace_page(self):
         main_layout = QHBoxLayout(self.workspace_page)
@@ -246,6 +303,8 @@ class CIEMainWindow(QMainWindow):
 
         # Content Area
         content_container = QWidget()
+        content_container.setMinimumSize(0, 0)
+        content_container.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
         self.content_layout = QVBoxLayout(content_container)
         self.content_layout.setContentsMargins(self._s(24), self._s(18), self._s(24), self._s(24))
         self.content_layout.setSpacing(self._s(18))
@@ -264,9 +323,12 @@ class CIEMainWindow(QMainWindow):
 
         # Stacked Pages
         self.stack = QStackedWidget()
+        self.stack.setMinimumSize(0, 0)
+        self.stack.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
         
         # Page 1: Loops (Current UI)
         self.loops_page = QWidget()
+        self.loops_page.setMinimumSize(0, 0)
         loops_layout = QVBoxLayout(self.loops_page)
         loops_layout.setContentsMargins(0, 0, 0, 0)
         loops_layout.setSpacing(self._s(12))
@@ -294,11 +356,13 @@ class CIEMainWindow(QMainWindow):
         
         # Page 2: Product DB
         self.db_page = ProductManagerWidget(self.product_db, self)
+        self.db_page.setMinimumSize(0, 0)
         self.db_page.data_changed.connect(self.reload_products)
         self.stack.addWidget(self.db_page)
 
         # Page 3: Access
         self.access_page = self._create_access_page()
+        self.access_page.setMinimumSize(0, 0)
         self.stack.addWidget(self.access_page)
         
         self.content_layout.addWidget(self.stack)
@@ -466,10 +530,28 @@ class CIEMainWindow(QMainWindow):
         self.lbl_page_context.setStyleSheet(f"color: {self.p['muted']}; font-size: {self._s(11)}px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;")
         self.lbl_page_title.setStyleSheet(f"font-weight: 900; font-size: {self._s(26)}px; color: {self.p['text']};")
         self.lbl_loop_summary.setStyleSheet(f"color: {self.p['muted']}; font-size: {self._s(12)}px; font-weight: 600;")
-        self.lbl_access_intro.setStyleSheet(f"color: {self.p['muted']}; font-size: {self._s(12)}px; padding: 0 0 {self._s(2)}px {self._s(2)}px;")
-        self.lbl_access_status_card.setStyleSheet(f"color: {self.p['text']}; font-size: {self._s(24)}px; font-weight: 900;")
-        self.lbl_access_status_hint.setStyleSheet(f"color: {self.p['muted']}; font-size: {self._s(12)}px; line-height: 1.4;")
-        self.lbl_access_notes.setStyleSheet(f"color: {self.p['text']}; font-size: {self._s(12)}px; line-height: 1.5;")
+        access_group_style = (
+            f"QGroupBox {{ font-size: {self._s(13)}px; font-weight: 900; letter-spacing: 0.7px; "
+            f"border: 1px solid {self.p['border']}; border-radius: {self.p.get('radius', '8px')}; "
+            f"margin-top: {self._s(18)}px; padding: {self._s(18)}px; background-color: {self.p['surface']}; }}"
+            f"QGroupBox::title {{ subcontrol-origin: margin; subcontrol-position: top left; "
+            f"left: {self._s(14)}px; top: 1px; font-size: {self._s(13)}px; font-weight: 900; "
+            f"color: {self.p['text']}; padding: 0 {self._s(6)}px; }}"
+        )
+        for group in [self.access_status_group, self.access_actions_group, self.access_notes_group]:
+            group.setStyleSheet(access_group_style)
+        if hasattr(self, "access_page_content"):
+            self.access_page.setStyleSheet(
+                f"QScrollArea#accessScroll {{ background-color: {self.p['window']}; border: none; }}"
+            )
+            self.access_page.viewport().setStyleSheet(f"background-color: {self.p['window']};")
+            self.access_page_content.setStyleSheet(
+                f"QWidget#accessPageContent {{ background-color: {self.p['window']}; }}"
+            )
+        self.lbl_access_intro.setStyleSheet(f"background: transparent; color: {self.p['text']}; font-size: {self._s(15)}px; padding: 0 0 {self._s(4)}px {self._s(2)}px;")
+        self.lbl_access_status_card.setStyleSheet(f"background: transparent; color: {self.p['text']}; font-size: {self._s(30)}px; font-weight: 900;")
+        self.lbl_access_status_hint.setStyleSheet(f"background: transparent; color: {self.p['text']}; font-size: {self._s(15)}px; line-height: 1.45;")
+        self.lbl_access_notes.setStyleSheet(f"background: transparent; color: {self.p['text']}; font-size: {self._s(15)}px; line-height: 1.45;")
         self.tab_widget.setStyleSheet(self.tab_style())
         self.btn_add_loop.setStyleSheet(self.primary_outline_button_style())
         self.btn_admin_login.setStyleSheet(self.secondary_button_style())
@@ -479,7 +561,8 @@ class CIEMainWindow(QMainWindow):
         self.btn_add_loop.setFixedHeight(self._s(38))
         self.btn_add_loop.setMinimumWidth(self._s(124))
         for button in [self.btn_admin_login, self.btn_factory_login, self.btn_logout, self.btn_passwords]:
-            button.setMinimumHeight(self._s(42))
+            button.setMinimumHeight(self._s(48))
+            button.setStyleSheet(button.styleSheet() + f"QPushButton {{ font-size: {self._s(13)}px; padding: 0 {self._s(18)}px; }}")
         self._apply_nav_styles(self._get_active_nav_key())
         self._apply_panel_button_styles()
         self._refresh_close_buttons()
@@ -924,6 +1007,7 @@ class CIEMainWindow(QMainWindow):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        self._update_access_responsive_layout()
         self._update_add_button_pos()
 
     def _update_add_button_pos(self):
