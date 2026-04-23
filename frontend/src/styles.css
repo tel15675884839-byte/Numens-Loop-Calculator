@@ -1,0 +1,73 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html,
+  body,
+  #app {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-zinc-50 text-zinc-900 antialiased;
+    font-feature-settings: "tnum" 1, "ss01" 1;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .field {
+    @apply w-full rounded-none border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition focus:border-blue-600 focus:ring-1 focus:ring-blue-600;
+  }
+
+  .field-number {
+    @apply field text-right tabular-nums;
+  }
+
+  .panel {
+    @apply border border-zinc-200 bg-white shadow-panel;
+  }
+
+  .panel-title {
+    @apply border-b border-zinc-200 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-zinc-500;
+  }
+
+  .toolbar-button {
+    @apply inline-flex items-center gap-2 rounded-none border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:text-zinc-400 disabled:hover:border-zinc-300 disabled:hover:bg-white;
+  }
+
+  .toolbar-button-primary {
+    @apply toolbar-button border-blue-600 bg-blue-600 text-white hover:border-blue-700 hover:bg-blue-700 disabled:border-blue-200 disabled:bg-blue-200 disabled:text-white;
+  }
+
+  .toolbar-button-ghost {
+    @apply toolbar-button border-transparent bg-transparent hover:border-zinc-300 hover:bg-white;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-2 border-l-2 border-transparent px-3 py-2 text-sm text-zinc-700 transition hover:bg-zinc-100;
+  }
+
+  .nav-link-active {
+    @apply border-blue-600 bg-blue-50 text-blue-700;
+  }
+
+  .table-head {
+    @apply border-b border-zinc-200 bg-zinc-50 text-left text-[11px] font-semibold uppercase tracking-wide text-zinc-500;
+  }
+
+  .table-cell {
+    @apply border-b border-zinc-200 px-2 py-2 align-middle text-sm text-zinc-800;
+  }
+}
