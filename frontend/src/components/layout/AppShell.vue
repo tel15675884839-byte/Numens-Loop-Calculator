@@ -4,7 +4,11 @@
     <div class="grid min-h-0 flex-1 grid-cols-[18rem_minmax(0,1fr)] border-t border-zinc-200">
       <LeftNav />
       <main class="min-h-0 min-w-0 overflow-hidden">
-        <RouterView />
+        <RouterView v-slot="{ Component }">
+          <Transition name="ios-page" mode="out-in">
+            <component :is="Component" />
+          </Transition>
+        </RouterView>
       </main>
     </div>
     <DialogHost />
@@ -25,3 +29,20 @@ onMounted(() => {
   theme.initializeTheme();
 });
 </script>
+
+<style scoped>
+.ios-page-enter-active,
+.ios-page-leave-active {
+  transition: opacity 0.25s cubic-bezier(0.25, 1, 0.5, 1), transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.ios-page-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.ios-page-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>
