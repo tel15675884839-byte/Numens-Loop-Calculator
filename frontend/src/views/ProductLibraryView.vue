@@ -6,14 +6,17 @@
         :category="productStore.filters.category"
         :categories="categoriesWithProducts"
         :total="productStore.filteredProducts.length"
+        :isAdmin="productStore.isAdmin"
         @create="productStore.beginNewProduct"
         @update:search="productStore.setSearch"
         @update:category="productStore.setCategory"
+        @adminUnlock="handleAdminUnlock"
       />
 
       <ProductTable
         :products="productStore.filteredProducts"
-        @edit="openEditor"
+        :isAdmin="productStore.isAdmin"
+        @save="saveProductInTable"
         @delete="confirmDelete"
       />
     </div>
@@ -105,8 +108,36 @@ function patchDraft(patch: Partial<ProductDraft>) {
   };
 }
 
+async function handleAdminUnlock() {
+  if (productStore.isAdmin) {
+    productStore.isAdmin = false;
+    return;
+  }
+  const pwd = await dialog.prompt({
+    title: "Administrator Access",
+    message: "Please enter the admin password to unlock edit permissions:",
+    initialValue: "",
+    confirmLabel: "Unlock"
+  });
+  if (pwd === "numens888") {
+    productStore.isAdmin = true;
+  } else if (pwd !== null) {
+    await dialog.alert({
+      title: "Access Denied",
+      message: "Incorrect password."
+    });
+  }
+}
+
 async function saveProduct() {
   await productStore.saveProduct(draft.value);
+  productStore.closeEditor();
+}
+
+async function saveProductInTable(product: ProductRecord) {
+  // Overwrite local mode to edit before updating
+  productStore.editorMode = "edit";
+  await productStore.saveProduct(product);
 }
 
 async function deleteProduct() {

@@ -3,7 +3,12 @@
     <div class="flex items-center justify-between flex-wrap gap-4 px-4 py-3">
       <!-- Title -->
       <div>
-        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Library filters</p>
+        <p
+          class="text-xs font-semibold uppercase tracking-wide text-zinc-500 cursor-pointer select-none hover:text-zinc-700"
+          @dblclick="$emit('adminUnlock')"
+        >
+          Library filters
+        </p>
         <p class="text-sm text-zinc-600">{{ total }} products</p>
       </div>
 
@@ -44,27 +49,35 @@
         </div>
       </div>
 
-      <!-- Add Product -->
-      <button class="toolbar-button-primary px-3 py-1.5 text-xs" @click="$emit('create')">
-        <CirclePlus class="h-4 w-4" />
-        <span>Add product</span>
-      </button>
+      <!-- Admin Controls -->
+      <div class="flex items-center gap-2">
+        <button v-if="isAdmin" class="toolbar-button px-3 py-1.5 text-xs" @click="$emit('adminUnlock')">
+          <Lock class="h-4 w-4 text-zinc-500" />
+          <span>Lock</span>
+        </button>
+        <button class="toolbar-button-primary px-3 py-1.5 text-xs" @click="$emit('create')">
+          <CirclePlus class="h-4 w-4" />
+          <span>Add product</span>
+        </button>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { CirclePlus } from "lucide-vue-next";
+import { CirclePlus, Lock } from "lucide-vue-next";
 
 defineProps<{
   search: string;
   category: string;
   categories: string[];
   total: number;
+  isAdmin: boolean;
 }>();
 
 defineEmits<{
   create: [];
+  adminUnlock: [];
   "update:search": [value: string];
   "update:category": [value: string];
 }>();

@@ -34,6 +34,7 @@ export const useProductStore = defineStore("products", () => {
   const activeId = ref<string | null>(null);
   const editorMode = ref<"new" | "edit">("edit");
   const statusMessage = ref<string>("Ready");
+  const isAdmin = ref(false);
 
   const activeProduct = computed(() => products.value.find((product) => product.id === activeId.value) ?? null);
 
@@ -260,6 +261,7 @@ export const useProductStore = defineStore("products", () => {
     removeProduct,
     addCategory,
     draftFromProduct,
-    getProduct
+    getProduct,
+    isAdmin
   };
 });

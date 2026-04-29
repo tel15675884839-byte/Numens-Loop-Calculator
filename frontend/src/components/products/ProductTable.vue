@@ -42,15 +42,61 @@
                   {{ product.built_in ? "Built-in" : "Custom" }}
                 </span>
               </td>
-              <td class="table-cell">{{ product.category }}</td>
               <td class="table-cell">
-                <button class="text-left font-medium text-zinc-900 hover:text-blue-700" @click="$emit('edit', product)">{{ product.product_name }}</button>
+                <input
+                  v-if="isAdmin || !product.built_in"
+                  class="field px-2 py-1 text-sm w-full"
+                  :value="product.category"
+                  @change="updateField(product, 'category', $event)"
+                />
+                <span v-else>{{ product.category }}</span>
               </td>
-              <td class="table-cell">{{ product.factory_name }}</td>
-              <td class="table-cell text-right tabular-nums">{{ product.standby.toFixed(2) }}</td>
-              <td class="table-cell text-right tabular-nums">{{ product.alarm.toFixed(2) }}</td>
+              <td class="table-cell">
+                <input
+                  v-if="isAdmin || !product.built_in"
+                  class="field px-2 py-1 text-sm w-full"
+                  :value="product.product_name"
+                  @change="updateField(product, 'product_name', $event)"
+                />
+                <span v-else class="text-left font-medium text-zinc-900">{{ product.product_name }}</span>
+              </td>
+              <td class="table-cell">
+                <input
+                  v-if="isAdmin || !product.built_in"
+                  class="field px-2 py-1 text-sm w-full"
+                  :value="product.factory_name"
+                  @change="updateField(product, 'factory_name', $event)"
+                />
+                <span v-else>{{ product.factory_name }}</span>
+              </td>
+              <td class="table-cell text-right tabular-nums">
+                <input
+                  v-if="isAdmin || !product.built_in"
+                  type="number"
+                  step="0.01"
+                  class="field-number px-2 py-1 text-sm w-24 text-right"
+                  :value="product.standby"
+                  @change="updateNumberField(product, 'standby', $event)"
+                />
+                <span v-else>{{ product.standby.toFixed(2) }}</span>
+              </td>
+              <td class="table-cell text-right tabular-nums">
+                <input
+                  v-if="isAdmin || !product.built_in"
+                  type="number"
+                  step="0.01"
+                  class="field-number px-2 py-1 text-sm w-24 text-right"
+                  :value="product.alarm"
+                  @change="updateNumberField(product, 'alarm', $event)"
+                />
+                <span v-else>{{ product.alarm.toFixed(2) }}</span>
+              </td>
               <td class="table-cell text-right">
-                <button class="toolbar-button-ghost px-2 py-1 text-red-600 disabled:text-zinc-300" :disabled="product.built_in" @click="$emit('delete', product)">
+                <button
+                  class="toolbar-button-ghost px-2 py-1 text-red-600 disabled:text-zinc-300"
+                  :disabled="product.built_in && !isAdmin"
+                  @click="$emit('delete', product)"
+                >
                   <Trash2 class="h-4 w-4" />
                   <span>Delete</span>
                 </button>
@@ -70,12 +116,25 @@ import type { ProductRecord } from "../../types/product";
 
 const props = defineProps<{
   products: ProductRecord[];
+  isAdmin: boolean;
 }>();
 
-defineEmits<{
-  edit: [product: ProductRecord];
+const emit = defineEmits<{
+  save: [product: ProductRecord];
   delete: [product: ProductRecord];
 }>();
+
+function updateField(product: ProductRecord, field: string, event: Event) {
+  const value = (event.target as HTMLInputElement).value;
+  const updatedProduct = { ...product, [field]: value };
+  emit("save", updatedProduct);
+}
+
+function updateNumberField(product: ProductRecord, field: string, event: Event) {
+  const value = Number((event.target as HTMLInputElement).value);
+  const updatedProduct = { ...product, [field]: Number.isFinite(value) ? value : 0 };
+  emit("save", updatedProduct);
+}
 
 const groupedProducts = computed(() => {
   const groups: Record<string, ProductRecord[]> = {};

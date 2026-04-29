@@ -18,6 +18,7 @@
           <p class="text-sm leading-6 text-zinc-600">{{ dialog.activeDialog.message }}</p>
           <input
             v-if="dialog.activeDialog.kind === 'prompt'"
+            ref="promptInput"
             class="field"
             :value="dialog.activeDialog.promptValue"
             @input="onInput"
@@ -43,10 +44,23 @@
 </template>
 
 <script setup lang="ts">
+import { nextTick, ref, watch } from "vue";
 import { useDialogStore } from "../../stores/dialogStore";
 
 const dialog = useDialogStore();
 const titleId = "app-dialog-title";
+const promptInput = ref<HTMLInputElement | null>(null);
+
+watch(
+  () => dialog.activeDialog,
+  async (newVal) => {
+    if (newVal?.kind === "prompt") {
+      await nextTick();
+      promptInput.value?.focus();
+    }
+  },
+  { deep: true }
+);
 
 function onInput(event: Event) {
   dialog.updatePromptValue((event.target as HTMLInputElement).value);
