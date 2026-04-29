@@ -95,7 +95,7 @@
       <!-- Power Calculations Card -->
       <div class="bg-zinc-50 p-3 rounded-none border border-zinc-200">
         <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-2 flex items-center gap-1">
-          <span>⚡</span> Power Calculations
+          <span>🔋</span> Power Calculations
         </p>
         <div class="grid grid-cols-2 gap-2 bg-white p-2 rounded-none border border-zinc-100">
           <div class="flex items-end justify-between px-1">
