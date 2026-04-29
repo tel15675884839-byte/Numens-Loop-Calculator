@@ -1,30 +1,53 @@
 <template>
-  <div class="panel">
-    <div class="panel-title">System parameters</div>
+  <div class="panel border border-zinc-200 bg-white rounded-none shadow-sm">
+    <div class="panel-title border-b border-zinc-200 bg-zinc-50 px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-600">
+      System Parameters
+    </div>
     <div class="flex flex-wrap items-end justify-between gap-3 px-4 py-4">
       <div class="flex flex-wrap items-end gap-3">
-        <label v-for="field in fields" :key="field.key" class="flex w-28 flex-col gap-1">
-          <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ field.label }}</span>
-          <input class="field-number" :value="field.value" :inputmode="field.inputMode" @input="field.onInput" />
+        <!-- Cable Size Select -->
+        <label class="flex w-44 flex-col gap-1">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Cable Size</span>
+          <select 
+            class="field-number rounded-none h-[38px] bg-white border border-zinc-200 px-3 text-sm text-zinc-800 focus:outline-none focus:border-zinc-400"
+            :value="loop?.cable_size || '1.5'"
+            @change="onCableSizeChange"
+          >
+            <option v-for="opt in cableOptions" :key="opt.size" :value="opt.size">
+              {{ opt.label }}
+            </option>
+          </select>
+        </label>
+
+        <!-- AUX Current Input -->
+        <label class="flex w-32 flex-col gap-1">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">AUX current mA</span>
+          <input 
+            class="field-number rounded-none h-[38px] border border-zinc-200 px-3 text-sm text-zinc-800 focus:outline-none focus:border-zinc-400" 
+            :value="loop?.aux_current_ma ?? 0" 
+            inputmode="decimal" 
+            @input="onAuxInput" 
+          />
         </label>
       </div>
 
+      <!-- Device Creation Buttons -->
       <div class="flex flex-wrap items-end gap-2">
         <button
           v-for="category in categories"
           :key="category"
-          class="toolbar-button px-3 text-sm h-[38px] flex items-center justify-center font-medium"
+          class="toolbar-button px-3 text-sm h-[38px] flex items-center justify-center font-medium rounded-none"
           @click="$emit('add-category', category)"
         >
           {{ category }}
         </button>
       </div>
+
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
 import type { ProjectLoop } from "../../types/project";
 
 const props = withDefaults(
@@ -42,57 +65,30 @@ const emit = defineEmits<{
   "add-category": [category: string];
 }>();
 
-function updateNumber(key: keyof ProjectLoop, value: string) {
-  const numeric = value === "" ? 0 : Number(value);
-  emit("update", { [key]: Number.isFinite(numeric) ? numeric : 0 } as Partial<ProjectLoop>);
-}
+const cableOptions = [
+  { size: "1.0", resistance: 18.1, label: "1.0 mm² (18.1 Ω/km)" },
+  { size: "1.5", resistance: 12.1, label: "1.5 mm² (12.1 Ω/km)" },
+  { size: "2.5", resistance: 7.41, label: "2.5 mm² (7.41 Ω/km)" },
+  { size: "4.0", resistance: 4.61, label: "4.0 mm² (4.61 Ω/km)" },
+];
 
-function updateText(key: keyof ProjectLoop, value: string) {
-  emit("update", { [key]: value } as Partial<ProjectLoop>);
-}
-
-const fields = computed(() => [
-  {
-    key: "address_limit",
-    label: "Address limit",
-    value: props.loop?.address_limit ?? 0,
-    inputMode: "numeric",
-    onInput: (event: Event) => updateNumber("address_limit", (event.target as HTMLInputElement).value)
-  },
-  {
-    key: "max_current_ma",
-    label: "Max current mA",
-    value: props.loop?.max_current_ma ?? 0,
-    inputMode: "decimal",
-    onInput: (event: Event) => updateNumber("max_current_ma", (event.target as HTMLInputElement).value)
-  },
-  {
-    key: "min_voltage_v",
-    label: "Min voltage V",
-    value: props.loop?.min_voltage_v ?? 0,
-    inputMode: "decimal",
-    onInput: (event: Event) => updateNumber("min_voltage_v", (event.target as HTMLInputElement).value)
-  },
-  {
-    key: "cable_size",
-    label: "Cable size",
-    value: props.loop?.cable_size ?? "",
-    inputMode: "text",
-    onInput: (event: Event) => updateText("cable_size", (event.target as HTMLInputElement).value)
-  },
-  {
-    key: "cable_resistance_ohm_per_km",
-    label: "Resistance Ω/km",
-    value: props.loop?.cable_resistance_ohm_per_km ?? 0,
-    inputMode: "decimal",
-    onInput: (event: Event) => updateNumber("cable_resistance_ohm_per_km", (event.target as HTMLInputElement).value)
-  },
-  {
-    key: "aux_current_ma",
-    label: "AUX current mA",
-    value: props.loop?.aux_current_ma ?? 0,
-    inputMode: "decimal",
-    onInput: (event: Event) => updateNumber("aux_current_ma", (event.target as HTMLInputElement).value)
+function onCableSizeChange(event: Event) {
+  const selectedSize = (event.target as HTMLSelectElement).value;
+  const option = cableOptions.find(o => o.size === selectedSize);
+  if (option) {
+    emit("update", {
+      cable_size: selectedSize,
+      cable_resistance_ohm_per_km: option.resistance
+    });
   }
-]);
+}
+
+function onAuxInput(event: Event) {
+  const value = (event.target as HTMLInputElement).value;
+  const numeric = value === "" ? 0 : Number(value);
+  emit("update", { 
+    aux_current_ma: Number.isFinite(numeric) ? numeric : 0 
+  });
+}
 </script>
+

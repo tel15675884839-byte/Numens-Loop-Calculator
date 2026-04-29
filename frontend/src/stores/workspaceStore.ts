@@ -24,6 +24,15 @@ function cloneProject(project: ProjectRecord): ProjectRecord {
   return JSON.parse(JSON.stringify(project)) as ProjectRecord;
 }
 
+function isSounder(row: Partial<LoopDeviceRow>): boolean {
+  if (String(row.category || "").trim().toLowerCase() === "sounder") return true;
+  const haystack = [row.display_name, row.product_name, row.customer_name, row.factory_name, row.device_type]
+    .map(s => String(s || ""))
+    .join(" ")
+    .toUpperCase();
+  return haystack.includes("LSM") || haystack.includes("620-003");
+}
+
 function normalizeLoop(loop: ProjectLoop): ProjectLoop {
   return {
     ...loop,
@@ -393,19 +402,26 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   }
 
   function addDeviceRowForCategory(loopId: string, category: string, products: ProductRecord[]) {
-    if (!activeProject.value) {
-      return false;
-    }
+    if (!activeProject.value) return false;
     const loop = activeProject.value.loops.find((item) => item.id === loopId);
-    if (!loop) {
-      return false;
-    }
+    if (!loop) return false;
+
     const totalQuantity = loop.device_rows.reduce((sum, row) => sum + row.qty, 0);
     if (totalQuantity >= loop.address_limit) {
       error.value = "Address limit reached for this loop.";
       return false;
     }
+
     const row = createDeviceRowForCategory(products, category, loop.device_rows.length + 1);
+    
+    if (isSounder(row)) {
+      const sounderTotal = loop.device_rows.reduce((sum, r) => isSounder(r) ? sum + r.qty : sum, 0);
+      if (sounderTotal >= 32) {
+        error.value = "Sounder limit (32) reached for this loop.";
+        return false;
+      }
+    }
+
     loop.device_rows = [...loop.device_rows, row];
     error.value = null;
     touchDirty();
@@ -414,14 +430,41 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   }
 
   function updateDeviceRow(loopId: string, rowId: string, patch: Partial<LoopDeviceRow>) {
-    if (!activeProject.value) {
-      return;
-    }
+    if (!activeProject.value) return;
     const loop = activeProject.value.loops.find((item) => item.id === loopId);
-    if (!loop) {
-      return;
+    if (!loop) return;
+
+    const rowIndex = loop.device_rows.findIndex((r) => r.id === rowId);
+    if (rowIndex === -1) return;
+
+    const currentRow = loop.device_rows[rowIndex];
+    const nextRow = { ...currentRow, ...patch };
+
+    // Enforce limits
+    let newQty = nextRow.qty;
+    
+    // 1. Total limit check
+    const otherTotal = loop.device_rows.reduce((sum, r) => sum + (r.id === rowId ? 0 : r.qty), 0);
+    const maxAllowed = Math.max(1, loop.address_limit - otherTotal);
+    
+    // 2. Sounder limit check
+    let maxSounderAllowed = newQty;
+    if (isSounder(nextRow)) {
+      const otherSounderTotal = loop.device_rows.reduce((sum, r) => {
+        if (r.id !== rowId && isSounder(r)) return sum + r.qty;
+        return sum;
+      }, 0);
+      maxSounderAllowed = Math.max(1, 32 - otherSounderTotal);
     }
-    loop.device_rows = loop.device_rows.map((row) => (row.id === rowId ? { ...row, ...patch } : row));
+    
+    const finalAllowedQty = Math.min(maxAllowed, maxSounderAllowed);
+    if (newQty > finalAllowedQty) {
+      newQty = finalAllowedQty;
+    }
+
+    nextRow.qty = newQty;
+    loop.device_rows = loop.device_rows.map((row) => (row.id === rowId ? nextRow : row));
+    
     touchDirty();
     scheduleCalculation(loopId);
   }

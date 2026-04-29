@@ -14,21 +14,30 @@
             <th class="table-head w-12 px-2 py-2">#</th>
             <th class="table-head px-2 py-2">Category</th>
             <th class="table-head px-2 py-2">Device</th>
-            <th class="table-head w-24 px-2 py-2 text-right">Lead m</th>
-            <th class="table-head w-24 px-2 py-2 text-right">Interval m</th>
+            <th class="table-head w-[105px] px-2 py-2" title="Distance to the previous device">
+              <div class="flex items-center justify-end gap-1 cursor-help">
+                <span class="whitespace-nowrap">Lead m</span>
+                <HelpCircle class="h-3.5 w-3.5 text-zinc-400" />
+              </div>
+            </th>
+            <th class="table-head w-[105px] px-2 py-2" title="Spacing between identical devices (when Qty > 1)">
+              <div class="flex items-center justify-end gap-1 cursor-help">
+                <span class="whitespace-nowrap">Interval m</span>
+                <HelpCircle class="h-3.5 w-3.5 text-zinc-400" />
+              </div>
+            </th>
             <th class="table-head w-20 px-2 py-2 text-right">Qty</th>
             <th class="table-head w-24 px-2 py-2 text-right">Alarm mA</th>
-            <th class="table-head w-24 px-2 py-2 text-right">LED</th>
-            <th class="table-head w-20 px-2 py-2">Actions</th>
+            <th class="table-head w-20 px-2 py-2 text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="row in rows" :key="row.id">
-            <td class="table-cell text-center text-xs text-zinc-500">{{ row.sort_order }}</td>
-            <td class="table-cell">
+            <td class="table-cell !py-3 text-center text-xs text-zinc-500">{{ row.sort_order }}</td>
+            <td class="table-cell !py-3">
               <input class="field" :value="row.category" @input="updateRow(row.id, { category: inputValue($event) })" />
             </td>
-            <td class="table-cell">
+            <td class="table-cell !py-3">
               <select class="field" :value="row.product_id ?? ''" @change="onProductSelect(row.id, inputValue($event))">
                 <option value="">Manual row</option>
                 <option v-for="product in productOptionsForRow(row)" :key="product.id" :value="product.id">
@@ -36,23 +45,20 @@
                 </option>
               </select>
             </td>
-            <td class="table-cell">
+            <td class="table-cell !py-3">
               <input class="field-number" :value="row.lead_dist_m" @input="updateNumber(row.id, 'lead_dist_m', inputValue($event))" />
             </td>
-            <td class="table-cell">
+            <td class="table-cell !py-3">
               <input class="field-number" :value="row.interval_dist_m" @input="updateNumber(row.id, 'interval_dist_m', inputValue($event))" />
             </td>
-            <td class="table-cell">
-              <input class="field-number" :value="row.qty" @input="updateInteger(row.id, 'qty', inputValue($event))" />
+            <td class="table-cell !py-3">
+              <input class="field-number" type="number" min="1" :value="row.qty" @input="updateInteger(row.id, 'qty', inputValue($event))" />
             </td>
-            <td class="table-cell">
+            <td class="table-cell !py-3">
               <input class="field-number" :value="row.alarm_ma" @input="updateNumber(row.id, 'alarm_ma', inputValue($event))" />
             </td>
-            <td class="table-cell">
-              <input class="field-number" :value="row.led_cost" @input="updateInteger(row.id, 'led_cost', inputValue($event))" />
-            </td>
-            <td class="table-cell">
-              <button class="toolbar-button-ghost p-1 text-zinc-500 hover:text-red-600" @click="$emit('remove-row', row.id)">
+            <td class="table-cell !py-3 text-center">
+              <button class="toolbar-button-ghost p-1 text-zinc-500 hover:text-red-600 inline-flex items-center justify-center" @click="$emit('remove-row', row.id)">
                 <Trash2 class="h-4 w-4" />
               </button>
             </td>
@@ -64,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { Trash2 } from "lucide-vue-next";
+import { Trash2, HelpCircle } from "lucide-vue-next";
 import type { LoopDeviceRow } from "../../types/project";
 import type { ProductRecord } from "../../types/product";
 
@@ -96,7 +102,10 @@ function updateNumber(rowId: string, key: keyof LoopDeviceRow, value: string) {
 }
 
 function updateInteger(rowId: string, key: keyof LoopDeviceRow, value: string) {
-  const numeric = value === "" ? 0 : Math.round(Number(value));
+  let numeric = value === "" ? 0 : Math.round(Number(value));
+  if (key === 'qty' && numeric < 1) {
+    numeric = 1;
+  }
   emit("update-row", rowId, { [key]: Number.isFinite(numeric) ? numeric : 0 } as Partial<LoopDeviceRow>);
 }
 
