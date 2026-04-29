@@ -7,11 +7,13 @@
         <p class="mt-1 text-sm font-semibold" :class="statusClass">{{ statusLabel }}</p>
       </div>
 
-      <div class="grid grid-cols-2 gap-3 text-sm">
+      <div class="grid grid-cols-2 gap-2 text-sm">
         <div v-for="item in metrics" :key="item.label" class="border border-zinc-200 p-3">
           <p class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ item.label }}</p>
-          <p class="mt-1 text-right text-base font-semibold tabular-nums text-zinc-900">{{ item.value }}</p>
-          <p v-if="item.unit" class="text-right text-[11px] text-zinc-500">{{ item.unit }}</p>
+          <p class="mt-3 flex items-baseline justify-end gap-1 whitespace-nowrap text-right tabular-nums text-zinc-900">
+            <span class="text-base font-semibold">{{ item.value }}</span>
+            <span v-if="item.unit" class="text-[11px] font-medium text-zinc-500">{{ item.unit }}</span>
+          </p>
         </div>
       </div>
 
@@ -20,13 +22,17 @@
         <div class="mt-2 grid grid-cols-2 gap-3 text-sm">
           <div>
             <p class="text-[11px] uppercase tracking-wide text-zinc-500">Standby</p>
-            <p class="text-right text-base font-semibold tabular-nums text-zinc-900">{{ formatNumber(battery.standby_hours, 1) }}</p>
-            <p class="text-right text-[11px] text-zinc-500">h</p>
+            <p class="flex items-baseline justify-end gap-1 whitespace-nowrap text-right tabular-nums text-zinc-900">
+              <span class="text-base font-semibold">{{ formatNumber(battery.standby_hours, 1) }}</span>
+              <span class="text-[11px] font-medium text-zinc-500">h</span>
+            </p>
           </div>
           <div>
             <p class="text-[11px] uppercase tracking-wide text-zinc-500">Alarm</p>
-            <p class="text-right text-base font-semibold tabular-nums text-zinc-900">{{ formatNumber(battery.alarm_hours, 1) }}</p>
-            <p class="text-right text-[11px] text-zinc-500">h</p>
+            <p class="flex items-baseline justify-end gap-1 whitespace-nowrap text-right tabular-nums text-zinc-900">
+              <span class="text-base font-semibold">{{ formatNumber(battery.alarm_hours, 1) }}</span>
+              <span class="text-[11px] font-medium text-zinc-500">h</span>
+            </p>
           </div>
         </div>
         <p class="mt-2 text-xs text-zinc-500">
@@ -82,7 +88,7 @@ const statusClass = computed(() => {
 });
 
 const metrics = computed(() => [
-  { label: "Addresses", value: props.result ? String(props.result.total_addresses) : "-", unit: props.result ? `/${props.result.addr_limit}` : "" },
+  { label: "Addresses", value: props.result ? `${props.result.total_addresses}/${props.result.addr_limit}` : "-", unit: "" },
   { label: "Current", value: props.result ? formatNumber(props.result.total_current_ma, 1) : "-", unit: "mA" },
   { label: "End voltage", value: props.result ? formatNumber(props.result.end_voltage_v, 2) : "-", unit: "V" },
   { label: "Distance", value: props.result ? formatNumber(props.result.total_distance_m, 1) : "-", unit: "m" },

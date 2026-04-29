@@ -5,7 +5,12 @@
         <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Loops</p>
         <p class="text-sm text-zinc-600">{{ loops.length }} configured</p>
       </div>
-      <button class="toolbar-button" @click="$emit('add')">
+      <button
+        class="toolbar-button disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
+        :disabled="!canAdd"
+        :title="canAdd ? 'Add loop' : 'Maximum 6 loops'"
+        @click="$emit('add')"
+      >
         <CirclePlus class="h-4 w-4" />
         <span>Add loop</span>
       </button>
@@ -32,6 +37,7 @@ import type { ProjectLoop } from "../../types/project";
 defineProps<{
   loops: ProjectLoop[];
   activeLoopId: string;
+  canAdd: boolean;
 }>();
 
 defineEmits<{

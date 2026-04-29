@@ -51,4 +51,17 @@ describe("workspaceStore", () => {
     expect(store.activeLoop?.device_rows[0].lead_dist_m).toBe(10);
     expect(store.error).toBe("Address limit reached for this loop.");
   });
+
+  it("limits projects to six loops", () => {
+    const store = useWorkspaceStore();
+    store.createBlankProject();
+
+    for (let index = 0; index < 8; index += 1) {
+      store.addLoop();
+    }
+
+    expect(store.activeProject?.loops).toHaveLength(6);
+    expect(store.activeLoop?.sort_order).toBe(6);
+    expect(store.canAddLoop).toBe(false);
+  });
 });

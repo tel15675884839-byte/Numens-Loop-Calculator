@@ -6,6 +6,7 @@
           v-if="workspace.activeProject"
           :loops="workspace.activeProject.loops"
           :active-loop-id="workspace.activeLoopId"
+          :can-add="workspace.canAddLoop"
           @select="workspace.setActiveLoop"
           @add="workspace.addLoop"
         />

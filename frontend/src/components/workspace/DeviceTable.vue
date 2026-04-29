@@ -18,7 +18,7 @@
     </div>
 
     <div data-testid="device-table-scroll" class="min-h-0 flex-1 overflow-auto">
-      <table class="min-w-[64rem] w-full border-collapse">
+      <table class="min-w-[58rem] w-full border-collapse">
         <thead class="sticky top-0 z-10">
           <tr>
             <th class="table-head w-12 px-2 py-2">#</th>
@@ -27,7 +27,6 @@
             <th class="table-head w-24 px-2 py-2 text-right">Lead m</th>
             <th class="table-head w-24 px-2 py-2 text-right">Interval m</th>
             <th class="table-head w-20 px-2 py-2 text-right">Qty</th>
-            <th class="table-head w-24 px-2 py-2 text-right">Standby mA</th>
             <th class="table-head w-24 px-2 py-2 text-right">Alarm mA</th>
             <th class="table-head w-24 px-2 py-2 text-right">LED</th>
             <th class="table-head w-20 px-2 py-2">Actions</th>
@@ -55,9 +54,6 @@
             </td>
             <td class="table-cell">
               <input class="field-number" :value="row.qty" @input="updateInteger(row.id, 'qty', inputValue($event))" />
-            </td>
-            <td class="table-cell">
-              <input class="field-number" :value="row.standby_ma" @input="updateNumber(row.id, 'standby_ma', inputValue($event))" />
             </td>
             <td class="table-cell">
               <input class="field-number" :value="row.alarm_ma" @input="updateNumber(row.id, 'alarm_ma', inputValue($event))" />

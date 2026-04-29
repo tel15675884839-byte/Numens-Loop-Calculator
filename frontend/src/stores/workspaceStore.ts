@@ -13,6 +13,7 @@ import { readJson, writeJson } from "../utils/storage";
 import type { ProductRecord } from "../types/product";
 
 const WORKSPACE_CACHE_KEY = "loop-calculator.workspace.v2";
+const MAX_LOOPS = 6;
 
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 type ProjectMode = "new" | "edit";
@@ -32,9 +33,18 @@ function normalizeLoop(loop: ProjectLoop): ProjectLoop {
 }
 
 function normalizeProject(project: ProjectRecord): ProjectRecord {
+  const loops = [...project.loops]
+    .sort((left, right) => left.sort_order - right.sort_order)
+    .slice(0, MAX_LOOPS)
+    .map((loop, index) => normalizeLoop({ ...loop, sort_order: index + 1 }));
+  const activeLoopId = loops.some((loop) => loop.id === project.active_loop_id)
+    ? project.active_loop_id
+    : loops[0]?.id ?? "";
+
   return {
     ...project,
-    loops: [...project.loops].sort((left, right) => left.sort_order - right.sort_order).map(normalizeLoop)
+    active_loop_id: activeLoopId,
+    loops
   };
 }
 
@@ -116,6 +126,8 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   const activeLoop = computed(() => activeProject.value?.loops.find((loop) => loop.id === activeLoopId.value) ?? null);
 
   const activeLoopIndex = computed(() => activeProject.value?.loops.findIndex((loop) => loop.id === activeLoopId.value) ?? 0);
+
+  const canAddLoop = computed(() => (activeProject.value?.loops.length ?? 0) < MAX_LOOPS);
 
   function touchDirty() {
     if (saveState.value !== "saving") {
@@ -292,7 +304,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   }
 
   function addLoop() {
-    if (!activeProject.value) {
+    if (!activeProject.value || !canAddLoop.value) {
       return;
     }
     const loop = createLoopFromIndex(activeProject.value.id, activeProject.value.loops.length + 1);
@@ -461,6 +473,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     activeLoopId,
     activeLoop,
     activeLoopIndex,
+    canAddLoop,
     loading,
     error,
     saveState,
