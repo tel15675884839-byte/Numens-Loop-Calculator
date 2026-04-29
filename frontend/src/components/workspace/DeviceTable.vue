@@ -35,7 +35,7 @@
           <tr v-for="row in rows" :key="row.id">
             <td class="table-cell !py-3 text-center text-xs text-zinc-500">{{ row.sort_order }}</td>
             <td class="table-cell !py-3">
-              <input class="field" :value="row.category" @input="updateRow(row.id, { category: inputValue($event) })" />
+              <input class="field cursor-not-allowed bg-zinc-50 text-zinc-400" disabled :value="row.category" />
             </td>
             <td class="table-cell !py-3">
               <select class="field" :value="row.product_id ?? ''" @change="onProductSelect(row.id, inputValue($event))">
@@ -49,13 +49,19 @@
               <input class="field-number" :value="row.lead_dist_m" @input="updateNumber(row.id, 'lead_dist_m', inputValue($event))" />
             </td>
             <td class="table-cell !py-3">
-              <input class="field-number" :value="row.interval_dist_m" @input="updateNumber(row.id, 'interval_dist_m', inputValue($event))" />
+              <input 
+                class="field-number" 
+                :disabled="row.qty <= 1"
+                :class="{ 'cursor-not-allowed bg-zinc-50 text-zinc-400': row.qty <= 1 }"
+                :value="row.qty <= 1 ? 0 : row.interval_dist_m" 
+                @input="updateNumber(row.id, 'interval_dist_m', inputValue($event))" 
+              />
             </td>
             <td class="table-cell !py-3">
               <input class="field-number" type="number" min="1" :value="row.qty" @input="updateInteger(row.id, 'qty', inputValue($event))" />
             </td>
             <td class="table-cell !py-3">
-              <input class="field-number" :value="row.alarm_ma" @input="updateNumber(row.id, 'alarm_ma', inputValue($event))" />
+              <input class="field-number cursor-not-allowed bg-zinc-50 text-zinc-400" disabled :value="row.alarm_ma" />
             </td>
             <td class="table-cell !py-3 text-center">
               <button class="toolbar-button-ghost p-1 text-zinc-500 hover:text-red-600 inline-flex items-center justify-center" @click="$emit('remove-row', row.id)">
@@ -103,8 +109,12 @@ function updateNumber(rowId: string, key: keyof LoopDeviceRow, value: string) {
 
 function updateInteger(rowId: string, key: keyof LoopDeviceRow, value: string) {
   let numeric = value === "" ? 0 : Math.round(Number(value));
-  if (key === 'qty' && numeric < 1) {
-    numeric = 1;
+  if (key === 'qty') {
+    if (numeric < 1) numeric = 1;
+    if (numeric === 1) {
+      emit("update-row", rowId, { qty: 1, interval_dist_m: 0 } as Partial<LoopDeviceRow>);
+      return;
+    }
   }
   emit("update-row", rowId, { [key]: Number.isFinite(numeric) ? numeric : 0 } as Partial<LoopDeviceRow>);
 }

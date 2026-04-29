@@ -9,12 +9,12 @@
     <div class="flex-1 overflow-y-auto space-y-4 p-4">
       <!-- System Status Card -->
       <div class="rounded-none border border-zinc-200 shadow-sm overflow-hidden bg-white">
-        <div class="px-3 py-2 border-b border-zinc-100 flex justify-between items-center"
-             :class="statusClass.includes('emerald') ? 'bg-emerald-50 text-emerald-800' : statusClass.includes('amber') ? 'bg-amber-50 text-amber-800' : 'bg-blue-50 text-blue-800'">
+        <div class="status-strip"
+             :class="statusToneClass">
           <span class="text-xs font-bold uppercase tracking-wider">System Status</span>
           <span class="flex h-2 w-2 relative">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-none opacity-75" :class="statusClass.includes('emerald') ? 'bg-emerald-400' : 'bg-amber-400'"></span>
-            <span class="relative inline-flex rounded-none h-2 w-2" :class="statusClass.includes('emerald') ? 'bg-emerald-500' : 'bg-amber-500'"></span>
+            <span class="status-pulse animate-ping absolute inline-flex h-full w-full rounded-none opacity-75"></span>
+            <span class="status-dot relative inline-flex rounded-none h-2 w-2"></span>
           </span>
         </div>
         <div class="p-3 text-center text-xl font-extrabold text-zinc-800">
@@ -68,13 +68,13 @@
                  }">
             </div>
 
-            <!-- Rotating wave mask: white -->
+            <!-- Rotating wave mask: empty area -->
             <div class="fill-wave-mask"
                  :style="{ bottom: `${Math.min(currentPercent, 100)}%` }">
             </div>
 
             <!-- Foreground number -->
-            <span class="relative z-10 font-bold tabular-nums text-zinc-900 drop-shadow-[0_1.5px_1px_rgba(255,255,255,1)]">
+            <span class="gauge-percent relative z-10 font-bold tabular-nums text-zinc-900">
               {{ Math.round(currentPercent) }}%
             </span>
           </div>
@@ -181,10 +181,10 @@ const statusLabel = computed(() => {
   return "Within limits";
 });
 
-const statusClass = computed(() => {
-  if (props.busy) return "text-blue-700";
-  if (diagnostics.value.length > 0) return "text-amber-700";
-  return "text-emerald-700";
+const statusToneClass = computed(() => {
+  if (!props.loop || props.busy || !props.result) return "status-strip-info";
+  if (diagnostics.value.length > 0) return "status-strip-warning";
+  return "status-strip-ok";
 });
 
 const metrics = computed(() => [
@@ -220,10 +220,46 @@ const recommendation = computed(() => {
 
 
 <style scoped>
+.status-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--status-strip-border);
+    padding: 0.5rem 0.75rem;
+    background: var(--status-strip-bg);
+    color: var(--status-strip-text);
+}
+
+.status-strip-ok {
+    --status-strip-bg: var(--status-ok-bg);
+    --status-strip-border: var(--status-ok-border);
+    --status-strip-text: var(--status-ok-text);
+    --status-dot-color: var(--status-ok-dot);
+}
+
+.status-strip-warning {
+    --status-strip-bg: var(--status-warning-bg);
+    --status-strip-border: var(--status-warning-border);
+    --status-strip-text: var(--status-warning-text);
+    --status-dot-color: var(--status-warning-dot);
+}
+
+.status-strip-info {
+    --status-strip-bg: var(--status-info-bg);
+    --status-strip-border: var(--status-info-border);
+    --status-strip-text: var(--status-info-text);
+    --status-dot-color: var(--status-info-dot);
+}
+
+.status-pulse,
+.status-dot {
+    background: var(--status-dot-color);
+}
+
 .fill-wave-mask {
     position: absolute;
     width: 250%; height: 250%;
-    background: white; /* Use white to simulate the empty masked area. */
+    background: var(--gauge-empty-bg);
     border-radius: 42%; /* Creates the wave edge. */
     left: -75%;
     animation: spin 4s linear infinite;
@@ -232,7 +268,9 @@ const recommendation = computed(() => {
 }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
+.gauge-percent {
+    color: var(--gauge-percent-text);
+    filter: var(--gauge-percent-shadow);
+}
+
 </style>
-
-
-

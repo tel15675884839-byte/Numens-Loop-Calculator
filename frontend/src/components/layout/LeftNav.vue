@@ -3,15 +3,15 @@
     <div class="border-b border-zinc-200 px-3 py-3">
       <RouterLink class="nav-link mb-1" :class="{ 'nav-link-active': isWorkspace }" to="/">
         <Layers3 class="h-4 w-4" />
-        <span>Workspace</span>
+        <span>Loop Designer</span>
       </RouterLink>
       <RouterLink class="nav-link" :class="{ 'nav-link-active': isProducts }" to="/products">
         <LibraryBig class="h-4 w-4" />
-        <span>Product library</span>
+        <span>Device Catalog</span>
       </RouterLink>
       <button class="nav-link w-full cursor-not-allowed text-zinc-400" disabled>
         <Settings2 class="h-4 w-4" />
-        <span>Settings</span>
+        <span>Preferences</span>
       </button>
     </div>
 

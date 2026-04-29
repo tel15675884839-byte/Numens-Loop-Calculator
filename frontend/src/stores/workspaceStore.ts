@@ -25,6 +25,28 @@ function cloneProject(project: ProjectRecord): ProjectRecord {
   return JSON.parse(JSON.stringify(project)) as ProjectRecord;
 }
 
+function projectChangeSignature(project: ProjectRecord): string {
+  return JSON.stringify({
+    id: project.id,
+    name: project.name,
+    loops: [...project.loops]
+      .sort((left, right) => left.sort_order - right.sort_order)
+      .map((loop) => ({
+        id: loop.id,
+        project_id: loop.project_id,
+        name: loop.name,
+        sort_order: loop.sort_order,
+        address_limit: loop.address_limit,
+        max_current_ma: loop.max_current_ma,
+        min_voltage_v: loop.min_voltage_v,
+        cable_size: loop.cable_size,
+        cable_resistance_ohm_per_km: loop.cable_resistance_ohm_per_km,
+        aux_current_ma: loop.aux_current_ma,
+        device_rows: [...loop.device_rows].sort((left, right) => left.sort_order - right.sort_order)
+      }))
+  });
+}
+
 function isSounder(row: Partial<LoopDeviceRow>): boolean {
   if (String(row.category || "").trim().toLowerCase() === "sounder") return true;
   const haystack = [row.display_name, row.product_name, row.customer_name, row.factory_name, row.device_type]
@@ -121,6 +143,10 @@ function getLocalProjects() {
   return readJson<ProjectRecord[]>(WORKSPACE_CACHE_KEY) ?? sampleWorkspaceProjects;
 }
 
+function isMissingBackendProject(cause: unknown): boolean {
+  return typeof cause === "object" && cause !== null && "status" in cause && (cause as { status?: unknown }).status === 404;
+}
+
 export const useWorkspaceStore = defineStore("workspace", () => {
   const projects = ref<ProjectListItem[]>([]);
   const activeProject = ref<ProjectRecord | null>(null);
@@ -132,6 +158,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   const projectMode = ref<ProjectMode>("edit");
   const lastSavedAt = ref<string | null>(null);
   const calculationBusyLoopIds = ref<string[]>([]);
+  const baselineProject = ref<ProjectRecord | null>(null);
 
   const activeLoop = computed(() => activeProject.value?.loops.find((loop) => loop.id === activeLoopId.value) ?? null);
 
@@ -139,7 +166,12 @@ export const useWorkspaceStore = defineStore("workspace", () => {
 
   const canAddLoop = computed(() => (activeProject.value?.loops.length ?? 0) < MAX_LOOPS);
 
-  const hasUnsavedChanges = computed(() => saveState.value === "dirty" || saveState.value === "error");
+  const hasUnsavedChanges = computed(() => {
+    if (!activeProject.value || !baselineProject.value) {
+      return false;
+    }
+    return projectChangeSignature(activeProject.value) !== projectChangeSignature(baselineProject.value);
+  });
 
   function canLeaveActiveProject() {
     if (!hasUnsavedChanges.value) {
@@ -148,14 +180,19 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     const dialog = useDialogStore();
     return dialog.confirm({
       title: "Unsaved changes",
-      message: "The current project has unsaved changes. Continue anyway?",
-      confirmLabel: "Continue"
+      message: "This project has unsaved changes. Discard changes before leaving?",
+      confirmLabel: "Discard changes"
+    }).then((shouldDiscard) => {
+      if (shouldDiscard) {
+        discardActiveProjectChanges();
+      }
+      return shouldDiscard;
     });
   }
 
   function touchDirty() {
     if (saveState.value !== "saving") {
-      saveState.value = "dirty";
+      saveState.value = hasUnsavedChanges.value ? "dirty" : "idle";
     }
   }
 
@@ -173,13 +210,14 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     writeJson(WORKSPACE_CACHE_KEY, current);
   }
 
-  function setActiveProject(project: ProjectRecord) {
+  function setActiveProject(project: ProjectRecord, mode: ProjectMode = "edit") {
     const normalized = normalizeProject(cloneProject(project));
     activeProject.value = normalized;
     activeProjectId.value = normalized.id;
     activeLoopId.value = normalized.active_loop_id || normalized.loops[0]?.id || "";
+    baselineProject.value = cloneProject(normalized);
     saveState.value = "idle";
-    projectMode.value = "edit";
+    projectMode.value = mode;
     lastSavedAt.value = normalized.updated_at ?? null;
     writeCache(normalized);
     const summary = {
@@ -208,11 +246,10 @@ export const useWorkspaceStore = defineStore("workspace", () => {
       const firstProjectId = remoteProjects[0]?.id;
       if (firstProjectId) {
         const project = await getProject(firstProjectId);
-        setActiveProject(project);
+        setActiveProject(project, "edit");
       } else {
         const fallback = getLocalProjects()[0] ?? createProjectDraft();
-        projectMode.value = "edit";
-        setActiveProject(fallback);
+        setActiveProject(fallback, "edit");
       }
     } catch (cause) {
       const localProjects = getLocalProjects();
@@ -225,8 +262,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
         updated_at: p.updated_at
       }));
       const fallback = localProjects[0] ?? createProjectDraft();
-      projectMode.value = "edit";
-      setActiveProject(fallback);
+      setActiveProject(fallback, "edit");
       error.value = cause instanceof Error ? cause.message : "Unable to load workspace";
     } finally {
       loading.value = false;
@@ -268,13 +304,11 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   async function openProject(projectId: string) {
     try {
       const project = await getProject(projectId);
-      projectMode.value = "edit";
-      setActiveProject(project);
+      setActiveProject(project, "edit");
     } catch {
       const fallback = getLocalProjects().find((project) => project.id === projectId);
       if (fallback) {
-        projectMode.value = "edit";
-        setActiveProject(fallback);
+        setActiveProject(fallback, "edit");
       }
     }
   }
@@ -293,9 +327,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
       name = `Project ${counter}`;
     }
     const project = createProjectDraft(name);
-    setActiveProject(project);
-    projectMode.value = "new";
-    touchDirty();
+    setActiveProject(project, "new");
   }
 
   async function saveActiveProject() {
@@ -320,10 +352,20 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     try {
       const previousProjectId = activeProjectId.value;
       const wasNewProject = projectMode.value === "new";
-      const result = wasNewProject
-        ? await createProject(activeProject.value)
-        : await updateProject(activeProjectId.value, activeProject.value);
-      setActiveProject(result);
+      let result: ProjectRecord;
+      if (wasNewProject) {
+        result = await createProject(activeProject.value);
+      } else {
+        try {
+          result = await updateProject(activeProjectId.value, activeProject.value);
+        } catch (cause) {
+          if (!isMissingBackendProject(cause)) {
+            throw cause;
+          }
+          result = await createProject(activeProject.value);
+        }
+      }
+      setActiveProject(result, "edit");
       if (wasNewProject && previousProjectId && previousProjectId !== result.id) {
         projects.value = projects.value.filter((project) => project.id !== previousProjectId);
       }
@@ -351,7 +393,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
       if (next) {
         await openProject(next.id);
       } else {
-        createBlankProject();
+        await createBlankProject();
       }
     }
   }
@@ -366,7 +408,6 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     }
     activeLoopId.value = loopId;
     activeProject.value.active_loop_id = loopId;
-    touchDirty();
   }
 
   function updateLoop(loopId: string, patch: Partial<ProjectLoop>) {
@@ -579,6 +620,16 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     return activeProjectId.value === projectId && hasUnsavedChanges.value;
   }
 
+  function discardActiveProjectChanges() {
+    if (!baselineProject.value) {
+      saveState.value = "idle";
+      return;
+    }
+    const mode = projectMode.value;
+    setActiveProject(baselineProject.value, mode);
+    saveState.value = "idle";
+  }
+
   function ensureInitialCalculation() {
     if (activeLoop.value && !activeLoop.value.calculation_result) {
       scheduleCalculation(activeLoop.value.id);
@@ -600,6 +651,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     hasUnsavedChanges,
     calculationBusyLoopIds,
     canLeaveActiveProject,
+    discardActiveProjectChanges,
     bootstrap,
     setProjectName,
     selectProject,

@@ -75,7 +75,8 @@ describe("workspaceStore", () => {
 
     const nextProject = store.createBlankProject();
     const dialogStore = (await import("../dialogStore")).useDialogStore();
-    expect(dialogStore.activeDialog?.message).toBe("The current project has unsaved changes. Continue anyway?");
+    expect(dialogStore.activeDialog?.message).toBe("This project has unsaved changes. Discard changes before leaving?");
+    expect(dialogStore.activeDialog?.confirmLabel).toBe("Discard changes");
     dialogStore.resolve(false);
     await nextProject;
 
@@ -102,7 +103,8 @@ describe("workspaceStore", () => {
 
     const selection = store.selectProject("other-project");
     const dialogStore = (await import("../dialogStore")).useDialogStore();
-    expect(dialogStore.activeDialog?.message).toBe("The current project has unsaved changes. Continue anyway?");
+    expect(dialogStore.activeDialog?.message).toBe("This project has unsaved changes. Discard changes before leaving?");
+    expect(dialogStore.activeDialog?.confirmLabel).toBe("Discard changes");
     dialogStore.resolve(false);
     await selection;
 
@@ -118,13 +120,44 @@ describe("workspaceStore", () => {
 
     const nextProject = store.createBlankProject();
     const dialogStore = (await import("../dialogStore")).useDialogStore();
-    expect(dialogStore.activeDialog?.message).toBe("The current project has unsaved changes. Continue anyway?");
+    expect(dialogStore.activeDialog?.message).toBe("This project has unsaved changes. Discard changes before leaving?");
+    expect(dialogStore.activeDialog?.confirmLabel).toBe("Discard changes");
     dialogStore.resolve(true);
     await nextProject;
 
     expect(store.activeProjectId).not.toBe(originalProjectId);
     expect(store.activeProject?.name).not.toBe("Unsaved configuration");
+    expect(store.saveState).toBe("idle");
+  });
+
+  it("does not mark a blank project dirty until editable data changes", () => {
+    const store = useWorkspaceStore();
+
+    store.createBlankProject();
+
+    expect(store.hasUnsavedChanges).toBe(false);
+    expect(store.saveState).toBe("idle");
+
+    store.setProjectName("Unsaved configuration");
+
+    expect(store.hasUnsavedChanges).toBe(true);
     expect(store.saveState).toBe("dirty");
+  });
+
+  it("discards unsaved changes and clears the unsaved state when leaving is confirmed", async () => {
+    const store = useWorkspaceStore();
+    store.createBlankProject();
+    const originalName = store.activeProject?.name;
+    store.setProjectName("Unsaved configuration");
+
+    const leave = store.canLeaveActiveProject();
+    const dialogStore = (await import("../dialogStore")).useDialogStore();
+    dialogStore.resolve(true);
+
+    expect(await leave).toBe(true);
+    expect(store.activeProject?.name).toBe(originalName);
+    expect(store.hasUnsavedChanges).toBe(false);
+    expect(store.saveState).toBe("idle");
   });
 
   it("creates new projects through the create endpoint after switching to a blank project", async () => {
@@ -158,5 +191,65 @@ describe("workspaceStore", () => {
     expect(projectsApi.createProject).toHaveBeenCalledOnce();
     expect(projectsApi.updateProject).not.toHaveBeenCalled();
     expect(store.saveState).toBe("saved");
+  });
+
+  it("creates a project when saving a locally cached project that is missing from the backend", async () => {
+    const projectsApi = await import("../../api/projects");
+    const missingBackendProject = Object.assign(new Error("missing project"), { status: 404 });
+    vi.mocked(projectsApi.updateProject).mockRejectedValueOnce(missingBackendProject);
+    vi.mocked(projectsApi.createProject).mockResolvedValueOnce({
+      id: "saved-local-project",
+      name: "Locally cached project",
+      active_loop_id: "loop-1",
+      loops: [
+        {
+          id: "loop-1",
+          project_id: "saved-local-project",
+          name: "Loop 1",
+          sort_order: 1,
+          address_limit: 125,
+          max_current_ma: 400,
+          min_voltage_v: 17,
+          cable_size: "1.5",
+          cable_resistance_ohm_per_km: 12.1,
+          aux_current_ma: 0,
+          device_rows: [],
+          calculation_result: null
+        }
+      ]
+    });
+    const store = useWorkspaceStore();
+
+    localStorage.setItem("loop-calculator.workspace.v2", JSON.stringify([
+      {
+        id: "local-project",
+        name: "Local project",
+        active_loop_id: "loop-1",
+        loops: [
+          {
+            id: "loop-1",
+            project_id: "local-project",
+            name: "Loop 1",
+            sort_order: 1,
+            address_limit: 125,
+            max_current_ma: 400,
+            min_voltage_v: 17,
+            cable_size: "1.5",
+            cable_resistance_ohm_per_km: 12.1,
+            aux_current_ma: 0,
+            device_rows: [],
+            calculation_result: null
+          }
+        ]
+      }
+    ]));
+    await store.bootstrap();
+    store.setProjectName("Locally cached project");
+    await store.saveActiveProject();
+
+    expect(projectsApi.updateProject).toHaveBeenCalledOnce();
+    expect(projectsApi.createProject).toHaveBeenCalledOnce();
+    expect(store.saveState).toBe("saved");
+    expect(store.activeProjectId).toBe("saved-local-project");
   });
 });

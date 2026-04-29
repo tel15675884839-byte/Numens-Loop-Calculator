@@ -23,6 +23,9 @@ router.beforeEach((to, from) => {
   if (to.fullPath === from.fullPath) {
     return true;
   }
+  if (from.name !== "workspace" || to.name === "workspace") {
+    return true;
+  }
   const workspace = useWorkspaceStore();
   return workspace.canLeaveActiveProject();
 });
