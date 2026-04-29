@@ -20,7 +20,7 @@ from backend.app.schemas import (
     ProjectUpdate,
 )
 from backend.app.services import BackendService
-from backend.app.storage import NotFoundError, ProductProtectedError, SQLiteStore
+from backend.app.storage import NotFoundError, ProductProtectedError, SQLiteStore, ValidationError
 
 
 def _default_db_path() -> Path:
@@ -63,7 +63,10 @@ def create_app(db_path: Path | str | None = None, seed_path: Path | str | None =
 
     @app.post("/api/projects", status_code=status.HTTP_201_CREATED)
     def create_project(project: ProjectCreate, service: BackendService = Depends(get_service)) -> dict[str, object]:
-        return service.store.create_project(project.model_dump(mode="python"))
+        try:
+            return service.store.create_project(project.model_dump(mode="python"))
+        except ValidationError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     @app.get("/api/projects/{project_id}")
     def get_project(project_id: str, service: BackendService = Depends(get_service)) -> dict[str, object]:
@@ -78,6 +81,8 @@ def create_app(db_path: Path | str | None = None, seed_path: Path | str | None =
             return service.store.replace_project(project_id, project.model_dump(mode="python"))
         except NotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except ValidationError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     @app.delete("/api/projects/{project_id}", status_code=status.HTTP_204_NO_CONTENT)
     def delete_project(project_id: str, service: BackendService = Depends(get_service)) -> None:

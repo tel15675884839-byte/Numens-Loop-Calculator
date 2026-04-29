@@ -31,10 +31,21 @@
           <Save class="h-4 w-4" />
           <span>Save</span>
         </button>
-        <button class="toolbar-button" disabled>
+        <button class="toolbar-button" @click="workspace.exportActiveProject">
           <FileDown class="h-4 w-4" />
           <span>Export</span>
         </button>
+        <button class="toolbar-button" @click="triggerImport">
+          <FileUp class="h-4 w-4" />
+          <span>Import</span>
+        </button>
+        <input
+          ref="importInput"
+          type="file"
+          accept=".json"
+          class="hidden"
+          @change="handleImportFile"
+        />
       </template>
       <template v-else>
         <RouterLink class="toolbar-button" to="/">
@@ -47,15 +58,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
-import { ArrowLeft, CirclePlus, FileDown, Moon, Save, Sun } from "lucide-vue-next";
+import { ArrowLeft, CirclePlus, FileDown, FileUp, Moon, Save, Sun } from "lucide-vue-next";
 import { useThemeStore } from "../../stores/themeStore";
 import { useWorkspaceStore } from "../../stores/workspaceStore";
 
 const route = useRoute();
 const workspace = useWorkspaceStore();
 const theme = useThemeStore();
+const importInput = ref<HTMLInputElement | null>(null);
 
 const isWorkspace = computed(() => route.name === "workspace");
 const sectionLabel = computed(() => (isWorkspace.value ? "Loop Designer" : "Device Catalog"));
@@ -64,7 +76,7 @@ const themeToggleLabel = computed(() => theme.theme === "dark" ? "Switch to ligh
 const logoSrc = computed(() => theme.theme === "dark" ? "/logo-long.png" : "/logo-long-black.png");
 
 const saveLabel = computed(() => {
-  if (workspace.saveState === "saving") return "Saving";
+  if (workspace.saveState === "saving") return "Auto-saving...";
   if (workspace.saveState === "saved") return workspace.lastSavedAt ? `Saved ${new Date(workspace.lastSavedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Saved";
   if (workspace.saveState === "dirty") return "Unsaved";
   if (workspace.saveState === "error") return "Save failed";
@@ -75,4 +87,19 @@ function onProjectNameInput(event: Event) {
   const target = event.target as HTMLInputElement;
   workspace.setProjectName(target.value);
 }
+
+function triggerImport() {
+  importInput.value?.click();
+}
+
+function handleImportFile(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (file) {
+    void workspace.importProject(file);
+  }
+  // Reset so user can re-import the same file
+  input.value = "";
+}
 </script>
+

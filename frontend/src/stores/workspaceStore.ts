@@ -20,6 +20,8 @@ type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 type ProjectMode = "new" | "edit";
 
 const calculationTimers = new Map<string, ReturnType<typeof setTimeout>>();
+let autoSaveTimer: ReturnType<typeof setTimeout> | null = null;
+const AUTO_SAVE_DELAY_MS = 3000;
 
 function cloneProject(project: ProjectRecord): ProjectRecord {
   return JSON.parse(JSON.stringify(project)) as ProjectRecord;
@@ -193,6 +195,16 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   function touchDirty() {
     if (saveState.value !== "saving") {
       saveState.value = hasUnsavedChanges.value ? "dirty" : "idle";
+    }
+    // Auto-save: debounce 3 seconds after last edit
+    if (hasUnsavedChanges.value) {
+      if (autoSaveTimer) clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        autoSaveTimer = null;
+        if (hasUnsavedChanges.value && saveState.value === "dirty") {
+          void saveActiveProject();
+        }
+      }, AUTO_SAVE_DELAY_MS);
     }
   }
 
@@ -636,6 +648,64 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     }
   }
 
+  function exportActiveProject() {
+    if (!activeProject.value) return;
+    const data = cloneProject(activeProject.value);
+    // Strip calculation results for a clean export
+    for (const loop of data.loops) {
+      (loop as ProjectLoop & { calculation_result?: unknown }).calculation_result = undefined;
+    }
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `${data.name.replace(/[^a-zA-Z0-9_\- ]/g, "_")}.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+  }
+
+  async function importProject(file: File) {
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text) as ProjectRecord;
+      // Validate basic structure
+      if (!data.name || !Array.isArray(data.loops)) {
+        error.value = "Invalid project file: missing name or loops.";
+        return;
+      }
+      if (data.loops.length > MAX_LOOPS) {
+        error.value = `Import rejected: project contains ${data.loops.length} loops (max ${MAX_LOOPS}).`;
+        return;
+      }
+      // Assign new IDs to avoid collisions
+      const newProjectId = createId("project");
+      data.id = newProjectId;
+      data.created_at = new Date().toISOString();
+      data.updated_at = new Date().toISOString();
+      for (const loop of data.loops) {
+        const newLoopId = createId("loop");
+        if (data.active_loop_id === loop.id) {
+          data.active_loop_id = newLoopId;
+        }
+        loop.id = newLoopId;
+        loop.project_id = newProjectId;
+        for (const row of loop.device_rows) {
+          row.id = createId("row");
+        }
+      }
+      if (!data.active_loop_id || !data.loops.some(l => l.id === data.active_loop_id)) {
+        data.active_loop_id = data.loops[0]?.id ?? "";
+      }
+      setActiveProject(data, "new");
+      error.value = null;
+    } catch {
+      error.value = "Failed to parse project file. Ensure it is valid JSON.";
+    }
+  }
+
   return {
     projects,
     activeProject,
@@ -674,6 +744,8 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     rowCount,
     isProjectUnsaved,
     getCurrentLoop,
-    ensureInitialCalculation
+    ensureInitialCalculation,
+    exportActiveProject,
+    importProject
   };
 });

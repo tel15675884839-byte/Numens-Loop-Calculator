@@ -15,6 +15,14 @@ class NotFoundError(RuntimeError):
     pass
 
 
+class ValidationError(RuntimeError):
+    pass
+
+
+MAX_LOOPS = 6
+MAX_SOUNDER_PER_LOOP = 32
+
+
 class SQLiteStore:
     def __init__(self, db_path: Path, seed_path: Path) -> None:
         self.db_path = Path(db_path)
@@ -271,6 +279,36 @@ class SQLiteStore:
         name = payload.get("name", "")
         active_loop_id = payload.get("active_loop_id")
         loops = payload.get("loops", [])
+
+        # --- Server-side validation ---
+        if len(loops) > MAX_LOOPS:
+            raise ValidationError(f"A project cannot have more than {MAX_LOOPS} loops (got {len(loops)}).")
+
+        for loop in loops:
+            device_rows = loop.get("device_rows", [])
+            address_limit = int(loop.get("address_limit", 125))
+            total_qty = 0
+            sounder_qty = 0
+            for row in device_rows:
+                qty = int(row.get("qty", 1))
+                if qty < 1:
+                    raise ValidationError(f"Device qty must be at least 1 (got {qty}).")
+                total_qty += qty
+                category = str(row.get("category", "")).strip().lower()
+                haystack = " ".join(
+                    str(row.get(k, "")) for k in ("display_name", "product_name", "customer_name", "factory_name", "device_type")
+                ).upper()
+                if category == "sounder" or "LSM" in haystack or "620-003" in haystack:
+                    sounder_qty += qty
+            if total_qty > address_limit:
+                raise ValidationError(
+                    f"Loop '{loop.get('name', '')}' has {total_qty} addresses but limit is {address_limit}."
+                )
+            if sounder_qty > MAX_SOUNDER_PER_LOOP:
+                raise ValidationError(
+                    f"Loop '{loop.get('name', '')}' has {sounder_qty} sounders but max is {MAX_SOUNDER_PER_LOOP}."
+                )
+
         with self._connect() as conn:
             if create:
                 conn.execute(
