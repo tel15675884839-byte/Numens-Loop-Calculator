@@ -4,7 +4,7 @@
       <div class="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
         <div>
           <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Product editor</p>
-          <p class="text-sm text-zinc-600">{{ draft.id ?? "New product" }}</p>
+          <p class="text-sm text-zinc-600">{{ draft.id ? (draft.built_in ? "Built-in product" : "Custom product") : "New product" }}</p>
         </div>
         <button class="toolbar-button-ghost" @click="$emit('close')">
           <X class="h-4 w-4" />
@@ -15,9 +15,16 @@
         <div class="space-y-3">
           <label class="flex flex-col gap-1">
             <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Category</span>
-            <select class="field" :value="draft.category" @change="patch({ category: inputValue($event) })">
-              <option v-for="option in categoryOptions" :key="option" :value="option">{{ option }}</option>
-            </select>
+            <input
+              class="field"
+              list="category-list"
+              :value="draft.category"
+              @input="patch({ category: inputValue($event), type: inputValue($event) })"
+              placeholder="Select or type category..."
+            />
+            <datalist id="category-list">
+              <option v-for="option in categoryOptions" :key="option" :value="option" />
+            </datalist>
           </label>
 
           <label class="flex flex-col gap-1">
@@ -25,22 +32,14 @@
             <input class="field" :value="draft.product_name" @input="patch({ product_name: inputValue($event) })" />
           </label>
 
-          <label class="flex flex-col gap-1">
-            <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Customer name</span>
-            <input class="field" :value="draft.customer_name" @input="patch({ customer_name: inputValue($event) })" />
-          </label>
 
           <label class="flex flex-col gap-1">
             <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Factory name</span>
             <input class="field" :value="draft.factory_name" @input="patch({ factory_name: inputValue($event) })" />
           </label>
 
-          <label class="flex flex-col gap-1">
-            <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Type</span>
-            <input class="field" :value="draft.type" @input="patch({ type: inputValue($event) })" />
-          </label>
 
-          <div class="grid grid-cols-3 gap-3">
+          <div class="grid grid-cols-2 gap-3">
             <label class="flex flex-col gap-1">
               <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Standby mA</span>
               <input class="field-number" inputmode="decimal" :value="draft.standby" @input="patchNumber('standby', $event)" />
@@ -48,10 +47,6 @@
             <label class="flex flex-col gap-1">
               <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Alarm mA</span>
               <input class="field-number" inputmode="decimal" :value="draft.alarm" @input="patchNumber('alarm', $event)" />
-            </label>
-            <label class="flex flex-col gap-1">
-              <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">LED cost</span>
-              <input class="field-number" inputmode="numeric" :value="draft.ledCost" @input="patchInteger('ledCost', $event)" />
             </label>
           </div>
 
@@ -119,3 +114,9 @@ function patchInteger(key: "ledCost", event: Event) {
   patch({ [key]: Number.isFinite(numeric) ? numeric : 0 } as Partial<ProductDraft>);
 }
 </script>
+
+<style scoped>
+input::-webkit-calendar-picker-indicator {
+  display: none !important;
+}
+</style>

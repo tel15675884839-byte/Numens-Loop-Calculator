@@ -1,11 +1,24 @@
 <template>
   <div class="panel">
     <div class="panel-title">System parameters</div>
-    <div class="flex flex-wrap items-end gap-3 px-4 py-4">
-      <label v-for="field in fields" :key="field.key" class="flex w-36 flex-col gap-1">
-        <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ field.label }}</span>
-        <input class="field-number" :value="field.value" :inputmode="field.inputMode" @input="field.onInput" />
-      </label>
+    <div class="flex flex-wrap items-end justify-between gap-3 px-4 py-4">
+      <div class="flex flex-wrap items-end gap-3">
+        <label v-for="field in fields" :key="field.key" class="flex w-28 flex-col gap-1">
+          <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ field.label }}</span>
+          <input class="field-number" :value="field.value" :inputmode="field.inputMode" @input="field.onInput" />
+        </label>
+      </div>
+
+      <div class="flex flex-wrap items-end gap-2">
+        <button
+          v-for="category in categories"
+          :key="category"
+          class="toolbar-button px-3 text-sm h-[38px] flex items-center justify-center font-medium"
+          @click="$emit('add-category', category)"
+        >
+          {{ category }}
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -14,12 +27,19 @@
 import { computed } from "vue";
 import type { ProjectLoop } from "../../types/project";
 
-const props = defineProps<{
-  loop: ProjectLoop | null;
-}>();
+const props = withDefaults(
+  defineProps<{
+    loop: ProjectLoop | null;
+    categories?: string[];
+  }>(),
+  {
+    categories: () => []
+  }
+);
 
 const emit = defineEmits<{
   update: [patch: Partial<ProjectLoop>];
+  "add-category": [category: string];
 }>();
 
 function updateNumber(key: keyof ProjectLoop, value: string) {

@@ -1,19 +1,9 @@
 <template>
   <div class="panel flex min-h-0 flex-col">
     <div class="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
-      <div>
-        <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Device table</p>
-        <p class="text-sm text-zinc-600">{{ rows.length }} rows</p>
-      </div>
-      <div class="flex flex-wrap justify-end gap-2">
-        <button
-          v-for="category in categories"
-          :key="category"
-          class="toolbar-button px-2.5 py-1.5 text-xs"
-          @click="$emit('add-category', category)"
-        >
-          {{ category }}
-        </button>
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Device list</span>
+        <span class="text-xs text-zinc-400">({{ rows.length }} {{ rows.length === 1 ? 'device' : 'devices' }})</span>
       </div>
     </div>
 

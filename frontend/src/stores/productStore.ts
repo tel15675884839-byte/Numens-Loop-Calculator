@@ -129,7 +129,7 @@ export const useProductStore = defineStore("products", () => {
     activeId.value = null;
   }
 
-  function beginNewProduct(category = categories.value[0] ?? "Detector") {
+  function beginNewProduct(category = "") {
     const draft: ProductDraft = {
       category,
       factory_name: "",
@@ -138,7 +138,7 @@ export const useProductStore = defineStore("products", () => {
       standby: 0.5,
       alarm: 2,
       ledCost: 1,
-      type: category,
+      type: "",
       built_in: false
     };
     const tempId = createId("product");

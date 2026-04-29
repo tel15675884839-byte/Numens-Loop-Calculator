@@ -1,27 +1,54 @@
 <template>
   <div class="panel">
-    <div class="flex items-center justify-between gap-3 border-b border-zinc-200 px-4 py-3">
+    <div class="flex items-center justify-between flex-wrap gap-4 px-4 py-3">
+      <!-- Title -->
       <div>
         <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Library filters</p>
         <p class="text-sm text-zinc-600">{{ total }} products</p>
       </div>
-      <button class="toolbar-button-primary" @click="$emit('create')">
+
+      <!-- Controls group: Search and Category buttons -->
+      <div class="flex items-center flex-wrap gap-6">
+        <!-- Search -->
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Search</span>
+          <input
+            class="field w-60 py-1.5 text-sm"
+            :value="search"
+            placeholder="Search products..."
+            @input="$emit('update:search', inputValue($event))"
+          />
+        </div>
+
+        <!-- Category -->
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Category</span>
+          <div class="flex items-center gap-1.5">
+            <button
+              class="toolbar-button text-xs px-2.5 py-1"
+              :class="{ 'border-blue-600 bg-blue-50 text-blue-700 font-semibold': category === 'All' }"
+              @click="$emit('update:category', 'All')"
+            >
+              All
+            </button>
+            <button
+              v-for="item in categories"
+              :key="item"
+              class="toolbar-button text-xs px-2.5 py-1"
+              :class="{ 'border-blue-600 bg-blue-50 text-blue-700 font-semibold': category === item }"
+              @click="$emit('update:category', item)"
+            >
+              {{ item }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Product -->
+      <button class="toolbar-button-primary px-3 py-1.5 text-xs" @click="$emit('create')">
         <CirclePlus class="h-4 w-4" />
         <span>Add product</span>
       </button>
-    </div>
-    <div class="grid gap-3 px-4 py-4 md:grid-cols-2">
-      <label class="flex flex-col gap-1">
-        <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Search</span>
-        <input class="field" :value="search" placeholder="Search products" @input="$emit('update:search', inputValue($event))" />
-      </label>
-      <label class="flex flex-col gap-1">
-        <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Category</span>
-        <select class="field" :value="category" @change="$emit('update:category', inputValue($event))">
-          <option value="All">All</option>
-          <option v-for="item in categories" :key="item" :value="item">{{ item }}</option>
-        </select>
-      </label>
     </div>
   </div>
 </template>

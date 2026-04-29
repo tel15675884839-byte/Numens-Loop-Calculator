@@ -13,7 +13,9 @@
         <SystemParameters
           v-if="workspace.activeLoop"
           :loop="workspace.activeLoop"
+          :categories="deviceCategories"
           @update="workspace.updateSystemParameters(workspace.activeLoopId, $event)"
+          @add-category="onAddCategory"
         />
         <DeviceTable
           v-if="workspace.activeLoop"

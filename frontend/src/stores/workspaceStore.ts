@@ -139,7 +139,14 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     if (!project) {
       return;
     }
-    writeJson(WORKSPACE_CACHE_KEY, [project]);
+    const current = getLocalProjects();
+    const index = current.findIndex((p) => p.id === project.id);
+    if (index >= 0) {
+      current[index] = cloneProject(project);
+    } else {
+      current.unshift(cloneProject(project));
+    }
+    writeJson(WORKSPACE_CACHE_KEY, current);
   }
 
   function setActiveProject(project: ProjectRecord) {
@@ -184,7 +191,16 @@ export const useWorkspaceStore = defineStore("workspace", () => {
         setActiveProject(fallback);
       }
     } catch (cause) {
-      const fallback = getLocalProjects()[0] ?? createProjectDraft();
+      const localProjects = getLocalProjects();
+      projects.value = localProjects.map((p) => ({
+        id: p.id,
+        name: p.name,
+        active_loop_id: p.active_loop_id,
+        loop_count: p.loops.length,
+        created_at: p.created_at,
+        updated_at: p.updated_at
+      }));
+      const fallback = localProjects[0] ?? createProjectDraft();
       projectMode.value = "edit";
       setActiveProject(fallback);
       error.value = cause instanceof Error ? cause.message : "Unable to load workspace";
@@ -199,6 +215,12 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     }
     activeProject.value.name = name;
     activeProject.value.updated_at = new Date().toISOString();
+    
+    // Force reactivity update in sidebar list
+    projects.value = projects.value.map((p) => 
+      p.id === activeProject.value?.id ? { ...p, name } : p
+    );
+    
     touchDirty();
   }
 
@@ -228,7 +250,13 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   }
 
   function createBlankProject() {
-    const project = createProjectDraft(`Project ${projects.value.length + 1}`);
+    let counter = projects.value.length + 1;
+    let name = `Project ${counter}`;
+    while (projects.value.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
+      counter++;
+      name = `Project ${counter}`;
+    }
+    const project = createProjectDraft(name);
     projectMode.value = "new";
     setActiveProject(project);
     touchDirty();
@@ -238,6 +266,16 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     if (!activeProject.value) {
       return;
     }
+    const trimmed = activeProject.value.name.trim();
+    const isDuplicate = projects.value.some(
+      (p) => p.id !== activeProject.value?.id && p.name.toLowerCase() === trimmed.toLowerCase()
+    );
+    if (isDuplicate) {
+      window.alert("A project with this name already exists. Please choose a different name.");
+      saveState.value = "error";
+      return;
+    }
+
     saveState.value = "saving";
     try {
       const previousProjectId = activeProjectId.value;
@@ -264,7 +302,9 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     } catch {
       // Local-only deletion when the API is unavailable.
     }
-    projects.value = projects.value.filter((project) => project.id !== projectId);
+    projects.value = [...projects.value.filter((project) => project.id !== projectId)];
+    const currentCache = getLocalProjects().filter((p) => p.id !== projectId);
+    writeJson(WORKSPACE_CACHE_KEY, currentCache);
     if (activeProjectId.value === projectId) {
       const next = projects.value[0];
       if (next) {

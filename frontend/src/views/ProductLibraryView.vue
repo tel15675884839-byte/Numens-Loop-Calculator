@@ -1,15 +1,16 @@
 <template>
-  <div class="relative h-full min-h-0 overflow-hidden px-4 py-4">
-    <div class="space-y-4">
+  <div class="relative h-full min-h-0 overflow-y-auto px-4 py-4">
+    <div class="space-y-6">
       <ProductFilters
         :search="productStore.filters.search"
         :category="productStore.filters.category"
-        :categories="productStore.categories"
+        :categories="categoriesWithProducts"
         :total="productStore.filteredProducts.length"
         @create="productStore.beginNewProduct"
         @update:search="productStore.setSearch"
         @update:category="productStore.setCategory"
       />
+
       <ProductTable
         :products="productStore.filteredProducts"
         @edit="openEditor"
@@ -39,18 +40,31 @@ import type { ProductDraft, ProductRecord } from "../types/product";
 
 const productStore = useProductStore();
 const draft = ref<ProductDraft>({
-  category: "Detector",
+  category: "",
   factory_name: "",
   customer_name: "",
   product_name: "",
   standby: 0.5,
   alarm: 2,
   ledCost: 1,
-  type: "Detector",
+  type: "",
   built_in: false
 });
 
 const activeProduct = computed(() => productStore.activeProduct);
+
+// Compute categories that actually have products
+const categoriesWithProducts = computed(() => {
+  const seen = new Set<string>();
+  const values: string[] = [];
+  for (const product of productStore.products) {
+    if (product.category && !seen.has(product.category)) {
+      seen.add(product.category);
+      values.push(product.category);
+    }
+  }
+  return values;
+});
 
 onMounted(() => {
   void productStore.bootstrap();
