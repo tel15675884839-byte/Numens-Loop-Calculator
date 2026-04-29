@@ -4,6 +4,7 @@ import { calculateLoop } from "../api/calculations";
 import { createProject, deleteProject, getProject, listProjects, updateProject } from "../api/projects";
 import { defaultProducts } from "../data/defaultProducts";
 import { sampleWorkspaceProjects } from "../data/sampleWorkspace";
+import { useDialogStore } from "./dialogStore";
 import type { CalculationLoopRequest, CalculationLoopResponse } from "../types/calculation";
 import type { LoopCalculationSnapshot, LoopDeviceRow, ProjectListItem, ProjectLoop, ProjectRecord } from "../types/project";
 import { calculateLoopLocally } from "../utils/calculation";
@@ -138,6 +139,20 @@ export const useWorkspaceStore = defineStore("workspace", () => {
 
   const canAddLoop = computed(() => (activeProject.value?.loops.length ?? 0) < MAX_LOOPS);
 
+  const hasUnsavedChanges = computed(() => saveState.value === "dirty" || saveState.value === "error");
+
+  function canLeaveActiveProject() {
+    if (!hasUnsavedChanges.value) {
+      return true;
+    }
+    const dialog = useDialogStore();
+    return dialog.confirm({
+      title: "Unsaved changes",
+      message: "The current project has unsaved changes. Continue anyway?",
+      confirmLabel: "Continue"
+    });
+  }
+
   function touchDirty() {
     if (saveState.value !== "saving") {
       saveState.value = "dirty";
@@ -233,9 +248,15 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     touchDirty();
   }
 
-  function selectProject(projectId: string) {
+  async function selectProject(projectId: string) {
     if (activeProjectId.value === projectId) {
       return;
+    }
+    const canLeave = canLeaveActiveProject();
+    if (canLeave !== true) {
+      if (!(await canLeave)) {
+        return;
+      }
     }
     const found = projects.value.find((item) => item.id === projectId);
     if (!found) {
@@ -258,7 +279,13 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     }
   }
 
-  function createBlankProject() {
+  async function createBlankProject() {
+    const canLeave = canLeaveActiveProject();
+    if (canLeave !== true) {
+      if (!(await canLeave)) {
+        return;
+      }
+    }
     let counter = projects.value.length + 1;
     let name = `Project ${counter}`;
     while (projects.value.some((p) => p.name.toLowerCase() === name.toLowerCase())) {
@@ -266,8 +293,8 @@ export const useWorkspaceStore = defineStore("workspace", () => {
       name = `Project ${counter}`;
     }
     const project = createProjectDraft(name);
-    projectMode.value = "new";
     setActiveProject(project);
+    projectMode.value = "new";
     touchDirty();
   }
 
@@ -280,7 +307,11 @@ export const useWorkspaceStore = defineStore("workspace", () => {
       (p) => p.id !== activeProject.value?.id && p.name.toLowerCase() === trimmed.toLowerCase()
     );
     if (isDuplicate) {
-      window.alert("A project with this name already exists. Please choose a different name.");
+      const dialog = useDialogStore();
+      await dialog.alert({
+        title: "Duplicate project name",
+        message: "A project with this name already exists. Please choose a different name."
+      });
       saveState.value = "error";
       return;
     }
@@ -288,11 +319,12 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     saveState.value = "saving";
     try {
       const previousProjectId = activeProjectId.value;
-      const result = projectMode.value === "new"
+      const wasNewProject = projectMode.value === "new";
+      const result = wasNewProject
         ? await createProject(activeProject.value)
         : await updateProject(activeProjectId.value, activeProject.value);
       setActiveProject(result);
-      if (projectMode.value === "new" && previousProjectId && previousProjectId !== result.id) {
+      if (wasNewProject && previousProjectId && previousProjectId !== result.id) {
         projects.value = projects.value.filter((project) => project.id !== previousProjectId);
       }
       projectMode.value = "edit";
@@ -543,6 +575,10 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     return activeProject.value?.loops.find((loop) => loop.id === loopId)?.device_rows.length ?? 0;
   }
 
+  function isProjectUnsaved(projectId: string) {
+    return activeProjectId.value === projectId && hasUnsavedChanges.value;
+  }
+
   function ensureInitialCalculation() {
     if (activeLoop.value && !activeLoop.value.calculation_result) {
       scheduleCalculation(activeLoop.value.id);
@@ -561,7 +597,9 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     error,
     saveState,
     lastSavedAt,
+    hasUnsavedChanges,
     calculationBusyLoopIds,
+    canLeaveActiveProject,
     bootstrap,
     setProjectName,
     selectProject,
@@ -582,6 +620,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     scheduleCalculation,
     runCalculation,
     rowCount,
+    isProjectUnsaved,
     getCurrentLoop,
     ensureInitialCalculation
   };

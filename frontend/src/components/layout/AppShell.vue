@@ -7,11 +7,21 @@
         <RouterView />
       </main>
     </div>
+    <DialogHost />
   </div>
 </template>
 
 <script setup lang="ts">
+import { onMounted } from "vue";
 import { RouterView } from "vue-router";
+import { useThemeStore } from "../../stores/themeStore";
+import DialogHost from "./DialogHost.vue";
 import LeftNav from "./LeftNav.vue";
 import TopBar from "./TopBar.vue";
+
+const theme = useThemeStore();
+
+onMounted(() => {
+  theme.initializeTheme();
+});
 </script>

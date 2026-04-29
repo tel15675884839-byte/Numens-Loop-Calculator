@@ -17,6 +17,8 @@ vi.mock("../../api/calculations", () => ({
 describe("workspaceStore", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
+    vi.clearAllMocks();
+    vi.restoreAllMocks();
     localStorage.clear();
   });
 
@@ -63,5 +65,98 @@ describe("workspaceStore", () => {
     expect(store.activeProject?.loops).toHaveLength(6);
     expect(store.activeLoop?.sort_order).toBe(6);
     expect(store.canAddLoop).toBe(false);
+  });
+
+  it("keeps an unsaved project active when creating a new project is cancelled", async () => {
+    const store = useWorkspaceStore();
+    store.createBlankProject();
+    const originalProjectId = store.activeProjectId;
+    store.setProjectName("Unsaved configuration");
+
+    const nextProject = store.createBlankProject();
+    const dialogStore = (await import("../dialogStore")).useDialogStore();
+    expect(dialogStore.activeDialog?.message).toBe("The current project has unsaved changes. Continue anyway?");
+    dialogStore.resolve(false);
+    await nextProject;
+
+    expect(store.activeProjectId).toBe(originalProjectId);
+    expect(store.activeProject?.name).toBe("Unsaved configuration");
+    expect(store.saveState).toBe("dirty");
+  });
+
+  it("keeps an unsaved project active when switching projects is cancelled", async () => {
+    const projectsApi = await import("../../api/projects");
+    const store = useWorkspaceStore();
+    store.createBlankProject();
+    const originalProjectId = store.activeProjectId;
+    store.projects = [
+      ...store.projects,
+      {
+        id: "other-project",
+        name: "Other project",
+        active_loop_id: "other-loop",
+        loop_count: 1
+      }
+    ];
+    store.setProjectName("Unsaved configuration");
+
+    const selection = store.selectProject("other-project");
+    const dialogStore = (await import("../dialogStore")).useDialogStore();
+    expect(dialogStore.activeDialog?.message).toBe("The current project has unsaved changes. Continue anyway?");
+    dialogStore.resolve(false);
+    await selection;
+
+    expect(projectsApi.getProject).not.toHaveBeenCalled();
+    expect(store.activeProjectId).toBe(originalProjectId);
+  });
+
+  it("continues creating a new project when unsaved changes are confirmed", async () => {
+    const store = useWorkspaceStore();
+    store.createBlankProject();
+    const originalProjectId = store.activeProjectId;
+    store.setProjectName("Unsaved configuration");
+
+    const nextProject = store.createBlankProject();
+    const dialogStore = (await import("../dialogStore")).useDialogStore();
+    expect(dialogStore.activeDialog?.message).toBe("The current project has unsaved changes. Continue anyway?");
+    dialogStore.resolve(true);
+    await nextProject;
+
+    expect(store.activeProjectId).not.toBe(originalProjectId);
+    expect(store.activeProject?.name).not.toBe("Unsaved configuration");
+    expect(store.saveState).toBe("dirty");
+  });
+
+  it("creates new projects through the create endpoint after switching to a blank project", async () => {
+    const projectsApi = await import("../../api/projects");
+    vi.mocked(projectsApi.createProject).mockResolvedValueOnce({
+      id: "saved-project",
+      name: "Project 1",
+      active_loop_id: "loop-1",
+      loops: [
+        {
+          id: "loop-1",
+          project_id: "saved-project",
+          name: "Loop 1",
+          sort_order: 1,
+          address_limit: 125,
+          max_current_ma: 400,
+          min_voltage_v: 17,
+          cable_size: "1.5",
+          cable_resistance_ohm_per_km: 12.1,
+          aux_current_ma: 0,
+          device_rows: [],
+          calculation_result: null
+        }
+      ]
+    });
+    const store = useWorkspaceStore();
+
+    store.createBlankProject();
+    await store.saveActiveProject();
+
+    expect(projectsApi.createProject).toHaveBeenCalledOnce();
+    expect(projectsApi.updateProject).not.toHaveBeenCalled();
+    expect(store.saveState).toBe("saved");
   });
 });

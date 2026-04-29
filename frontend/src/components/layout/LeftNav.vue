@@ -25,7 +25,15 @@
           :class="{ 'bg-blue-50': project.id === workspace.activeProjectId }"
         >
           <div class="min-w-0 flex-1 cursor-pointer" @click="workspace.selectProject(project.id)">
-            <p class="truncate text-sm font-medium" :class="project.id === workspace.activeProjectId ? 'text-blue-700 font-semibold' : 'text-zinc-900'">{{ project.name }}</p>
+            <div class="flex min-w-0 items-center gap-2">
+              <p class="truncate text-sm font-medium" :class="project.id === workspace.activeProjectId ? 'text-blue-700 font-semibold' : 'text-zinc-900'">{{ project.name }}</p>
+              <span
+                v-if="workspace.isProjectUnsaved(project.id)"
+                class="shrink-0 border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none text-amber-700"
+              >
+                Unsaved
+              </span>
+            </div>
             <p class="text-xs text-zinc-500">{{ project.loop_count }} {{ project.loop_count === 1 ? "loop" : "loops" }}</p>
           </div>
           
@@ -55,24 +63,38 @@
 import { computed, onMounted } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { Layers3, LibraryBig, Pencil, Settings2, Trash2 } from "lucide-vue-next";
+import { useDialogStore } from "../../stores/dialogStore";
 import { useWorkspaceStore } from "../../stores/workspaceStore";
+import type { ProjectListItem } from "../../types/project";
 
 const route = useRoute();
+const dialog = useDialogStore();
 const workspace = useWorkspaceStore();
 
 const isWorkspace = computed(() => route.name === "workspace");
 const isProducts = computed(() => route.name === "products");
 
-async function handleRename(project: any) {
-  const newName = prompt("Enter new project name:", project.name);
+async function handleRename(project: ProjectListItem) {
+  if (workspace.activeProjectId !== project.id && !(await workspace.canLeaveActiveProject())) {
+    return;
+  }
+
+  const newName = await dialog.prompt({
+    title: "Rename project",
+    message: "Enter new project name:",
+    initialValue: project.name,
+    confirmLabel: "Rename"
+  });
   if (newName !== null && newName.trim() !== "") {
     const trimmed = newName.trim();
-    // Check if duplicate
     const isDuplicate = workspace.projects.some(
       (p) => p.id !== project.id && p.name.toLowerCase() === trimmed.toLowerCase()
     );
     if (isDuplicate) {
-      alert("A project with this name already exists. Please choose a different name.");
+      await dialog.alert({
+        title: "Duplicate project name",
+        message: "A project with this name already exists. Please choose a different name."
+      });
       return;
     }
     await workspace.openProject(project.id);
@@ -81,8 +103,13 @@ async function handleRename(project: any) {
   }
 }
 
-function handleDelete(project: any) {
-  if (confirm(`Are you sure you want to delete project "${project.name}"?`)) {
+async function handleDelete(project: ProjectListItem) {
+  const confirmed = await dialog.confirm({
+    title: "Delete project",
+    message: `Are you sure you want to delete project "${project.name}"?`,
+    confirmLabel: "Delete"
+  });
+  if (confirmed) {
     void workspace.removeProject(project.id);
   }
 }

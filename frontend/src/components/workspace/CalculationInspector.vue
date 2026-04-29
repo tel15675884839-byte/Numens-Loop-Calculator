@@ -58,7 +58,7 @@
                  'border-red-200 text-red-700': currentPercent > 100
                }">
             
-            <!-- 底色层：铺满 -->
+            <!-- Base layer: fills the meter -->
             <div class="absolute inset-0 transition-colors duration-500"
                  :class="{
                    'bg-emerald-500/80': currentPercent <= 60,
@@ -68,12 +68,12 @@
                  }">
             </div>
 
-            <!-- 旋转的波浪遮罩：白色 -->
+            <!-- Rotating wave mask: white -->
             <div class="fill-wave-mask"
                  :style="{ bottom: `${Math.min(currentPercent, 100)}%` }">
             </div>
 
-            <!-- 前景数字 -->
+            <!-- Foreground number -->
             <span class="relative z-10 font-bold tabular-nums text-zinc-900 drop-shadow-[0_1.5px_1px_rgba(255,255,255,1)]">
               {{ Math.round(currentPercent) }}%
             </span>
@@ -223,8 +223,8 @@ const recommendation = computed(() => {
 .fill-wave-mask {
     position: absolute;
     width: 250%; height: 250%;
-    background: white; /* 遮罩层使用白色模拟空白区域 */
-    border-radius: 42%; /* 制造波浪形边缘 */
+    background: white; /* Use white to simulate the empty masked area. */
+    border-radius: 42%; /* Creates the wave edge. */
     left: -75%;
     animation: spin 4s linear infinite;
     transition: bottom 0.3s ease-out;
@@ -233,7 +233,6 @@ const recommendation = computed(() => {
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
 </style>
-
 
 
 

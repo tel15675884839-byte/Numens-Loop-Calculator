@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useWorkspaceStore } from "../stores/workspaceStore";
 import WorkspaceView from "../views/WorkspaceView.vue";
 import ProductLibraryView from "../views/ProductLibraryView.vue";
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
@@ -17,3 +18,13 @@ export default createRouter({
     }
   ]
 });
+
+router.beforeEach((to, from) => {
+  if (to.fullPath === from.fullPath) {
+    return true;
+  }
+  const workspace = useWorkspaceStore();
+  return workspace.canLeaveActiveProject();
+});
+
+export default router;

@@ -35,9 +35,11 @@ import { computed, onMounted, ref, watch } from "vue";
 import ProductEditorDrawer from "../components/products/ProductEditorDrawer.vue";
 import ProductFilters from "../components/products/ProductFilters.vue";
 import ProductTable from "../components/products/ProductTable.vue";
+import { useDialogStore } from "../stores/dialogStore";
 import { useProductStore } from "../stores/productStore";
 import type { ProductDraft, ProductRecord } from "../types/product";
 
+const dialog = useDialogStore();
 const productStore = useProductStore();
 const draft = ref<ProductDraft>({
   category: "",
@@ -112,18 +114,32 @@ async function deleteProduct() {
   if (!current) {
     return;
   }
-  const confirmed = window.confirm(`Delete ${current.product_name || current.customer_name || current.id}?`);
+  const confirmed = await dialog.confirm({
+    title: "Delete product",
+    message: `Delete ${current.product_name || current.customer_name || current.id}?`,
+    confirmLabel: "Delete"
+  });
   if (!confirmed) {
     return;
   }
   await productStore.removeProduct(current, false);
 }
 
-function confirmDelete(product: ProductRecord) {
+async function confirmDelete(product: ProductRecord) {
   if (product.built_in) {
-    window.alert("Built-in products are protected.");
+    await dialog.alert({
+      title: "Protected product",
+      message: "Built-in products are protected."
+    });
     return;
   }
-  void productStore.removeProduct(product, window.confirm(`Delete ${product.product_name || product.customer_name || product.id}?`));
+  const confirmed = await dialog.confirm({
+    title: "Delete product",
+    message: `Delete ${product.product_name || product.customer_name || product.id}?`,
+    confirmLabel: "Delete"
+  });
+  if (confirmed) {
+    void productStore.removeProduct(product, true);
+  }
 }
 </script>

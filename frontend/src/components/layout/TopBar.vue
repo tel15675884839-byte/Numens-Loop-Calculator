@@ -1,6 +1,7 @@
 <template>
   <header class="flex h-16 items-center justify-between border-b border-zinc-200 bg-white px-4">
     <div class="flex min-w-0 items-center gap-4">
+      <img src="/logo-long.png" class="h-8 w-auto object-contain" alt="Mesh Logo" />
       <div>
         <p class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ sectionLabel }}</p>
         <div v-if="isWorkspace" class="flex min-w-0 items-center gap-3">
@@ -17,6 +18,11 @@
     </div>
 
     <div class="flex items-center gap-2">
+      <button class="toolbar-button" :aria-label="themeToggleLabel" @click="theme.toggleTheme">
+        <Sun v-if="theme.theme === 'dark'" class="h-4 w-4" />
+        <Moon v-else class="h-4 w-4" />
+        <span>{{ theme.theme === "dark" ? "Light" : "Dark" }}</span>
+      </button>
       <template v-if="isWorkspace">
         <button class="toolbar-button" @click="workspace.createBlankProject">
           <CirclePlus class="h-4 w-4" />
@@ -44,15 +50,18 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { RouterLink, useRoute } from "vue-router";
-import { ArrowLeft, CirclePlus, FileDown, Save } from "lucide-vue-next";
+import { ArrowLeft, CirclePlus, FileDown, Moon, Save, Sun } from "lucide-vue-next";
+import { useThemeStore } from "../../stores/themeStore";
 import { useWorkspaceStore } from "../../stores/workspaceStore";
 
 const route = useRoute();
 const workspace = useWorkspaceStore();
+const theme = useThemeStore();
 
 const isWorkspace = computed(() => route.name === "workspace");
 const sectionLabel = computed(() => (isWorkspace.value ? "Workspace" : "Library"));
 const projectName = computed(() => workspace.activeProject?.name ?? "Untitled project");
+const themeToggleLabel = computed(() => theme.theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
 
 const saveLabel = computed(() => {
   if (workspace.saveState === "saving") return "Saving";
