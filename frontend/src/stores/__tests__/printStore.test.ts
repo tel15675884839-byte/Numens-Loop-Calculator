@@ -16,16 +16,16 @@ vi.mock("../../api/calculations", () => ({
   calculateLoop: vi.fn(() => Promise.reject(new Error("offline")))
 }));
 
-function buildProject(printProfile: ProjectPrintProfile | null): ProjectRecord {
+function buildProject(printProfile: ProjectPrintProfile | null, id = "project-1"): ProjectRecord {
   return {
-    id: "project-1",
+    id,
     name: "Print Project",
     active_loop_id: "loop-1",
     print_profile: printProfile,
     loops: [
       {
         id: "loop-1",
-        project_id: "project-1",
+        project_id: id,
         name: "Loop 1",
         sort_order: 1,
         address_limit: 125,
@@ -103,7 +103,7 @@ describe("printStore", () => {
 
     expect(store.draftProfile?.project_no).toBe("");
     expect(store.draftProfile?.issue_date).toBe("2026-05-01");
-    expect(store.canPrint).toBe(false);
+    expect(store.canPrint).toBe(true);
   });
 
   it("does not allow printing until every loop has a calculation snapshot", () => {
@@ -196,7 +196,7 @@ describe("printStore", () => {
   });
 
   it("lists report templates from oldest to newest and waits for explicit selection before applying one", () => {
-    window.localStorage.setItem("loop-calculator.report-templates.v1", JSON.stringify([
+    window.localStorage.setItem("loop-calculator.report-templates.v1.project-1", JSON.stringify([
       {
         template_name: "Newer Template",
         created_at: "2026-05-02T00:00:00.000Z",
@@ -235,7 +235,7 @@ describe("printStore", () => {
     expect(store.selectedTemplateName).toBe("Older Template");
     expect(store.editingProfile?.project_no).toBe("OLD");
     expect(store.editingProfile?.customer).toBe("Old Customer");
-    expect(store.draftProfile?.project_no).toBe("OLD");
+    expect(store.draftProfile?.project_no).toBe("");
   });
 
   it("updates, creates, clears, and deletes the selected report template", () => {
@@ -263,5 +263,27 @@ describe("printStore", () => {
     expect(store.selectedTemplateName).toBeNull();
     expect(store.templates.map((template) => template.template_name)).toEqual(["First Template"]);
     expect(store.draftProfile?.issue_date).toBe("2026-04-30");
+  });
+
+  it("keeps report templates isolated per project", () => {
+    const store = usePrintStore();
+    store.initializeFromProject(withCalculation(buildProject(null, "project-a")), "2026-04-30");
+    store.updateEditingProfile({ project_no: "A-001", customer: "Project A" });
+    store.saveAsTemplate("Project A Template");
+
+    expect(store.templates.map((template) => template.template_name)).toEqual(["Project A Template"]);
+
+    store.initializeFromProject(withCalculation(buildProject(null, "project-b")), "2026-04-30");
+
+    expect(store.templates).toEqual([]);
+
+    store.updateEditingProfile({ project_no: "B-001", customer: "Project B" });
+    store.saveAsTemplate("Project B Template");
+
+    expect(store.templates.map((template) => template.template_name)).toEqual(["Project B Template"]);
+
+    store.initializeFromProject(withCalculation(buildProject(null, "project-a")), "2026-04-30");
+
+    expect(store.templates.map((template) => template.template_name)).toEqual(["Project A Template"]);
   });
 });

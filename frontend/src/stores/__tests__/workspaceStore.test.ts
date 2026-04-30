@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { useWorkspaceStore } from "../workspaceStore";
+import type { CalculationLoopResponse } from "../../types/calculation";
 
 vi.mock("../../api/projects", () => ({
   createProject: vi.fn(() => Promise.reject(new Error("offline"))),
@@ -382,5 +383,115 @@ describe("workspaceStore", () => {
     expect(store.activeProject?.print_profile?.project_no).toBe("NUM-2401");
     expect(projectsApi.createProject).toHaveBeenCalledOnce();
     expect(store.saveState).toBe("saved");
+  });
+
+  it("hydrates calculation snapshots for every loop when a project is loaded", async () => {
+    vi.useFakeTimers();
+    try {
+      localStorage.setItem("loop-calculator.workspace.v2", JSON.stringify([
+        {
+          id: "multi-loop-project",
+          name: "Multi-loop project",
+          active_loop_id: "loop-1",
+          loops: [
+            {
+              id: "loop-1",
+              project_id: "multi-loop-project",
+              name: "Loop 1",
+              sort_order: 1,
+              address_limit: 125,
+              max_current_ma: 400,
+              min_voltage_v: 17,
+              cable_size: "1.5",
+              cable_resistance_ohm_per_km: 12.1,
+              aux_current_ma: 0,
+              device_rows: [],
+              calculation_result: null
+            },
+            {
+              id: "loop-2",
+              project_id: "multi-loop-project",
+              name: "Loop 2",
+              sort_order: 2,
+              address_limit: 125,
+              max_current_ma: 400,
+              min_voltage_v: 17,
+              cable_size: "1.5",
+              cable_resistance_ohm_per_km: 12.1,
+              aux_current_ma: 0,
+              device_rows: [],
+              calculation_result: null
+            }
+          ]
+        }
+      ]));
+      const store = useWorkspaceStore();
+
+      await store.bootstrap();
+      await vi.runAllTimersAsync();
+
+      expect(store.activeProject?.loops.map((loop) => Boolean(loop.calculation_result))).toEqual([true, true]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not calculate missing snapshots as a side effect of switching loops", async () => {
+    vi.useFakeTimers();
+    try {
+      const calculationsApi = await import("../../api/calculations");
+      const store = useWorkspaceStore();
+      store.createBlankProject();
+      const firstLoopId = store.activeLoopId;
+      store.addLoop();
+      store.setActiveLoop(firstLoopId);
+      await vi.runAllTimersAsync();
+      vi.mocked(calculationsApi.calculateLoop).mockClear();
+
+      const secondLoopId = store.activeProject?.loops.find((loop) => loop.id !== firstLoopId)?.id ?? "";
+      const secondLoop = store.activeProject?.loops.find((loop) => loop.id === secondLoopId);
+      if (secondLoop) {
+        secondLoop.calculation_result = null;
+      }
+
+      store.setActiveLoop(secondLoopId);
+      expect(store.activeProject?.loops.find((loop) => loop.id === secondLoopId)?.calculation_result).toBeNull();
+
+      await vi.runAllTimersAsync();
+
+      expect(store.activeProject?.loops.find((loop) => loop.id === secondLoopId)?.calculation_result).toBeNull();
+      expect(calculationsApi.calculateLoop).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("ignores stale async calculation results after loop inputs change again", async () => {
+    vi.useFakeTimers();
+    try {
+      const calculationsApi = await import("../../api/calculations");
+      let resolveFirstCalculation: ((value: CalculationLoopResponse) => void) | null = null;
+      vi.mocked(calculationsApi.calculateLoop).mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirstCalculation = resolve;
+          })
+      );
+      const store = useWorkspaceStore();
+      store.createBlankProject();
+      const loopId = store.activeLoopId;
+
+      store.updateSystemParameters(loopId, { max_current_ma: 300 });
+      const staleSnapshot = { ...store.activeLoop!.calculation_result!, max_current_ma: 300 };
+      await vi.advanceTimersByTimeAsync(250);
+
+      store.updateSystemParameters(loopId, { max_current_ma: 200 });
+      resolveFirstCalculation?.(staleSnapshot);
+      await Promise.resolve();
+
+      expect(store.activeLoop?.calculation_result?.max_current_ma).toBe(200);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

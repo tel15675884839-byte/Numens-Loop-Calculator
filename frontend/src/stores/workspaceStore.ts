@@ -136,8 +136,26 @@ function toCalculationRequest(loop: ProjectLoop): CalculationLoopRequest {
   };
 }
 
+function loopCalculationSignature(loop: ProjectLoop): string {
+  return JSON.stringify(toCalculationRequest(loop));
+}
+
 function snapshotResult(result: CalculationLoopResponse): CalculationLoopSnapshot {
   return { ...result };
+}
+
+function calculateLocalSnapshot(loop: ProjectLoop): CalculationLoopSnapshot {
+  return snapshotResult(calculateLoopLocally(toCalculationRequest(loop)));
+}
+
+function hydrateMissingLoopCalculations(project: ProjectRecord): ProjectRecord {
+  return {
+    ...project,
+    loops: project.loops.map((loop) => ({
+      ...loop,
+      calculation_result: loop.calculation_result ?? calculateLocalSnapshot(loop)
+    }))
+  };
 }
 
 function createDeviceRowFromProduct(product: ProductRecord, sortOrder: number): LoopDeviceRow {
@@ -226,7 +244,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   }
 
   function setActiveProject(project: ProjectRecord, mode: ProjectMode = "edit") {
-    const normalized = normalizeProject(cloneProject(project));
+    const normalized = hydrateMissingLoopCalculations(normalizeProject(cloneProject(project)));
     activeProject.value = normalized;
     activeProjectId.value = normalized.id;
     activeLoopId.value = normalized.active_loop_id || normalized.loops[0]?.id || "";
@@ -434,6 +452,10 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     if (!activeProject.value) {
       return;
     }
+    const loop = activeProject.value.loops.find((item) => item.id === loopId);
+    if (!loop) {
+      return;
+    }
     activeLoopId.value = loopId;
     activeProject.value.active_loop_id = loopId;
   }
@@ -447,10 +469,9 @@ export const useWorkspaceStore = defineStore("workspace", () => {
       return;
     }
     Object.assign(loop, patch);
-    loop.calculation_result = loop.calculation_result ? { ...loop.calculation_result } : null;
     activeProject.value.updated_at = new Date().toISOString();
+    refreshLoopCalculation(loopId);
     touchDirty();
-    scheduleCalculation(loopId);
   }
 
   function addLoop() {
@@ -458,6 +479,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
       return;
     }
     const loop = createLoopFromIndex(activeProject.value.id, activeProject.value.loops.length + 1);
+    loop.calculation_result = calculateLocalSnapshot(loop);
     activeProject.value.loops = [...activeProject.value.loops, loop];
     setActiveLoop(loop.id);
     touchDirty();
@@ -474,7 +496,6 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     activeLoopId.value = next.id;
     activeProject.value.active_loop_id = next.id;
     touchDirty();
-    scheduleCalculation(next.id);
   }
 
   function addDeviceRow(loopId: string) {
@@ -498,8 +519,8 @@ export const useWorkspaceStore = defineStore("workspace", () => {
       built_in: true
     }, loop.device_rows.length + 1);
     loop.device_rows = [...loop.device_rows, row];
+    refreshLoopCalculation(loopId);
     touchDirty();
-    scheduleCalculation(loopId);
   }
 
   function addDeviceRowForCategory(loopId: string, category: string, products: ProductRecord[]) {
@@ -525,8 +546,8 @@ export const useWorkspaceStore = defineStore("workspace", () => {
 
     loop.device_rows = [...loop.device_rows, row];
     error.value = null;
+    refreshLoopCalculation(loopId);
     touchDirty();
-    scheduleCalculation(loopId);
     return true;
   }
 
@@ -566,8 +587,8 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     nextRow.qty = newQty;
     loop.device_rows = loop.device_rows.map((row) => (row.id === rowId ? nextRow : row));
     
+    refreshLoopCalculation(loopId);
     touchDirty();
-    scheduleCalculation(loopId);
   }
 
   function removeDeviceRow(loopId: string, rowId: string) {
@@ -579,8 +600,8 @@ export const useWorkspaceStore = defineStore("workspace", () => {
       return;
     }
     loop.device_rows = loop.device_rows.filter((row) => row.id !== rowId).map((row, index) => ({ ...row, sort_order: index + 1 }));
+    refreshLoopCalculation(loopId);
     touchDirty();
-    scheduleCalculation(loopId);
   }
 
   function assignProductToRow(loopId: string, rowId: string, product: ProductRecord | null) {
@@ -619,6 +640,15 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     }, 250));
   }
 
+  function refreshLoopCalculation(loopId: string) {
+    const loop = activeProject.value?.loops.find((item) => item.id === loopId);
+    if (!loop) {
+      return;
+    }
+    loop.calculation_result = calculateLocalSnapshot(loop);
+    scheduleCalculation(loopId);
+  }
+
   async function runCalculation(loopId: string) {
     if (!activeProject.value) {
       return;
@@ -629,12 +659,20 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     }
     calculationBusyLoopIds.value = Array.from(new Set([...calculationBusyLoopIds.value, loopId]));
     const request = toCalculationRequest(loop);
+    const requestSignature = loopCalculationSignature(loop);
+    const applyIfCurrent = (result: CalculationLoopResponse) => {
+      const currentLoop = activeProject.value?.loops.find((item) => item.id === loopId);
+      if (!currentLoop || loopCalculationSignature(currentLoop) !== requestSignature) {
+        return;
+      }
+      currentLoop.calculation_result = snapshotResult(result);
+    };
     try {
       const result = await calculateLoop(request);
-      loop.calculation_result = snapshotResult(result);
+      applyIfCurrent(result);
     } catch {
       const localResult = calculateLoopLocally(request);
-      loop.calculation_result = snapshotResult(localResult);
+      applyIfCurrent(localResult);
     } finally {
       calculationBusyLoopIds.value = calculationBusyLoopIds.value.filter((id) => id !== loopId);
     }
@@ -659,8 +697,13 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   }
 
   function ensureInitialCalculation() {
-    if (activeLoop.value && !activeLoop.value.calculation_result) {
-      scheduleCalculation(activeLoop.value.id);
+    if (!activeProject.value) {
+      return;
+    }
+    for (const loop of activeProject.value.loops) {
+      if (!loop.calculation_result) {
+        loop.calculation_result = calculateLocalSnapshot(loop);
+      }
     }
   }
 
@@ -711,6 +754,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
         for (const row of loop.device_rows) {
           row.id = createId("row");
         }
+        loop.calculation_result = calculateLocalSnapshot(loop);
       }
       if (!data.active_loop_id || !data.loops.some(l => l.id === data.active_loop_id)) {
         data.active_loop_id = data.loops[0]?.id ?? "";

@@ -36,19 +36,22 @@ function sortTemplatesByCreatedAt(items: NamedTemplate[]) {
   });
 }
 
+
+
 export const usePrintStore = defineStore("print", () => {
   const projectId = ref<string | null>(null);
   const savedProfile = ref<ProjectPrintProfile | null>(null);
   const draftProfile = ref<ProjectPrintProfile | null>(null);
   const editingProfile = ref<ProjectPrintProfile | null>(null);
   const calculationReady = ref(false);
-  const templates = ref<NamedTemplate[]>(sortTemplatesByCreatedAt(readJson<NamedTemplate[]>(TEMPLATES_CACHE_KEY) ?? []));
+  const templates = ref<NamedTemplate[]>([]);
   const selectedTemplateName = ref<string | null>(null);
 
   const canPrint = computed(() => calculationReady.value);
 
   function initializeFromProject(project: ProjectRecord | null, issueDate = localDateString()) {
     projectId.value = project?.id ?? null;
+    templates.value = sortTemplatesByCreatedAt(readJson<NamedTemplate[]>(TEMPLATES_CACHE_KEY) ?? []);
     calculationReady.value = projectCalculationsAreReady(project);
     savedProfile.value = project?.print_profile
       ? cloneProfile(project.print_profile)
@@ -96,19 +99,20 @@ export const usePrintStore = defineStore("print", () => {
   }
 
   function saveAsTemplate(name: string) {
-    if (!editingProfile.value || !name.trim()) {
+    if (!name.trim()) {
       return;
     }
     const templateName = name.trim();
     const existingTemplate = templates.value.find(t => t.template_name === templateName);
     const newTemplate: NamedTemplate = {
-      ...cloneProfile(editingProfile.value),
+      ...createBlankPrintProfile(""),
       template_name: templateName,
       created_at: existingTemplate?.created_at ?? new Date().toISOString()
     };
     const filtered = templates.value.filter(t => t.template_name !== newTemplate.template_name);
     templates.value = sortTemplatesByCreatedAt([...filtered, newTemplate]);
     selectedTemplateName.value = newTemplate.template_name;
+    editingProfile.value = cloneProfile(newTemplate);
     writeJson(TEMPLATES_CACHE_KEY, templates.value);
   }
 
@@ -203,6 +207,7 @@ export const usePrintStore = defineStore("print", () => {
   function applyToReport() {
     if (!editingProfile.value) return;
     draftProfile.value = cloneProfile(editingProfile.value);
+    saveDefaults();
   }
 
   return {

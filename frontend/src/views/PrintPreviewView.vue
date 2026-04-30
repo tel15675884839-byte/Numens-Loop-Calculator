@@ -23,7 +23,7 @@
         <div class="min-h-0 overflow-auto border-r border-zinc-200 bg-white p-4 print:hidden">
           <PrintProfilePanel v-if="print.editingProfile" :profile="print.editingProfile" @update="print.updateEditingProfile" />
         </div>
-        <div class="min-h-0 overflow-auto p-6 print:overflow-visible print:p-0">
+        <div class="print-preview-pane min-h-0 overflow-auto p-6 print:overflow-visible print:p-0">
           <PrintPageStack :project="workspace.activeProject" :profile="print.draftProfile" />
         </div>
       </div>
@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
 import { RouterLink } from "vue-router";
 import { ArrowLeft, Printer } from "lucide-vue-next";
 import PrintPageStack from "../components/print/PrintPageStack.vue";
@@ -47,13 +47,21 @@ import { useWorkspaceStore } from "../stores/workspaceStore";
 const workspace = useWorkspaceStore();
 const print = usePrintStore();
 
-onMounted(async () => {
+function initPrintForCurrentProject() {
   const projectValue = workspace.activeProject;
   print.initializeFromProject(projectValue);
-  if (!projectValue) {
-    return;
-  }
-  await Promise.all(projectValue.loops.map((loop) => workspace.runCalculation(loop.id)));
   print.refreshCalculationReady(projectValue);
+}
+
+onMounted(() => {
+  initPrintForCurrentProject();
 });
+
+// Re-initialize when the user switches projects via the sidebar while staying on /print
+watch(
+  () => workspace.activeProjectId,
+  () => {
+    initPrintForCurrentProject();
+  }
+);
 </script>

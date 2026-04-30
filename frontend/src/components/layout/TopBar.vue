@@ -13,7 +13,6 @@
             aria-label="Project name"
           />
           <p v-else class="px-2 py-1 text-base font-semibold text-zinc-900">{{ projectName }}</p>
-          <span class="text-xs text-zinc-500">{{ saveLabel }}</span>
         </div>
       </div>
     </div>

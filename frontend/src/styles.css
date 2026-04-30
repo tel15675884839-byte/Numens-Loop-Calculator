@@ -172,14 +172,19 @@
     color: var(--app-text-soft);
   }
 
+  .print-preview-pane {
+    container-name: print-preview;
+    container-type: inline-size;
+  }
+
   .print-page-stack {
     @apply mx-auto grid grid-cols-1 gap-10 py-10;
     width: fit-content;
   }
 
-  @media (min-width: 1440px) {
+  @container print-preview (min-width: 450mm) {
     .print-page-stack {
-      @apply grid-cols-2;
+      grid-template-columns: repeat(2, 210mm);
     }
   }
 
@@ -286,6 +291,7 @@
     padding: 0;
     display: block;
     max-width: none;
+    grid-template-columns: none;
   }
 
   .print-page {

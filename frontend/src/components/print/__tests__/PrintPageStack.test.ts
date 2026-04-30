@@ -110,4 +110,11 @@ describe("PrintPageStack", () => {
     expect(styles).not.toContain("width: auto;");
     expect(styles).not.toContain("min-height: auto;");
   });
+
+  it("only enables two-column preview when the preview container can fit two A4 pages", () => {
+    expect(styles).toContain("container-type: inline-size;");
+    expect(styles).not.toContain("@media (min-width: 1440px)");
+    expect(styles).toContain("@container print-preview (min-width: 450mm)");
+    expect(styles).toContain("grid-template-columns: repeat(2, 210mm);");
+  });
 });

@@ -40,14 +40,15 @@ describe("PrintProfilePanel", () => {
     expect(wrapper.text()).toContain("First Template");
     expect(wrapper.text()).toContain("Second Template");
     expect(wrapper.text()).not.toContain("Project No");
-    expect(wrapper.text()).toContain("新增");
-    expect(wrapper.text()).not.toContain("保存");
+    expect(wrapper.text()).toContain("New Template");
+    expect(wrapper.text()).not.toContain("Apply");
 
     await wrapper.get("button[data-template-name='First Template']").trigger("click");
 
     expect(wrapper.text()).toContain("Project No");
-    expect(wrapper.text()).toContain("保存");
-    expect(wrapper.text()).toContain("清空");
-    expect(wrapper.text()).toContain("删除");
+    expect(wrapper.text()).toContain("Apply");
+    expect(wrapper.text()).toContain("Save");
+    expect(wrapper.text()).toContain("Rename");
+    expect(wrapper.text()).toContain("Delete");
   });
 });
