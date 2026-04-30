@@ -199,6 +199,23 @@
     @apply bg-white text-zinc-900 shadow-sm flex flex-col;
   }
 
+  .print-watermark-layer {
+    position: absolute;
+    right: 9mm;
+    bottom: 27mm;
+    z-index: 20;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .print-watermark {
+    display: block;
+    width: 36mm;
+    max-height: 34mm;
+    object-fit: contain;
+    opacity: 0.12;
+  }
+
   .print-page-footer {
     position: absolute;
     bottom: 12mm;

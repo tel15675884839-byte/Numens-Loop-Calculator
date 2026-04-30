@@ -1,5 +1,7 @@
 <template>
   <article class="print-page">
+    <PrintWatermark />
+
     <header class="print-page-header">
       <div>
         <p class="print-kicker">Project Summary</p>
@@ -18,10 +20,24 @@
       </div>
     </section>
 
-    <section class="print-metric-grid">
-      <div v-for="item in metrics" :key="item.label" class="print-metric">
-        <p class="print-metric-label">{{ item.label }}</p>
-        <p class="print-metric-value">{{ item.value }}</p>
+    <section class="space-y-2 mb-6">
+      <div class="grid grid-cols-3 gap-2">
+        <div v-for="item in metrics.slice(0, 3)" :key="item.label" class="print-metric">
+          <p class="print-metric-label">{{ item.label }}</p>
+          <p class="print-metric-value">{{ item.value }}</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div v-for="item in metrics.slice(3, 5)" :key="item.label" class="print-metric">
+          <p class="print-metric-label">{{ item.label }}</p>
+          <p class="print-metric-value">{{ item.value }}</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div v-for="item in metrics.slice(5, 7)" :key="item.label" class="print-metric">
+          <p class="print-metric-label">{{ item.label }}</p>
+          <p class="print-metric-value">{{ item.value }}</p>
+        </div>
       </div>
     </section>
 
@@ -31,8 +47,7 @@
         <thead>
           <tr>
             <th>Loop</th>
-            <th class="text-right">Devices</th>
-            <th class="text-right">Addr Used / Limit</th>
+            <th class="text-right">Device Qty</th>
             <th class="text-right">Current Used / Limit</th>
             <th class="text-right">Distance</th>
             <th class="text-right">End Voltage</th>
@@ -44,7 +59,6 @@
           <tr v-for="loop in project.loops" :key="loop.id">
             <td>{{ loop.name }}</td>
             <td class="text-right tabular-nums">{{ loop.device_rows.reduce((sum, row) => sum + row.qty, 0) }}</td>
-            <td class="text-right tabular-nums">{{ addressLabel(loop) }}</td>
             <td class="text-right tabular-nums">{{ currentLabel(loop) }}</td>
             <td class="text-right tabular-nums">{{ distanceLabel(loop) }}</td>
             <td class="text-right tabular-nums">{{ voltageLabel(loop) }}</td>
@@ -64,6 +78,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import PrintWatermark from "./PrintWatermark.vue";
 import type { ProjectLoop, ProjectPrintProfile, ProjectRecord } from "../../types/project";
 import { formatNumber } from "../../utils/format";
 import { calculateGlobalBatteryRuntime } from "../../utils/power";
@@ -101,9 +116,9 @@ const metrics = computed(() => {
   return [
     { label: "Total Loops", value: String(loops.length) },
     { label: "Total Devices", value: String(totalDevices) },
+    { label: "Lowest End Voltage", value: `${formatNumber(lowestVoltage, 2)} V` },
     { label: "Worst Address Utilization", value: `${formatNumber(worstAddress, 0)}%` },
     { label: "Worst Current Utilization", value: `${formatNumber(worstCurrent, 0)}%` },
-    { label: "Lowest End Voltage", value: `${formatNumber(lowestVoltage, 2)} V` },
     { label: "Global Battery Standby Runtime", value: `${formatNumber(battery.value.standby_hours, 1)} h` },
     { label: "Global Battery Alarm Runtime", value: `${formatNumber(battery.value.alarm_hours, 1)} h` }
   ];

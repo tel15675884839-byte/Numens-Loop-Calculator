@@ -111,6 +111,31 @@ describe("PrintPageStack", () => {
     expect(styles).not.toContain("min-height: auto;");
   });
 
+  it("renders a faint brand watermark on every printable page", () => {
+    const wrapper = mount(PrintPageStack, {
+      props: {
+        project,
+        profile
+      }
+    });
+
+    const pages = wrapper.findAll(".print-page");
+    const watermarkLayers = wrapper.findAll(".print-watermark-layer");
+    const watermarks = wrapper.findAll(".print-watermark");
+
+    expect(watermarkLayers).toHaveLength(pages.length);
+    expect(watermarks).toHaveLength(pages.length);
+    expect(watermarks.every((watermark) => watermark.attributes("src").includes("logo-V-3-2.png"))).toBe(true);
+    expect(watermarkLayers.every((layer) => layer.attributes("aria-hidden") === "true")).toBe(true);
+    expect(styles).not.toContain(".print-page > :not(.print-watermark)");
+    expect(styles).toContain(".print-watermark-layer");
+    expect(styles).toContain(".print-watermark");
+    expect(styles).toContain("right: 9mm;");
+    expect(styles).toContain("bottom: 27mm;");
+    expect(styles).toContain("z-index: 20;");
+    expect(styles).toContain("opacity: 0.12;");
+  });
+
   it("only enables two-column preview when the preview container can fit two A4 pages", () => {
     expect(styles).toContain("container-type: inline-size;");
     expect(styles).not.toContain("@media (min-width: 1440px)");

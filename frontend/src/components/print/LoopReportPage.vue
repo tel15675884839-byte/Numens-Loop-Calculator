@@ -1,6 +1,8 @@
 <template>
   <template v-for="(pageData, index) in pages" :key="index">
     <article class="print-page print-page-break flex flex-col relative">
+      <PrintWatermark />
+
       <header class="print-page-header">
         <div>
           <p class="print-kicker">{{ project.name }}</p>
@@ -57,6 +59,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import DeviceScheduleTable from "./DeviceScheduleTable.vue";
+import PrintWatermark from "./PrintWatermark.vue";
 import type { ProjectLoop, ProjectPrintProfile, ProjectRecord } from "../../types/project";
 import { formatNumber } from "../../utils/format";
 
@@ -71,7 +74,7 @@ const diagnostics = computed(() => props.loop.calculation_result?.diagnostics ??
 const resultMetrics = computed(() => {
   const result = props.loop.calculation_result;
   return [
-    { label: "Addresses", value: result ? `${result.total_addresses} / ${result.addr_limit}` : "-" },
+    { label: "Devices", value: result ? `${result.total_addresses} / ${result.addr_limit}` : "-" },
     { label: "Current", value: result ? `${formatNumber(result.total_current_ma, 1)} mA` : "-" },
     { label: "Distance", value: result ? `${formatNumber(result.total_distance_m, 1)} m` : "-" },
     { label: "Voltage Drop", value: result ? `${formatNumber(result.voltage_drop_v, 2)} V` : "-" },

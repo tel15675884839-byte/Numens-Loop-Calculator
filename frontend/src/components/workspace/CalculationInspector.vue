@@ -2,7 +2,6 @@
   <aside class="panel h-full flex flex-col bg-zinc-50 border-l border-zinc-200">
     <div class="panel-title border-b border-zinc-200 bg-white px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-600 flex items-center justify-between">
       <span>Calculation Inspector</span>
-      <span class="text-[10px] font-normal uppercase tracking-wider text-zinc-400">v1.0</span>
     </div>
 
     <div class="flex-1 overflow-y-auto space-y-4 p-4">

@@ -58,8 +58,9 @@ const workspace = useWorkspaceStore();
 const productStore = useProductStore();
 
 const deviceCategories = computed(() => {
+  const priority = ["Detector", "Sounder", "MCP", "I/O Module", "Isolator"];
   const seen = new Set<string>();
-  return productStore.products
+  const categories = productStore.products
     .map((product) => product.category)
     .filter((category) => {
       if (seen.has(category)) {
@@ -68,6 +69,15 @@ const deviceCategories = computed(() => {
       seen.add(category);
       return true;
     });
+
+  return categories.sort((a, b) => {
+    const indexA = priority.indexOf(a);
+    const indexB = priority.indexOf(b);
+    if (indexA === -1 && indexB === -1) return a.localeCompare(b);
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
+    return indexA - indexB;
+  });
 });
 
 onMounted(() => {

@@ -6,11 +6,11 @@
         <tr>
           <th>#</th>
           <th>Category</th>
-          <th>Device / Model</th>
+          <th>Device & Model</th>
           <th class="text-right">Qty</th>
 
-          <th class="text-right">SBY / ea</th>
-          <th class="text-right">ALM / ea</th>
+          <th class="text-right">Standby</th>
+          <th class="text-right">Alarm</th>
           <th class="text-right">Lead</th>
           <th class="text-right">Interval</th>
         </tr>
