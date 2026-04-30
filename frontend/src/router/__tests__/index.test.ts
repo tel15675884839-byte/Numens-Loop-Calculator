@@ -84,4 +84,24 @@ describe("router", () => {
 
     expect(router.currentRoute.value.name).toBe("workspace");
   });
+
+  it("registers the project print preview route", async () => {
+    await router.push("/print");
+
+    expect(router.currentRoute.value.name).toBe("print");
+  });
+
+  it("uses the unsaved project guard when entering print preview from the workspace", async () => {
+    const store = useWorkspaceStore();
+    store.createBlankProject();
+    store.setProjectName("Unsaved configuration");
+
+    const navigation = router.push("/print").catch(() => undefined);
+    const dialogStore = (await import("../../stores/dialogStore")).useDialogStore();
+    expect(dialogStore.activeDialog?.message).toBe("This project has unsaved changes. Discard changes before leaving?");
+    dialogStore.resolve(false);
+    await navigation;
+
+    expect(router.currentRoute.value.name).toBe("workspace");
+  });
 });

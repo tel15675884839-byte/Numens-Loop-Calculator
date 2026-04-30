@@ -6,7 +6,7 @@ import { defaultProducts } from "../data/defaultProducts";
 import { sampleWorkspaceProjects } from "../data/sampleWorkspace";
 import { useDialogStore } from "./dialogStore";
 import type { CalculationLoopRequest, CalculationLoopResponse } from "../types/calculation";
-import type { LoopCalculationSnapshot, LoopDeviceRow, ProjectListItem, ProjectLoop, ProjectRecord } from "../types/project";
+import type { LoopCalculationSnapshot, LoopDeviceRow, ProjectListItem, ProjectLoop, ProjectPrintProfile, ProjectRecord } from "../types/project";
 import { calculateLoopLocally } from "../utils/calculation";
 import { createDeviceRowForCategory, mapProductToDeviceRow } from "../utils/sampleData";
 import { createId } from "../utils/ids";
@@ -31,6 +31,7 @@ function projectChangeSignature(project: ProjectRecord): string {
   return JSON.stringify({
     id: project.id,
     name: project.name,
+    print_profile: project.print_profile,
     loops: [...project.loops]
       .sort((left, right) => left.sort_order - right.sort_order)
       .map((loop) => ({
@@ -77,6 +78,7 @@ function normalizeProject(project: ProjectRecord): ProjectRecord {
 
   return {
     ...project,
+    print_profile: project.print_profile ?? null,
     active_loop_id: activeLoopId,
     loops
   };
@@ -106,6 +108,7 @@ function createProjectDraft(name = "New Project"): ProjectRecord {
     id: projectId,
     name,
     active_loop_id: loops[0].id,
+    print_profile: null,
     loops,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
@@ -392,6 +395,16 @@ export const useWorkspaceStore = defineStore("workspace", () => {
       saveState.value = "error";
       error.value = "Project saved locally only. Backend persistence failed.";
     }
+  }
+
+  async function savePrintProfile(profile: ProjectPrintProfile) {
+    if (!activeProject.value) {
+      return;
+    }
+    activeProject.value.print_profile = { ...profile };
+    activeProject.value.updated_at = new Date().toISOString();
+    touchDirty();
+    await saveActiveProject();
   }
 
   async function removeProject(projectId: string) {
@@ -731,6 +744,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     openProject,
     createBlankProject,
     saveActiveProject,
+    savePrintProfile,
     removeProject,
     setActiveLoop,
     updateLoop,

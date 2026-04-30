@@ -1,0 +1,45 @@
+# Token-heavy generated folders
+.git/
+node_modules/
+frontend/node_modules/
+.opencode/node_modules/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+dist/
+build/
+coverage/
+frontend/dist/
+frontend/coverage/
+
+# Trellis runtime/generated implementation details
+.trellis/.runtime/
+.trellis/scripts/**/__pycache__/
+.trellis/scripts/**/*.pyc
+
+# Local logs and transient output
+*.log
+backend-dev.*.log
+frontend-dev.*.log
+output.log
+
+# Binary or bulky source artifacts
+*.xlsx
+*.xls
+*.xlsm
+*.db
+*.sqlite
+*.sqlite3
+*.pyc
+
+# High-signal context that must remain visible to agents:
+# AGENTS.md
+# magic-context.jsonc
+# .opencode/context-priority.md
+# .trellis/spec/
+# .trellis/tasks/
+# .trellis/workspace/
+# AI_WORKFLOW_GUIDE.md

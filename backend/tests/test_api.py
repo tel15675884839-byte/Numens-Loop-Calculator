@@ -183,3 +183,58 @@ def test_project_save_and_reload_round_trip_preserves_loops_and_rows(client: Tes
     assert loop["address_limit"] == 125
     assert loop["device_rows"][0]["product_id"] == "product-0001"
     assert loop["device_rows"][0]["product_name"] == "Input Module, Single Input"
+
+
+def test_project_print_profile_round_trip(client: TestClient) -> None:
+    create_response = client.post(
+        "/api/projects",
+        json={
+            "name": "Print Project",
+            "active_loop_id": None,
+            "print_profile": {
+                "project_no": "NUM-2401",
+                "customer": "North Plant",
+                "site": "Zone A",
+                "panel": "FACP-01",
+                "revision": "A",
+                "prepared_by": "Engineering",
+                "issue_date": "2026-04-30",
+                "notes": "Issued for review",
+            },
+            "loops": [],
+        },
+    )
+
+    assert create_response.status_code == 201
+    created = create_response.json()
+    assert created["print_profile"]["project_no"] == "NUM-2401"
+    assert created["print_profile"]["revision"] == "A"
+
+    created["print_profile"] = {
+        "project_no": "NUM-2401",
+        "customer": "North Plant",
+        "site": "Zone B",
+        "panel": "FACP-02",
+        "revision": "B",
+        "prepared_by": "QA",
+        "issue_date": "2026-05-01",
+        "notes": "Updated for site review",
+    }
+    update_response = client.put(f"/api/projects/{created['id']}", json=created)
+    assert update_response.status_code == 200
+    assert update_response.json()["print_profile"]["revision"] == "B"
+
+    reload_response = client.get(f"/api/projects/{created['id']}")
+    assert reload_response.status_code == 200
+    reloaded = reload_response.json()
+
+    assert reloaded["print_profile"] == {
+        "project_no": "NUM-2401",
+        "customer": "North Plant",
+        "site": "Zone B",
+        "panel": "FACP-02",
+        "revision": "B",
+        "prepared_by": "QA",
+        "issue_date": "2026-05-01",
+        "notes": "Updated for site review",
+    }

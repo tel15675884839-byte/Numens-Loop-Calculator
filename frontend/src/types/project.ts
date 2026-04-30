@@ -51,10 +51,22 @@ export interface ProjectLoop {
   calculation_result: LoopCalculationSnapshot | null;
 }
 
+export interface ProjectPrintProfile {
+  project_no: string;
+  customer: string;
+  site: string;
+  panel: string;
+  revision: string;
+  prepared_by: string;
+  issue_date: string;
+  notes: string;
+}
+
 export interface ProjectRecord {
   id: string;
   name: string;
   active_loop_id: string;
+  print_profile: ProjectPrintProfile | null;
   loops: ProjectLoop[];
   created_at?: string;
   updated_at?: string;

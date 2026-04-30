@@ -348,4 +348,39 @@ describe("workspaceStore", () => {
     expect(store.saveState).toBe("saved");
     expect(store.activeProjectId).toBe("saved-local-project");
   });
+
+  it("saves a project print profile through the active project persistence path", async () => {
+    const projectsApi = await import("../../api/projects");
+    const store = useWorkspaceStore();
+
+    store.createBlankProject();
+    vi.mocked(projectsApi.createProject).mockResolvedValueOnce({
+      ...store.activeProject!,
+      print_profile: {
+        project_no: "NUM-2401",
+        customer: "North Plant",
+        site: "Zone A",
+        panel: "FACP-01",
+        revision: "A",
+        prepared_by: "Engineering",
+        issue_date: "2026-04-30",
+        notes: "Issued for review"
+      }
+    });
+
+    await store.savePrintProfile({
+      project_no: "NUM-2401",
+      customer: "North Plant",
+      site: "Zone A",
+      panel: "FACP-01",
+      revision: "A",
+      prepared_by: "Engineering",
+      issue_date: "2026-04-30",
+      notes: "Issued for review"
+    });
+
+    expect(store.activeProject?.print_profile?.project_no).toBe("NUM-2401");
+    expect(projectsApi.createProject).toHaveBeenCalledOnce();
+    expect(store.saveState).toBe("saved");
+  });
 });

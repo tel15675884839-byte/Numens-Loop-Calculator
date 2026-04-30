@@ -56,6 +56,17 @@ class DeviceRowBase(BaseModel):
     qty: int = 1
 
 
+class ProjectPrintProfile(BaseModel):
+    project_no: str = ""
+    customer: str = ""
+    site: str = ""
+    panel: str = ""
+    revision: str = ""
+    prepared_by: str = ""
+    issue_date: str = ""
+    notes: str = ""
+
+
 class LoopBase(BaseModel):
     id: str | None = None
     name: str
@@ -72,6 +83,7 @@ class LoopBase(BaseModel):
 class ProjectBase(BaseModel):
     name: str
     active_loop_id: str | None = None
+    print_profile: ProjectPrintProfile | None = None
     loops: list[LoopBase] = Field(default_factory=list)
 
 

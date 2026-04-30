@@ -171,6 +171,121 @@
     border-color: var(--app-border);
     color: var(--app-text-soft);
   }
+
+  .print-page-stack {
+    @apply mx-auto flex max-w-[210mm] flex-col gap-6;
+  }
+
+  .print-page {
+    width: 210mm;
+    min-height: 297mm;
+    @apply bg-white p-[12mm] text-zinc-900 shadow-sm;
+  }
+
+  .print-page-header {
+    @apply mb-5 flex items-start justify-between border-b border-zinc-300 pb-4;
+  }
+
+  .print-kicker {
+    @apply text-[11px] font-bold uppercase tracking-wider text-zinc-500;
+  }
+
+  .print-metric-grid {
+    @apply my-5 grid grid-cols-4 gap-2;
+  }
+
+  .print-metric {
+    @apply border border-zinc-300 p-3;
+  }
+
+  .print-metric-label {
+    @apply text-[10px] font-bold uppercase tracking-wider text-zinc-500;
+  }
+
+  .print-metric-value {
+    @apply mt-1 text-base font-bold tabular-nums text-zinc-950;
+  }
+
+  .print-section {
+    @apply mt-5;
+  }
+
+  .print-section-title {
+    @apply mb-2 text-xs font-bold uppercase tracking-wider text-zinc-600;
+  }
+
+  .print-table {
+    @apply w-full border-collapse text-xs;
+  }
+
+  .print-table th {
+    @apply border border-zinc-300 bg-zinc-100 px-2 py-1.5 text-left text-[10px] font-bold uppercase tracking-wide text-zinc-600;
+  }
+
+  .print-table td {
+    @apply border border-zinc-300 px-2 py-1.5 align-top text-zinc-800;
+  }
+
+  .print-diagnostics {
+    @apply mt-5 border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900;
+  }
+}
+
+@page {
+  size: A4 portrait;
+  margin: 14mm 12mm 12mm 12mm;
+}
+
+@media print {
+  html, body, #app {
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-page-stack,
+  .print-page-stack * {
+    visibility: visible;
+  }
+
+  .print-page-stack {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    display: block;
+    max-width: none;
+  }
+
+  .print-page {
+    width: auto;
+    min-height: auto;
+    box-shadow: none;
+    break-after: page;
+    page-break-after: always;
+    padding: 0;
+  }
+
+  .print-page-break {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .print-table thead {
+    display: table-header-group;
+  }
+
+  .print-table tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }
 
 @layer utilities {

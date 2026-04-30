@@ -1,0 +1,33 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cortexkit/opencode-magic-context/master/assets/magic-context.schema.json",
+  "enabled": true,
+
+  // Magic Context manages history compaction; OpenCode's built-in compaction
+  // is disabled in opencode.jsonc to avoid duplicate compression.
+  "cache_ttl": "5m",
+  "history_budget_percentage": 0.18,
+
+  "memory": {
+    "enabled": true,
+    "injection_budget_tokens": 6000,
+    "auto_promote": true,
+    "retrieval_count_promotion_threshold": 2
+  },
+
+  "experimental": {
+    "auto_search": {
+      "enabled": true
+    }
+  },
+
+  "sidekick": {
+    "enabled": true,
+    "timeout_ms": 30000,
+    "system_prompt": "For this project, treat AGENTS.md plus .trellis/spec/ and .trellis/workspace/ as high-signal memory. Before briefing a new task, summarize the relevant Loop Calculator specs, active Trellis task notes, and latest workspace journal entries. Ignore token-heavy paths listed in .contextignore."
+  },
+
+  "dreamer": {
+    "enabled": false,
+    "tasks": ["consolidate", "verify", "archive-stale", "improve", "maintain-docs"]
+  }
+}

@@ -9,11 +9,12 @@
         <label class="flex w-44 flex-col gap-1">
           <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Cable Size</span>
           <select 
-            class="field-number rounded-none h-[38px] bg-white border border-zinc-200 px-3 text-sm text-zinc-800 focus:outline-none focus:border-zinc-400"
+            class="field-number !text-center rounded-none h-[38px] bg-white border border-zinc-200 px-3 text-sm text-zinc-800 focus:outline-none focus:border-zinc-400"
+            style="text-align-last: center; padding-left: 24px;"
             :value="loop?.cable_size || '1.5'"
             @change="onCableSizeChange"
           >
-            <option v-for="opt in cableOptions" :key="opt.size" :value="opt.size">
+            <option v-for="opt in cableOptions" :key="opt.size" :value="opt.size" class="text-center">
               {{ opt.label }}
             </option>
           </select>

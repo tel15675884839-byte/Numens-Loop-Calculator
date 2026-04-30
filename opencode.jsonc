@@ -1,0 +1,25 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "plugin": [
+    "@cortexkit/opencode-magic-context",
+    "oh-my-opencode-slim"
+  ],
+
+  "compaction": {
+    "auto": false,
+    "prune": false
+  },
+
+  "instructions": [
+    "AGENTS.md",
+    ".trellis/spec/loop-calculator/index.md",
+    ".trellis/spec/backend/index.md",
+    ".trellis/spec/guides/index.md",
+    ".opencode/context-priority.md",
+    "magic-context.jsonc"
+  ],
+
+  "share": "manual",
+  "default_agent": "orchestrator"
+}

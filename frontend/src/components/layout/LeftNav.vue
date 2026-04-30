@@ -9,9 +9,13 @@
         <LibraryBig class="h-4 w-4" />
         <span>Device Catalog</span>
       </RouterLink>
-      <button class="nav-link w-full cursor-not-allowed text-zinc-400" disabled>
-        <Settings2 class="h-4 w-4" />
-        <span>Preferences</span>
+      <RouterLink v-if="workspace.activeProject" class="nav-link" :class="{ 'nav-link-active': isPrint }" to="/print">
+        <Printer class="h-4 w-4" />
+        <span>Print</span>
+      </RouterLink>
+      <button v-else class="nav-link w-full cursor-not-allowed text-zinc-400" disabled>
+        <Printer class="h-4 w-4" />
+        <span>Print</span>
       </button>
     </div>
 
@@ -62,7 +66,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { RouterLink, useRoute } from "vue-router";
-import { Layers3, LibraryBig, Pencil, Settings2, Trash2 } from "lucide-vue-next";
+import { Layers3, LibraryBig, Pencil, Printer, Trash2 } from "lucide-vue-next";
 import { useDialogStore } from "../../stores/dialogStore";
 import { useWorkspaceStore } from "../../stores/workspaceStore";
 import type { ProjectListItem } from "../../types/project";
@@ -73,6 +77,7 @@ const workspace = useWorkspaceStore();
 
 const isWorkspace = computed(() => route.name === "workspace");
 const isProducts = computed(() => route.name === "products");
+const isPrint = computed(() => route.name === "print");
 
 async function handleRename(project: ProjectListItem) {
   if (workspace.activeProjectId !== project.id && !(await workspace.canLeaveActiveProject())) {

@@ -64,6 +64,18 @@ class SQLiteStore:
                     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
                 );
 
+                CREATE TABLE IF NOT EXISTS project_print_profiles (
+                    project_id TEXT PRIMARY KEY REFERENCES projects(id) ON DELETE CASCADE,
+                    project_no TEXT NOT NULL DEFAULT '',
+                    customer TEXT NOT NULL DEFAULT '',
+                    site TEXT NOT NULL DEFAULT '',
+                    panel TEXT NOT NULL DEFAULT '',
+                    revision TEXT NOT NULL DEFAULT '',
+                    prepared_by TEXT NOT NULL DEFAULT '',
+                    issue_date TEXT NOT NULL DEFAULT '',
+                    notes TEXT NOT NULL DEFAULT ''
+                );
+
                 CREATE TABLE IF NOT EXISTS project_loops (
                     id TEXT PRIMARY KEY,
                     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
@@ -278,6 +290,7 @@ class SQLiteStore:
     def _replace_project(self, project_id: str, payload: dict[str, Any], *, create: bool) -> None:
         name = payload.get("name", "")
         active_loop_id = payload.get("active_loop_id")
+        print_profile = payload.get("print_profile")
         loops = payload.get("loops", [])
 
         # --- Server-side validation ---
@@ -329,6 +342,7 @@ class SQLiteStore:
 
             for loop in loops:
                 self._insert_loop(conn, project_id, loop)
+            self._replace_print_profile(conn, project_id, print_profile)
 
     def get_project(self, project_id: str) -> dict[str, Any]:
         with self._connect() as conn:
@@ -348,8 +362,17 @@ class SQLiteStore:
                 """,
                 (project_id,),
             ).fetchall()
+            print_profile = conn.execute(
+                """
+                SELECT project_no, customer, site, panel, revision, prepared_by, issue_date, notes
+                FROM project_print_profiles
+                WHERE project_id = ?
+                """,
+                (project_id,),
+            ).fetchone()
 
         payload = dict(project)
+        payload["print_profile"] = dict(print_profile) if print_profile is not None else None
         payload["loops"] = [self._normalize_loop_row(dict(loop)) for loop in loops]
         return payload
 
@@ -427,6 +450,35 @@ class SQLiteStore:
             (loop_id, project_id) + self._loop_insert_values(payload),
         )
 
+    def _replace_print_profile(
+        self,
+        conn: sqlite3.Connection,
+        project_id: str,
+        payload: dict[str, Any] | None,
+    ) -> None:
+        conn.execute("DELETE FROM project_print_profiles WHERE project_id = ?", (project_id,))
+        if payload is None:
+            return
+        values = self._normalize_print_profile_payload(payload)
+        conn.execute(
+            """
+            INSERT INTO project_print_profiles (
+                project_id, project_no, customer, site, panel, revision, prepared_by, issue_date, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                project_id,
+                values["project_no"],
+                values["customer"],
+                values["site"],
+                values["panel"],
+                values["revision"],
+                values["prepared_by"],
+                values["issue_date"],
+                values["notes"],
+            ),
+        )
+
     def _loop_insert_values(self, payload: dict[str, Any]) -> tuple[Any, ...]:
         rows = payload.get("device_rows", [])
         normalized_rows = [self._normalize_row_payload(row) for row in rows]
@@ -462,6 +514,18 @@ class SQLiteStore:
     def _normalize_product_row(self, row: dict[str, Any]) -> dict[str, Any]:
         row["built_in"] = bool(row["built_in"])
         return row
+
+    def _normalize_print_profile_payload(self, payload: dict[str, Any]) -> dict[str, str]:
+        return {
+            "project_no": str(payload.get("project_no", "")),
+            "customer": str(payload.get("customer", "")),
+            "site": str(payload.get("site", "")),
+            "panel": str(payload.get("panel", "")),
+            "revision": str(payload.get("revision", "")),
+            "prepared_by": str(payload.get("prepared_by", "")),
+            "issue_date": str(payload.get("issue_date", "")),
+            "notes": str(payload.get("notes", "")),
+        }
 
     def _normalize_loop_row(self, row: dict[str, Any]) -> dict[str, Any]:
         row["device_rows"] = [

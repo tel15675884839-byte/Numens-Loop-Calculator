@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import { useWorkspaceStore } from "../stores/workspaceStore";
 import WorkspaceView from "../views/WorkspaceView.vue";
 import ProductLibraryView from "../views/ProductLibraryView.vue";
+import PrintPreviewView from "../views/PrintPreviewView.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -15,6 +16,11 @@ const router = createRouter({
       path: "/products",
       name: "products",
       component: ProductLibraryView
+    },
+    {
+      path: "/print",
+      name: "print",
+      component: PrintPreviewView
     }
   ]
 });

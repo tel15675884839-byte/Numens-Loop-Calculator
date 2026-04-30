@@ -2,15 +2,17 @@
   <header class="flex h-16 items-center justify-between border-b border-zinc-200 bg-white px-4">
     <div class="flex min-w-0 items-center gap-4">
       <img :src="logoSrc" class="h-8 w-auto object-contain" alt="Numens Logo" />
-      <div v-if="isWorkspace">
+      <div v-if="isWorkspace || isPrint">
         <p class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ sectionLabel }}</p>
         <div class="flex min-w-0 items-center gap-3">
           <input
+            v-if="isWorkspace"
             class="field max-w-[18rem] border-transparent bg-transparent px-2 py-1 text-base font-semibold text-zinc-900 focus:border-blue-600 focus:bg-white"
             :value="projectName"
             @input="onProjectNameInput"
             aria-label="Project name"
           />
+          <p v-else class="px-2 py-1 text-base font-semibold text-zinc-900">{{ projectName }}</p>
           <span class="text-xs text-zinc-500">{{ saveLabel }}</span>
         </div>
       </div>
@@ -70,7 +72,12 @@ const theme = useThemeStore();
 const importInput = ref<HTMLInputElement | null>(null);
 
 const isWorkspace = computed(() => route.name === "workspace");
-const sectionLabel = computed(() => (isWorkspace.value ? "Loop Designer" : "Device Catalog"));
+const isPrint = computed(() => route.name === "print");
+const sectionLabel = computed(() => {
+  if (isWorkspace.value) return "Loop Designer";
+  if (isPrint.value) return "Project Print";
+  return "Device Catalog";
+});
 const projectName = computed(() => workspace.activeProject?.name ?? "Untitled project");
 const themeToggleLabel = computed(() => theme.theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
 const logoSrc = computed(() => theme.theme === "dark" ? "/logo-long.png" : "/logo-long-black.png");
@@ -102,4 +109,3 @@ function handleImportFile(event: Event) {
   input.value = "";
 }
 </script>
-
