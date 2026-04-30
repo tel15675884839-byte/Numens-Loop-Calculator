@@ -130,6 +130,102 @@ describe("workspaceStore", () => {
     expect(store.saveState).toBe("idle");
   });
 
+  it("switches to a cached project immediately while the backend copy is still loading", async () => {
+    const projectsApi = await import("../../api/projects");
+    let resolveRemote: ((project: {
+      id: string;
+      name: string;
+      active_loop_id: string;
+      loops: Array<{
+        id: string;
+        project_id: string;
+        name: string;
+        sort_order: number;
+        address_limit: number;
+        max_current_ma: number;
+        min_voltage_v: number;
+        cable_size: string;
+        cable_resistance_ohm_per_km: number;
+        aux_current_ma: number;
+        device_rows: never[];
+        calculation_result: null;
+      }>;
+    }) => void) | null = null;
+    vi.mocked(projectsApi.getProject).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveRemote = resolve;
+        })
+    );
+
+    localStorage.setItem("loop-calculator.workspace.v2", JSON.stringify([
+      {
+        id: "cached-project",
+        name: "Cached project",
+        active_loop_id: "cached-loop",
+        loops: [
+          {
+            id: "cached-loop",
+            project_id: "cached-project",
+            name: "Loop 1",
+            sort_order: 1,
+            address_limit: 125,
+            max_current_ma: 400,
+            min_voltage_v: 17,
+            cable_size: "1.5",
+            cable_resistance_ohm_per_km: 12.1,
+            aux_current_ma: 0,
+            device_rows: [],
+            calculation_result: null
+          }
+        ]
+      }
+    ]));
+
+    const store = useWorkspaceStore();
+    store.createBlankProject();
+    store.projects = [
+      ...store.projects,
+      {
+        id: "cached-project",
+        name: "Cached project",
+        active_loop_id: "cached-loop",
+        loop_count: 1
+      }
+    ];
+
+    await store.selectProject("cached-project");
+
+    expect(store.activeProjectId).toBe("cached-project");
+    expect(store.activeProject?.name).toBe("Cached project");
+
+    resolveRemote?.({
+      id: "cached-project",
+      name: "Remote project",
+      active_loop_id: "cached-loop",
+      loops: [
+        {
+          id: "cached-loop",
+          project_id: "cached-project",
+          name: "Loop 1",
+          sort_order: 1,
+          address_limit: 125,
+          max_current_ma: 400,
+          min_voltage_v: 17,
+          cable_size: "1.5",
+          cable_resistance_ohm_per_km: 12.1,
+          aux_current_ma: 0,
+          device_rows: [],
+          calculation_result: null
+        }
+      ]
+    });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(store.activeProject?.name).toBe("Remote project");
+  });
+
   it("does not mark a blank project dirty until editable data changes", () => {
     const store = useWorkspaceStore();
 

@@ -21,13 +21,16 @@
 
         <!-- AUX Current Input -->
         <label class="flex w-32 flex-col gap-1">
-          <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">AUX current mA</span>
-          <input 
-            class="field-number rounded-none h-[38px] border border-zinc-200 px-3 text-sm text-zinc-800 focus:outline-none focus:border-zinc-400" 
-            :value="loop?.aux_current_ma ?? 0" 
-            inputmode="decimal" 
-            @input="onAuxInput" 
-          />
+          <span class="text-[11px] font-bold uppercase tracking-wider text-zinc-400">AUX current</span>
+          <div class="relative" data-testid="aux-current-field">
+            <input
+              class="field-number rounded-none h-[38px] border border-zinc-200 pr-10 pl-3 text-sm text-zinc-800 focus:outline-none focus:border-zinc-400"
+              :value="loop?.aux_current_ma ?? 0"
+              inputmode="decimal"
+              @input="onAuxInput"
+            />
+            <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-zinc-400">mA</span>
+          </div>
         </label>
       </div>
 
@@ -91,4 +94,3 @@ function onAuxInput(event: Event) {
   });
 }
 </script>
-

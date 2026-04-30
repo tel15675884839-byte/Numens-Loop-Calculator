@@ -16,18 +16,18 @@
             <th class="table-head px-2 py-2">Device</th>
             <th class="table-head w-[105px] px-2 py-2" title="Distance to the previous device">
               <div class="flex items-center justify-end gap-1 cursor-help">
-                <span class="whitespace-nowrap">Lead m</span>
+                <span class="whitespace-nowrap">Lead</span>
                 <HelpCircle class="h-3.5 w-3.5 text-zinc-400" />
               </div>
             </th>
             <th class="table-head w-[105px] px-2 py-2" title="Spacing between identical devices (when Qty > 1)">
               <div class="flex items-center justify-end gap-1 cursor-help">
-                <span class="whitespace-nowrap">Interval m</span>
+                <span class="whitespace-nowrap">Interval</span>
                 <HelpCircle class="h-3.5 w-3.5 text-zinc-400" />
               </div>
             </th>
             <th class="table-head w-20 px-2 py-2 text-right">Qty</th>
-            <th class="table-head w-24 px-2 py-2 text-right">Alarm mA</th>
+            <th class="table-head w-24 px-2 py-2 text-right">Alarm</th>
             <th class="table-head w-20 px-2 py-2 text-center">Actions</th>
           </tr>
         </thead>
@@ -46,22 +46,31 @@
               </select>
             </td>
             <td class="table-cell !py-3">
-              <input class="field-number" :value="row.lead_dist_m" @input="updateNumber(row.id, 'lead_dist_m', inputValue($event))" />
+              <div class="relative" data-testid="lead-field">
+                <input class="field-number pr-8" :value="row.lead_dist_m" @input="updateNumber(row.id, 'lead_dist_m', inputValue($event))" />
+                <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-zinc-400">m</span>
+              </div>
             </td>
             <td class="table-cell !py-3">
-              <input 
-                class="field-number" 
-                :disabled="row.qty <= 1"
-                :class="{ 'cursor-not-allowed bg-zinc-50 text-zinc-400': row.qty <= 1 }"
-                :value="row.qty <= 1 ? 0 : row.interval_dist_m" 
-                @input="updateNumber(row.id, 'interval_dist_m', inputValue($event))" 
-              />
+              <div class="relative" data-testid="interval-field">
+                <input 
+                  class="field-number pr-8" 
+                  :disabled="row.qty <= 1"
+                  :class="{ 'cursor-not-allowed bg-zinc-50 text-zinc-400': row.qty <= 1 }"
+                  :value="row.qty <= 1 ? 0 : row.interval_dist_m" 
+                  @input="updateNumber(row.id, 'interval_dist_m', inputValue($event))" 
+                />
+                <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-zinc-400">m</span>
+              </div>
             </td>
             <td class="table-cell !py-3">
               <input class="field-number" type="number" min="1" :value="row.qty" @input="updateInteger(row.id, 'qty', inputValue($event))" />
             </td>
             <td class="table-cell !py-3">
-              <input class="field-number cursor-not-allowed bg-zinc-50 text-zinc-400" disabled :value="row.alarm_ma" />
+              <div class="relative" data-testid="alarm-field">
+                <input class="field-number cursor-not-allowed bg-zinc-50 pr-10 text-zinc-400" disabled :value="row.alarm_ma" />
+                <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-zinc-400">mA</span>
+              </div>
             </td>
             <td class="table-cell !py-3 text-center">
               <button class="toolbar-button-ghost p-1 text-zinc-500 hover:text-red-600 inline-flex items-center justify-center" @click="$emit('remove-row', row.id)">

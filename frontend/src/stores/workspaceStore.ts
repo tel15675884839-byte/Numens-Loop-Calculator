@@ -314,14 +314,17 @@ export const useWorkspaceStore = defineStore("workspace", () => {
   }
 
   async function openProject(projectId: string) {
+    const fallback = getLocalProjects().find((project) => project.id === projectId);
+    if (fallback) {
+      setActiveProject(fallback, "edit");
+    }
     try {
       const project = await getProject(projectId);
-      setActiveProject(project, "edit");
-    } catch {
-      const fallback = getLocalProjects().find((project) => project.id === projectId);
-      if (fallback) {
-        setActiveProject(fallback, "edit");
+      if (activeProjectId.value === projectId) {
+        setActiveProject(project, "edit");
       }
+    } catch {
+      // Keep the optimistic local switch when backend data is slow or unavailable.
     }
   }
 

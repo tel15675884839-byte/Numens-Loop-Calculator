@@ -53,5 +53,14 @@ describe("DeviceTable", () => {
     expect(wrapper.findAll("input").some((input) => input.element.value === "Heat Detector")).toBe(false);
     expect(wrapper.find('[data-testid="device-table-scroll"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="device-table-scroll"]').classes()).toContain("overflow-auto");
+    expect(wrapper.get('[data-testid="lead-field"]').text()).toContain("m");
+    expect(wrapper.get('[data-testid="interval-field"]').text()).toContain("m");
+    expect(wrapper.get('[data-testid="alarm-field"]').text()).toContain("mA");
+    expect(wrapper.text()).toContain("Lead");
+    expect(wrapper.text()).toContain("Interval");
+    expect(wrapper.text()).toContain("Alarm");
+    expect(wrapper.text()).not.toContain("Lead m");
+    expect(wrapper.text()).not.toContain("Interval m");
+    expect(wrapper.text()).not.toContain("Alarm mA");
   });
 });
