@@ -74,6 +74,7 @@ describe("printStore", () => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
     vi.restoreAllMocks();
+    window.localStorage.clear();
   });
 
   it("initializes draft metadata from the saved project print profile", () => {
@@ -192,5 +193,75 @@ describe("printStore", () => {
 
     expect(store.draftProfile?.revision).toBe("A");
     expect(store.draftProfile?.site).toBe("Zone A");
+  });
+
+  it("lists report templates from oldest to newest and waits for explicit selection before applying one", () => {
+    window.localStorage.setItem("loop-calculator.report-templates.v1", JSON.stringify([
+      {
+        template_name: "Newer Template",
+        created_at: "2026-05-02T00:00:00.000Z",
+        project_no: "NEW",
+        customer: "New Customer",
+        site: "",
+        panel: "",
+        revision: "",
+        prepared_by: "",
+        issue_date: "2026-05-02",
+        notes: ""
+      },
+      {
+        template_name: "Older Template",
+        created_at: "2026-05-01T00:00:00.000Z",
+        project_no: "OLD",
+        customer: "Old Customer",
+        site: "",
+        panel: "",
+        revision: "",
+        prepared_by: "",
+        issue_date: "2026-05-01",
+        notes: ""
+      }
+    ]));
+    const store = usePrintStore();
+
+    store.initializeFromProject(withCalculation(buildProject(null)), "2026-04-30");
+
+    expect(store.templates.map((template) => template.template_name)).toEqual(["Older Template", "Newer Template"]);
+    expect(store.selectedTemplateName).toBeNull();
+    expect(store.draftProfile?.project_no).toBe("");
+
+    store.selectTemplate("Older Template");
+
+    expect(store.selectedTemplateName).toBe("Older Template");
+    expect(store.editingProfile?.project_no).toBe("OLD");
+    expect(store.editingProfile?.customer).toBe("Old Customer");
+    expect(store.draftProfile?.project_no).toBe("OLD");
+  });
+
+  it("updates, creates, clears, and deletes the selected report template", () => {
+    const store = usePrintStore();
+    store.initializeFromProject(withCalculation(buildProject(null)), "2026-04-30");
+    store.updateEditingProfile({ project_no: "P-000", customer: "Customer", revision: "A", prepared_by: "User" });
+
+    store.saveAsTemplate("First Template");
+    expect(store.selectedTemplateName).toBe("First Template");
+
+    store.updateEditingProfile({ project_no: "P-001", customer: "Customer A" });
+    store.saveSelectedTemplate();
+    expect(store.templates[0].project_no).toBe("P-001");
+
+    store.clearSelectedTemplateDraft();
+    expect(store.selectedTemplateName).toBe("First Template");
+    expect(store.draftProfile?.project_no).toBe("");
+    expect(store.draftProfile?.issue_date).toBe("");
+
+    store.saveAsTemplate("Second Template");
+    expect(store.templates.map((template) => template.template_name)).toEqual(["First Template", "Second Template"]);
+    expect(store.selectedTemplateName).toBe("Second Template");
+
+    store.deleteSelectedTemplate();
+    expect(store.selectedTemplateName).toBeNull();
+    expect(store.templates.map((template) => template.template_name)).toEqual(["First Template"]);
+    expect(store.draftProfile?.issue_date).toBe("2026-04-30");
   });
 });

@@ -22,5 +22,5 @@ export function createBlankPrintProfile(issueDate: string): ProjectPrintProfile 
 }
 
 export function hasRequiredPrintProfileFields(profile: ProjectPrintProfile | null) {
-  return profile !== null;
+  return profile !== null && REQUIRED_PRINT_PROFILE_FIELDS.every((field) => profile[field].trim().length > 0);
 }

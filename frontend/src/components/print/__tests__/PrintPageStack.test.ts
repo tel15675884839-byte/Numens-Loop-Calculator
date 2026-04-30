@@ -1,8 +1,12 @@
 import { mount } from "@vue/test-utils";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 import PrintPageStack from "../PrintPageStack.vue";
 import type { ProjectPrintProfile, ProjectRecord } from "../../../types/project";
+
+const styles = readFileSync(resolve(process.cwd(), "src/styles.css"), "utf8");
 
 const profile: ProjectPrintProfile = {
   project_no: "NUM-2401",
@@ -89,9 +93,21 @@ describe("PrintPageStack", () => {
     expect(wrapper.text()).toContain("Loop 1");
     expect(wrapper.text()).toContain("Voltage margin is low");
     expect(wrapper.text()).toContain("Device Schedule");
-    expect(wrapper.text()).toContain("Addr/ea");
-    expect(wrapper.text()).toContain("SBY mA/ea");
-    expect(wrapper.text()).toContain("ALM mA/ea");
+    expect(wrapper.text()).toContain("SBY / ea");
+    expect(wrapper.text()).toContain("ALM / ea");
+    expect(wrapper.text()).toContain("Lead");
+    expect(wrapper.text()).toContain("Interval");
     expect(wrapper.text()).toContain("Manual Call Point");
+  });
+
+  it("keeps print pages and footers fixed inside the browser print page", () => {
+    expect(styles).toContain("@page {\n  size: A4 portrait;\n  margin: 0;");
+    expect(styles).toContain("height: 297mm;");
+    expect(styles).toContain("padding: 12mm 12mm 25mm 12mm;");
+    expect(styles).toContain(".print-page-footer");
+    expect(styles).toContain("position: absolute;");
+    expect(styles).toContain("bottom: 12mm;");
+    expect(styles).not.toContain("width: auto;");
+    expect(styles).not.toContain("min-height: auto;");
   });
 });

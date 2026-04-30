@@ -9,6 +9,7 @@ const TEMPLATES_CACHE_KEY = "loop-calculator.report-templates.v1";
 
 interface NamedTemplate extends ProjectPrintProfile {
   template_name: string;
+  created_at?: string;
 }
 
 function cloneProfile(profile: ProjectPrintProfile): ProjectPrintProfile {
@@ -27,14 +28,24 @@ function projectCalculationsAreReady(project: ProjectRecord | null) {
   return Boolean(project?.loops.length) && Boolean(project?.loops.every((loop) => loop.calculation_result));
 }
 
+function sortTemplatesByCreatedAt(items: NamedTemplate[]) {
+  return [...items].sort((first, second) => {
+    const firstTime = first.created_at ? Date.parse(first.created_at) : 0;
+    const secondTime = second.created_at ? Date.parse(second.created_at) : 0;
+    return firstTime - secondTime;
+  });
+}
+
 export const usePrintStore = defineStore("print", () => {
   const projectId = ref<string | null>(null);
   const savedProfile = ref<ProjectPrintProfile | null>(null);
   const draftProfile = ref<ProjectPrintProfile | null>(null);
+  const editingProfile = ref<ProjectPrintProfile | null>(null);
   const calculationReady = ref(false);
-  const templates = ref<NamedTemplate[]>(readJson<NamedTemplate[]>(TEMPLATES_CACHE_KEY) ?? []);
+  const templates = ref<NamedTemplate[]>(sortTemplatesByCreatedAt(readJson<NamedTemplate[]>(TEMPLATES_CACHE_KEY) ?? []));
+  const selectedTemplateName = ref<string | null>(null);
 
-  const canPrint = computed(() => calculationReady.value && hasRequiredPrintProfileFields(draftProfile.value));
+  const canPrint = computed(() => calculationReady.value);
 
   function initializeFromProject(project: ProjectRecord | null, issueDate = localDateString()) {
     projectId.value = project?.id ?? null;
@@ -43,6 +54,8 @@ export const usePrintStore = defineStore("print", () => {
       ? cloneProfile(project.print_profile)
       : createBlankPrintProfile(issueDate);
     draftProfile.value = cloneProfile(savedProfile.value);
+    editingProfile.value = cloneProfile(savedProfile.value);
+    selectedTemplateName.value = null;
   }
 
   function refreshCalculationReady(project: ProjectRecord | null) {
@@ -55,6 +68,16 @@ export const usePrintStore = defineStore("print", () => {
     }
     draftProfile.value = {
       ...draftProfile.value,
+      ...patch
+    };
+  }
+
+  function updateEditingProfile(patch: Partial<ProjectPrintProfile>) {
+    if (!editingProfile.value) {
+      return;
+    }
+    editingProfile.value = {
+      ...editingProfile.value,
       ...patch
     };
   }
@@ -73,55 +96,140 @@ export const usePrintStore = defineStore("print", () => {
   }
 
   function saveAsTemplate(name: string) {
-    if (!draftProfile.value || !name.trim()) {
+    if (!editingProfile.value || !name.trim()) {
       return;
     }
+    const templateName = name.trim();
+    const existingTemplate = templates.value.find(t => t.template_name === templateName);
     const newTemplate: NamedTemplate = {
-      ...cloneProfile(draftProfile.value),
-      template_name: name.trim()
+      ...cloneProfile(editingProfile.value),
+      template_name: templateName,
+      created_at: existingTemplate?.created_at ?? new Date().toISOString()
     };
-    // Remove if exists with same name
     const filtered = templates.value.filter(t => t.template_name !== newTemplate.template_name);
-    templates.value = [newTemplate, ...filtered];
+    templates.value = sortTemplatesByCreatedAt([...filtered, newTemplate]);
+    selectedTemplateName.value = newTemplate.template_name;
     writeJson(TEMPLATES_CACHE_KEY, templates.value);
   }
 
-  function applyTemplate(template: NamedTemplate) {
-    if (!draftProfile.value) {
+  function selectTemplate(name: string) {
+    const template = templates.value.find(t => t.template_name === name);
+    if (!editingProfile.value) {
       return;
     }
-    // Apply all fields except possibly issue_date if user wants to keep current
-    // But for "Template" it's usually better to apply everything and let user adjust
-    draftProfile.value = cloneProfile(template);
+    if (!template) {
+      selectedTemplateName.value = null;
+      return;
+    }
+    selectedTemplateName.value = template.template_name;
+    editingProfile.value = cloneProfile(template);
+  }
+
+  function applyTemplate(template: NamedTemplate) {
+    selectTemplate(template.template_name);
+  }
+
+  function saveSelectedTemplate() {
+    if (!selectedTemplateName.value || !editingProfile.value) {
+      return;
+    }
+    const existingTemplate = templates.value.find(t => t.template_name === selectedTemplateName.value);
+    const updatedTemplate: NamedTemplate = {
+      ...cloneProfile(editingProfile.value),
+      template_name: selectedTemplateName.value,
+      created_at: existingTemplate?.created_at ?? new Date().toISOString()
+    };
+    templates.value = sortTemplatesByCreatedAt(templates.value.map(t =>
+      t.template_name === selectedTemplateName.value ? updatedTemplate : t
+    ));
+    writeJson(TEMPLATES_CACHE_KEY, templates.value);
+  }
+
+  function clearSelectedTemplateDraft() {
+    if (!selectedTemplateName.value) {
+      return;
+    }
+    editingProfile.value = createBlankPrintProfile("");
+    draftProfile.value = cloneProfile(editingProfile.value);
+  }
+
+  function renameSelectedTemplate(newName: string) {
+    if (!selectedTemplateName.value || !newName.trim()) return;
+    const oldName = selectedTemplateName.value;
+    const freshName = newName.trim();
+    if (oldName === freshName) return;
+
+    templates.value = templates.value.map(t => {
+      if (t.template_name === oldName) {
+        return { ...t, template_name: freshName };
+      }
+      return t;
+    });
+    selectedTemplateName.value = freshName;
+    writeJson(TEMPLATES_CACHE_KEY, templates.value);
+  }
+
+  function deselectTemplate() {
+    selectedTemplateName.value = null;
+    editingProfile.value = draftProfile.value ? cloneProfile(draftProfile.value) : null;
+  }
+
+  function deleteSelectedTemplate() {
+    if (!selectedTemplateName.value) {
+      return;
+    }
+    deleteTemplate(selectedTemplateName.value);
+    selectedTemplateName.value = null;
+    draftProfile.value = savedProfile.value ? cloneProfile(savedProfile.value) : null;
+    editingProfile.value = draftProfile.value ? cloneProfile(draftProfile.value) : null;
   }
 
   function deleteTemplate(name: string) {
     templates.value = templates.value.filter(t => t.template_name !== name);
+    if (selectedTemplateName.value === name) {
+      selectedTemplateName.value = null;
+    }
     writeJson(TEMPLATES_CACHE_KEY, templates.value);
   }
 
   function printNow() {
-    if (!canPrint.value) {
+    if (!calculationReady.value) {
+      alert("Please wait for all loop calculations to complete before printing.");
       return;
     }
     window.print();
+  }
+
+  function applyToReport() {
+    if (!editingProfile.value) return;
+    draftProfile.value = cloneProfile(editingProfile.value);
   }
 
   return {
     projectId,
     savedProfile,
     draftProfile,
+    editingProfile,
     calculationReady,
     templates,
+    selectedTemplateName,
     canPrint,
     initializeFromProject,
     refreshCalculationReady,
     updateDraft,
+    updateEditingProfile,
     resetDraft,
     saveDefaults,
     saveAsTemplate,
+    selectTemplate,
     applyTemplate,
+    saveSelectedTemplate,
+    clearSelectedTemplateDraft,
+    renameSelectedTemplate,
+    deselectTemplate,
+    deleteSelectedTemplate,
     deleteTemplate,
+    applyToReport,
     printNow
   };
 });

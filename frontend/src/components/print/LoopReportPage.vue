@@ -1,43 +1,57 @@
 <template>
-  <article class="print-page print-page-break">
-    <header class="print-page-header">
-      <div>
-        <p class="print-kicker">{{ project.name }}</p>
-        <h2 class="text-2xl font-bold text-zinc-950">{{ loop.name }}</h2>
-      </div>
-      <div class="text-right text-xs text-zinc-500">
-        <p>Project No. {{ profile.project_no || "-" }}</p>
-        <p>Revision {{ profile.revision || "-" }}</p>
-        <p>{{ profile.issue_date || "-" }}</p>
-      </div>
-    </header>
-
-    <section class="print-metric-grid">
-      <div v-for="item in resultMetrics" :key="item.label" class="print-metric">
-        <p class="print-metric-label">{{ item.label }}</p>
-        <p class="print-metric-value">{{ item.value }}</p>
-      </div>
-    </section>
-
-    <section class="print-section">
-      <h3 class="print-section-title">Loop Parameters</h3>
-      <div class="grid grid-cols-3 gap-2 text-xs">
-        <div v-for="item in parameters" :key="item.label" class="border border-zinc-300 p-2">
-          <p class="font-semibold uppercase text-zinc-500">{{ item.label }}</p>
-          <p class="mt-1 font-semibold text-zinc-900">{{ item.value }}</p>
+  <template v-for="(pageData, index) in pages" :key="index">
+    <article class="print-page print-page-break flex flex-col relative">
+      <header class="print-page-header">
+        <div>
+          <p class="print-kicker">{{ project.name }}</p>
+          <h2 class="text-2xl font-bold text-zinc-950">
+            {{ loop.name }} <span v-if="index > 0" class="text-lg font-normal text-zinc-500">(Continued)</span>
+          </h2>
         </div>
+        <div class="text-right text-xs text-zinc-500">
+          <p>Project No. {{ profile.project_no || "-" }}</p>
+          <p>Revision {{ profile.revision || "-" }}</p>
+          <p>{{ profile.issue_date || "-" }}</p>
+        </div>
+      </header>
+
+      <template v-if="index === 0">
+        <section class="print-metric-grid">
+          <div v-for="item in resultMetrics" :key="item.label" class="print-metric">
+            <p class="print-metric-label">{{ item.label }}</p>
+            <p class="print-metric-value">{{ item.value }}</p>
+          </div>
+        </section>
+
+        <section class="print-section">
+          <h3 class="print-section-title">Loop Parameters</h3>
+          <div class="grid grid-cols-3 gap-2 text-xs">
+            <div v-for="item in parameters" :key="item.label" class="border border-zinc-300 p-2">
+              <p class="font-semibold uppercase text-zinc-500">{{ item.label }}</p>
+              <p class="mt-1 font-semibold text-zinc-900">{{ item.value }}</p>
+            </div>
+          </div>
+        </section>
+
+        <section v-if="diagnostics.length" class="print-diagnostics mb-5">
+          <h3 class="print-section-title">Diagnostics</h3>
+          <ul class="space-y-1">
+            <li v-for="item in diagnostics" :key="item">{{ item }}</li>
+          </ul>
+        </section>
+      </template>
+
+      <!-- Table content wrapper to fill space if needed -->
+      <div class="flex-1">
+        <DeviceScheduleTable :rows="pageData.rows" />
       </div>
-    </section>
 
-    <section v-if="diagnostics.length" class="print-diagnostics">
-      <h3 class="print-section-title">Diagnostics</h3>
-      <ul class="space-y-1">
-        <li v-for="item in diagnostics" :key="item">{{ item }}</li>
-      </ul>
-    </section>
-
-    <DeviceScheduleTable :rows="loop.device_rows" />
-  </article>
+      <footer class="print-page-footer">
+        <span>{{ loop.name }}</span>
+        <span>Page {{ index + 1 }} of {{ pages.length }}</span>
+      </footer>
+    </article>
+  </template>
 </template>
 
 <script setup lang="ts">
@@ -74,4 +88,28 @@ const parameters = computed(() => [
   { label: "Cable Resistance", value: `${formatNumber(props.loop.cable_resistance_ohm_per_km, 2)} Ohm/km` },
   { label: "AUX Current", value: `${formatNumber(props.loop.aux_current_ma, 1)} mA` }
 ]);
+
+// Virtual Pagination Logic
+const PAGE1_ROW_LIMIT = 11; // First page has metrics and parameters, fits ~11 rows
+const PAGE_N_ROW_LIMIT = 28; // Subsequent pages only have header and table, fits ~28 rows
+
+const pages = computed(() => {
+  const rows = props.loop.device_rows || [];
+  if (rows.length <= PAGE1_ROW_LIMIT) {
+    return [{ rows }];
+  }
+
+  const pagedList = [];
+  // Page 1
+  pagedList.push({ rows: rows.slice(0, PAGE1_ROW_LIMIT) });
+  
+  // Page 2+
+  let remaining = rows.slice(PAGE1_ROW_LIMIT);
+  while (remaining.length > 0) {
+    pagedList.push({ rows: remaining.slice(0, PAGE_N_ROW_LIMIT) });
+    remaining = remaining.slice(PAGE_N_ROW_LIMIT);
+  }
+
+  return pagedList;
+});
 </script>

@@ -173,13 +173,33 @@
   }
 
   .print-page-stack {
-    @apply mx-auto flex max-w-[210mm] flex-col gap-6;
+    @apply mx-auto grid grid-cols-1 gap-10 py-10;
+    width: fit-content;
+  }
+
+  @media (min-width: 1440px) {
+    .print-page-stack {
+      @apply grid-cols-2;
+    }
   }
 
   .print-page {
     width: 210mm;
+    height: 297mm;
     min-height: 297mm;
-    @apply bg-white p-[12mm] text-zinc-900 shadow-sm;
+    position: relative;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 12mm 12mm 25mm 12mm;
+    @apply bg-white text-zinc-900 shadow-sm flex flex-col;
+  }
+
+  .print-page-footer {
+    position: absolute;
+    bottom: 12mm;
+    left: 12mm;
+    right: 12mm;
+    @apply flex items-center justify-between border-t border-zinc-200 pt-3 text-[10px] font-medium uppercase tracking-wider text-zinc-400;
   }
 
   .print-page-header {
@@ -233,7 +253,7 @@
 
 @page {
   size: A4 portrait;
-  margin: 14mm 12mm 12mm 12mm;
+  margin: 0;
 }
 
 @media print {
@@ -242,6 +262,10 @@
     min-height: auto !important;
     overflow: visible !important;
     background: #ffffff !important;
+  }
+
+  body {
+    margin: 0 !important;
   }
 
   body * {
@@ -257,7 +281,7 @@
     position: absolute;
     left: 0;
     top: 0;
-    width: 100%;
+    width: 210mm;
     margin: 0;
     padding: 0;
     display: block;
@@ -265,12 +289,13 @@
   }
 
   .print-page {
-    width: auto;
-    min-height: auto;
+    width: 210mm;
+    height: 297mm;
+    min-height: 297mm;
     box-shadow: none;
     break-after: page;
     page-break-after: always;
-    padding: 0;
+    padding: 12mm 12mm 25mm 12mm;
   }
 
   .print-page-break {

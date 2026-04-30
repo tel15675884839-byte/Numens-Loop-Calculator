@@ -12,7 +12,7 @@
             <ArrowLeft class="h-4 w-4" />
             <span>Back to Workspace</span>
           </RouterLink>
-          <button class="toolbar-button-primary" :disabled="!print.canPrint" @click="print.printNow">
+          <button class="toolbar-button-primary" @click="print.printNow">
             <Printer class="h-4 w-4" />
             <span>Print</span>
           </button>
@@ -21,7 +21,7 @@
 
       <div v-if="workspace.activeProject && print.draftProfile" class="grid min-h-0 flex-1 grid-cols-[20rem_minmax(0,1fr)] print:block print:overflow-visible">
         <div class="min-h-0 overflow-auto border-r border-zinc-200 bg-white p-4 print:hidden">
-          <PrintProfilePanel :profile="print.draftProfile" @update="print.updateDraft" />
+          <PrintProfilePanel v-if="print.editingProfile" :profile="print.editingProfile" @update="print.updateEditingProfile" />
         </div>
         <div class="min-h-0 overflow-auto p-6 print:overflow-visible print:p-0">
           <PrintPageStack :project="workspace.activeProject" :profile="print.draftProfile" />
@@ -48,11 +48,12 @@ const workspace = useWorkspaceStore();
 const print = usePrintStore();
 
 onMounted(async () => {
-  print.initializeFromProject(workspace.activeProject);
-  if (!workspace.activeProject) {
+  const projectValue = workspace.activeProject;
+  print.initializeFromProject(projectValue);
+  if (!projectValue) {
     return;
   }
-  await Promise.all(workspace.activeProject.loops.map((loop) => workspace.runCalculation(loop.id)));
-  print.refreshCalculationReady(workspace.activeProject);
+  await Promise.all(projectValue.loops.map((loop) => workspace.runCalculation(loop.id)));
+  print.refreshCalculationReady(projectValue);
 });
 </script>

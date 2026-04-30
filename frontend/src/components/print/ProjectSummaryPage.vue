@@ -54,6 +54,11 @@
         </tbody>
       </table>
     </section>
+
+    <footer class="print-page-footer">
+      <span>Project Summary</span>
+      <span>Page 1 of 1</span>
+    </footer>
   </article>
 </template>
 
