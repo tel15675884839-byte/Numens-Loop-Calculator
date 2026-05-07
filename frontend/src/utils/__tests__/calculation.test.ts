@@ -33,6 +33,95 @@ describe("calculateLoopLocally", () => {
     expect(result.diagnostics).toHaveLength(0);
     expect(result.max_cable_length_m).toBe(1000);
   });
+
+  it("preserves the engineering unit for recommended cable size", () => {
+    const result = calculateLoopLocally({
+      devices: [
+        {
+          product_id: "product-1",
+          display_name: "Detector",
+          category: "Detector",
+          standby: 0.5,
+          alarm: 2,
+          ledCost: 1,
+          type: "Detector",
+          lead_dist: 10,
+          interval_dist: 10,
+          qty: 2
+        }
+      ],
+      max_current_ma: 400,
+      min_voltage_v: 17,
+      cable_resistance_ohm_per_km: 12.1,
+      addr_limit: 125
+    });
+
+    expect(result.recommended_cable_size).toBe("1.0");
+    expect(result.recommended_cable_unit).toBe("mm²");
+  });
+
+  it("matches the core calculator for mixed detector, LSM, and multi-led module loads", () => {
+    const result = calculateLoopLocally({
+      devices: [
+        {
+          product_id: "det-1",
+          display_name: "Detector",
+          category: "Detector",
+          standby: 0.5,
+          alarm: 2,
+          ledCost: 1,
+          type: "Detector",
+          lead_dist: 20,
+          interval_dist: 15,
+          qty: 12
+        },
+        {
+          product_id: "lsm-1",
+          display_name: "Loop Sounder",
+          category: "Sounder",
+          standby: 0.35,
+          alarm: 16,
+          ledCost: 0,
+          type: "LSM",
+          lead_dist: 35,
+          interval_dist: 20,
+          qty: 2
+        },
+        {
+          product_id: "mod-1",
+          display_name: "Module",
+          category: "I/O Module",
+          standby: 0.8,
+          alarm: 3.5,
+          ledCost: 2,
+          type: "I/O Module",
+          lead_dist: 10,
+          interval_dist: 0,
+          qty: 1
+        }
+      ],
+      max_current_ma: 40,
+      min_voltage_v: 27.95,
+      cable_resistance_ohm_per_km: 12.1,
+      addr_limit: 10
+    });
+
+    expect(result.total_addresses).toBe(15);
+    expect(result.total_current_ma).toBeCloseTo(53.5);
+    expect(result.total_distance_m).toBeCloseTo(250);
+    expect(result.voltage_drop_v).toBeCloseTo(0.243936);
+    expect(result.end_voltage_v).toBeCloseTo(27.756064);
+    expect(result.max_install_distance_m).toBeCloseTo(51.24294897022243);
+    expect(result.recommended_cable_size).toBe("N/A");
+    expect(result.recommended_cable_unit).toBe("");
+    expect(result.standby_current_ma).toBeCloseTo(7.5);
+    expect(result.alarm_current_ma).toBeCloseTo(53.5);
+    expect(result.diagnostics).toEqual([
+      "Address count (15) exceeds limit (10)",
+      "Loop current (53.5mA) is overloaded",
+      "End voltage (27.76V) is too low"
+    ]);
+  });
 });
 
 describe("calculateGlobalBatteryRuntime", () => {

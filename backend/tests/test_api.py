@@ -80,6 +80,83 @@ def test_calculation_api_maps_request_and_returns_numeric_fields(client: TestCli
     ]
 
 
+def test_calculation_api_matches_core_for_mixed_led_and_lsm_loads(client: TestClient) -> None:
+    request_payload = {
+        "devices": [
+            {
+                "product_id": "det-1",
+                "display_name": "Detector",
+                "category": "Detector",
+                "standby": 0.5,
+                "alarm": 2.0,
+                "ledCost": 1,
+                "type": "Detector",
+                "lead_dist": 20,
+                "interval_dist": 15,
+                "qty": 12,
+            },
+            {
+                "product_id": "lsm-1",
+                "display_name": "Loop Sounder",
+                "category": "Sounder",
+                "standby": 0.35,
+                "alarm": 16.0,
+                "ledCost": 0,
+                "type": "LSM",
+                "lead_dist": 35,
+                "interval_dist": 20,
+                "qty": 2,
+            },
+            {
+                "product_id": "mod-1",
+                "display_name": "Module",
+                "category": "I/O Module",
+                "standby": 0.8,
+                "alarm": 3.5,
+                "ledCost": 2,
+                "type": "I/O Module",
+                "lead_dist": 10,
+                "interval_dist": 0,
+                "qty": 1,
+            },
+        ],
+        "max_current_ma": 40,
+        "min_voltage_v": 27.95,
+        "cable_resistance_ohm_per_km": 12.1,
+        "addr_limit": 10,
+    }
+
+    response = client.post("/api/calculations/loop", json=request_payload)
+
+    assert response.status_code == 200
+    payload = response.json()
+    expected = calculate_loop_from_rows(
+        request_payload["devices"],
+        max_current_ma=40,
+        min_voltage_v=27.95,
+        cable_resistance_ohm_per_km=12.1,
+        addr_limit=10,
+    )
+    assert payload["total_addresses"] == expected.total_addresses
+    assert payload["total_current_ma"] == pytest.approx(expected.total_current_ma)
+    assert payload["total_distance_m"] == pytest.approx(expected.total_distance_m)
+    assert payload["voltage_drop_v"] == pytest.approx(expected.voltage_drop_v)
+    assert payload["end_voltage_v"] == pytest.approx(expected.end_voltage_v)
+    assert payload["max_install_distance_m"] == pytest.approx(expected.max_install_distance_m)
+    assert payload["recommended_cable_size"] == expected.recommended_cable_size
+    assert payload["recommended_cable_unit"] == expected.recommended_cable_unit
+    assert payload["standby_current_ma"] == pytest.approx(expected.standby_current_ma)
+    assert payload["alarm_current_ma"] == pytest.approx(expected.alarm_current_ma)
+    assert [diagnostic["key"] for diagnostic in payload["diagnostics"]] == [
+        "diag_address_over",
+        "diag_current_over",
+        "diag_voltage_low",
+    ]
+    assert [diagnostic["key"] for diagnostic in payload["diagnostics"]] == [
+        issue.key for issue in expected.diagnostics
+    ]
+
+
 def test_seeded_products_support_search_and_builtin_delete_protection(client: TestClient) -> None:
     seeded = client.get("/api/products")
     assert seeded.status_code == 200
@@ -96,6 +173,28 @@ def test_seeded_products_support_search_and_builtin_delete_protection(client: Te
 
     delete_builtin = client.delete("/api/products/product-0001")
     assert delete_builtin.status_code == 409
+
+    force_delete_builtin = client.delete("/api/products/product-0001", params={"force": "true"})
+    assert force_delete_builtin.status_code == 204
+    backup_files = sorted((client.app.state.store.db_path.parent / "backups").glob("products-before-delete-*.json"))
+    assert backup_files
+    after_force_delete = client.get("/api/products", params={"q": "626-001", "category": "I/O Module"})
+    assert after_force_delete.status_code == 200
+    assert [product["id"] for product in after_force_delete.json()] == []
+
+    deleted_products = client.get("/api/products", params={"deleted": "only", "q": "626-001"})
+    assert deleted_products.status_code == 200
+    deleted_payload = deleted_products.json()
+    assert [product["id"] for product in deleted_payload] == ["product-0001"]
+    assert deleted_payload[0]["deleted_at"]
+
+    restore_builtin = client.post("/api/products/product-0001/restore")
+    assert restore_builtin.status_code == 200
+    assert restore_builtin.json()["deleted_at"] == ""
+
+    after_restore = client.get("/api/products", params={"q": "626-001", "category": "I/O Module"})
+    assert after_restore.status_code == 200
+    assert [product["id"] for product in after_restore.json()] == ["product-0001"]
 
     created = client.post(
         "/api/products",

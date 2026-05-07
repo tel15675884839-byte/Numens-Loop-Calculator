@@ -6,7 +6,6 @@ import pytest
 
 from loop_calculator.database import ProductDatabase
 from loop_calculator.device_list_model import DeviceListModel
-from loop_calculator.main_window import CIEMainWindow
 
 
 def _write_json(path, payload) -> None:
@@ -163,63 +162,3 @@ def test_integration_database_rows_can_round_trip_through_model_payload(tmp_path
     assert exported["rows"][0]["qty"] == 3
     assert result.total_addresses == 3
     assert result.total_current_ma == pytest.approx(7.5)
-
-
-def test_integration_loop_device_limit_syncs_across_loops() -> None:
-    class FakeCombo:
-        def __init__(self, index: int) -> None:
-            self._index = index
-
-        def currentIndex(self) -> int:
-            return self._index
-
-        def setCurrentIndex(self, index: int) -> None:
-            self._index = index
-
-    class FakeLoop:
-        def __init__(self, index: int) -> None:
-            self.combo_addr_limit = FakeCombo(index)
-
-    source_loop = FakeLoop(1)
-    target_loop_a = FakeLoop(0)
-    target_loop_b = FakeLoop(0)
-
-    window = CIEMainWindow.__new__(CIEMainWindow)
-    window._syncing_loop_device_limit = False
-    window._iter_loops = lambda: [source_loop, target_loop_a, target_loop_b]
-
-    CIEMainWindow._sync_loop_addr_limit(window, source_loop, source_loop.combo_addr_limit.currentIndex())
-
-    assert source_loop.combo_addr_limit.currentIndex() == 1
-    assert target_loop_a.combo_addr_limit.currentIndex() == 1
-    assert target_loop_b.combo_addr_limit.currentIndex() == 1
-
-
-def test_integration_min_voltage_syncs_across_loops() -> None:
-    class FakeLineEdit:
-        def __init__(self, value: str) -> None:
-            self._value = value
-
-        def text(self) -> str:
-            return self._value
-
-        def setText(self, value: str) -> None:
-            self._value = value
-
-    class FakeLoop:
-        def __init__(self, value: str) -> None:
-            self.edit_min_voltage = FakeLineEdit(value)
-
-    source_loop = FakeLoop("18.5")
-    target_loop_a = FakeLoop("17")
-    target_loop_b = FakeLoop("19")
-
-    window = CIEMainWindow.__new__(CIEMainWindow)
-    window._syncing_loop_min_voltage = False
-    window._iter_loops = lambda: [source_loop, target_loop_a, target_loop_b]
-
-    CIEMainWindow._sync_loop_min_voltage(window, source_loop, source_loop.edit_min_voltage.text())
-
-    assert source_loop.edit_min_voltage.text() == "18.5"
-    assert target_loop_a.edit_min_voltage.text() == "18.5"
-    assert target_loop_b.edit_min_voltage.text() == "18.5"

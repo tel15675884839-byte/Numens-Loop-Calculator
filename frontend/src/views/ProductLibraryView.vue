@@ -11,6 +11,7 @@
         @update:search="productStore.setSearch"
         @update:category="productStore.setCategory"
         @adminUnlock="handleAdminUnlock"
+        @openDeletedProducts="openRecoveryPanel"
       />
 
       <ProductTable
@@ -19,12 +20,40 @@
         @save="saveProductInTable"
         @delete="confirmDelete"
       />
+
+      <section v-if="recoveryOpen && productStore.isAdmin" class="panel">
+        <div class="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Deleted products</p>
+            <p class="text-sm text-zinc-600">{{ productStore.deletedProducts.length }} products available to restore</p>
+          </div>
+          <button class="toolbar-button px-3 py-1.5 text-xs" @click="recoveryOpen = false">Close</button>
+        </div>
+        <div v-if="productStore.deletedProducts.length" class="divide-y divide-zinc-200">
+          <div
+            v-for="product in productStore.deletedProducts"
+            :key="product.id"
+            class="flex items-center justify-between gap-4 px-4 py-3"
+          >
+            <div class="min-w-0">
+              <p class="truncate text-sm font-semibold text-zinc-900">{{ product.product_name || product.customer_name || product.id }}</p>
+              <p class="truncate text-xs text-zinc-500">{{ product.category }} · {{ product.factory_name }}</p>
+              <p v-if="product.deleted_at" class="text-xs text-zinc-400">Deleted {{ product.deleted_at }}</p>
+            </div>
+            <button class="toolbar-button-primary px-3 py-1.5 text-xs" @click="restoreDeletedProduct(product.id)">
+              Restore
+            </button>
+          </div>
+        </div>
+        <div v-else class="px-4 py-6 text-sm text-zinc-500">No deleted products.</div>
+      </section>
     </div>
 
     <ProductEditorDrawer
       :open="productStore.editorOpen"
       :draft="draft"
       :categories="productStore.categories"
+      :isAdmin="productStore.isAdmin"
       @close="productStore.closeEditor"
       @save="saveProduct"
       @delete="deleteProduct"
@@ -44,6 +73,7 @@ import type { ProductDraft, ProductRecord } from "../types/product";
 
 const dialog = useDialogStore();
 const productStore = useProductStore();
+const recoveryOpen = ref(false);
 const draft = ref<ProductDraft>({
   category: "",
   factory_name: "",
@@ -153,11 +183,14 @@ async function deleteProduct() {
   if (!confirmed) {
     return;
   }
-  await productStore.removeProduct(current, false);
+  await productStore.removeProduct(current, productStore.isAdmin);
+  if (recoveryOpen.value) {
+    await productStore.loadDeletedProducts();
+  }
 }
 
 async function confirmDelete(product: ProductRecord) {
-  if (product.built_in) {
+  if (product.built_in && !productStore.isAdmin) {
     await dialog.alert({
       title: "Protected product",
       message: "Built-in products are protected."
@@ -170,7 +203,19 @@ async function confirmDelete(product: ProductRecord) {
     confirmLabel: "Delete"
   });
   if (confirmed) {
-    void productStore.removeProduct(product, true);
+    await productStore.removeProduct(product, productStore.isAdmin);
+    if (recoveryOpen.value) {
+      await productStore.loadDeletedProducts();
+    }
   }
+}
+
+async function openRecoveryPanel() {
+  recoveryOpen.value = true;
+  await productStore.loadDeletedProducts();
+}
+
+async function restoreDeletedProduct(productId: string) {
+  await productStore.restoreProductRecord(productId);
 }
 </script>

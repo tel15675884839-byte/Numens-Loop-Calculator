@@ -93,8 +93,8 @@ describe("PrintPageStack", () => {
     expect(wrapper.text()).toContain("Loop 1");
     expect(wrapper.text()).toContain("Voltage margin is low");
     expect(wrapper.text()).toContain("Device Schedule");
-    expect(wrapper.text()).toContain("SBY / ea");
-    expect(wrapper.text()).toContain("ALM / ea");
+    expect(wrapper.text()).toContain("Standby");
+    expect(wrapper.text()).toContain("Alarm");
     expect(wrapper.text()).toContain("Lead");
     expect(wrapper.text()).toContain("Interval");
     expect(wrapper.text()).toContain("Manual Call Point");

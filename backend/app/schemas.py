@@ -36,6 +36,10 @@ class ProductUpdate(ProductBase):
 
 class ProductRead(ProductBase):
     id: str
+    created_at: str = ""
+    updated_at: str = ""
+    deleted_at: str = ""
+    deleted_by: str = ""
 
 
 class DeviceRowBase(BaseModel):

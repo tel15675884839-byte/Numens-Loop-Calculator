@@ -71,3 +71,47 @@
 - PRD updated: not needed
 - Current task state: done
 
+---
+
+## Session 2: Isolate Desktop GUI Archive
+
+**Date**: 2026-05-06
+**Task**: Web-only active tree cleanup
+**Branch**: `codex/web-migration-phase1-original`
+
+### Summary
+
+Moved the retired PySide6 desktop GUI out of the active project and preserved it as a restorable archive.
+
+### Main Changes
+
+- Created `archive/desktop_gui_2026-05-06/` and `archive/desktop_gui_2026-05-06.zip`.
+- Moved desktop entrypoints, PySide6 UI modules, GUI tests, desktop-only assets, app settings, and the legacy standalone HTML UI into the archive.
+- Kept active `loop_calculator/` limited to Qt-free calculation, product database helpers, and pure device state/model modules.
+- Removed active tracked Python caches and `output.log` generated artifacts.
+- Removed `PySide6` from active `requirements.txt`.
+- Rewrote active `AGENTS.md`, `README.md`, and loop-calculator Trellis specs as Web-first guidance.
+- Removed two desktop-window sync tests from active `tests/test_integration_flow.py`; the original full test file remains in the archive.
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| N/A | No commit created in this session |
+
+### Testing
+
+- [OK] `pytest tests/`: 25 passed.
+- [OK] `pytest backend/tests/`: 5 passed.
+- [OK] `cd frontend && npm test`: 16 files and 60 tests passed.
+- [OK] `cd frontend && npm run build`: Vite production build succeeded.
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- Review the archive contents before committing, especially whether the binary zip should be versioned or kept as a local handoff artifact.
+- Keep unrelated pre-existing backend/frontend dirty changes separate from this cleanup if creating a commit.
+

@@ -51,6 +51,10 @@
 
       <!-- Admin Controls -->
       <div class="flex items-center gap-2">
+        <button v-if="isAdmin" class="toolbar-button px-3 py-1.5 text-xs" @click="$emit('openDeletedProducts')">
+          <RotateCcw class="h-4 w-4 text-zinc-500" />
+          <span>Deleted</span>
+        </button>
         <button v-if="isAdmin" class="toolbar-button px-3 py-1.5 text-xs" @click="$emit('adminUnlock')">
           <Lock class="h-4 w-4 text-zinc-500" />
           <span>Lock</span>
@@ -65,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { CirclePlus, Lock } from "lucide-vue-next";
+import { CirclePlus, Lock, RotateCcw } from "lucide-vue-next";
 
 defineProps<{
   search: string;
@@ -78,6 +82,7 @@ defineProps<{
 defineEmits<{
   create: [];
   adminUnlock: [];
+  openDeletedProducts: [];
   "update:search": [value: string];
   "update:category": [value: string];
 }>();

@@ -2,12 +2,13 @@
 
 ## Runtime Surfaces
 
-Loop Calculator has four active surfaces:
+Loop Calculator has three active surfaces plus an archive:
 
-- `loop_calculator/`: PySide6 desktop application plus reusable calculation and product-management modules.
+- `loop_calculator/`: Qt-free calculation, product-data helpers, and pure state models.
 - `backend/`: FastAPI app, SQLite-backed storage, API schemas, and service behavior.
 - `frontend/`: Vue 3, Vite, TypeScript, Tailwind-based web UI.
-- Root data/config files: `products_db.json`, `products_db.defaults.json`, `app_settings.json`, and spreadsheet conversion helpers.
+- Root data files: `products_db.json`, `products_db.defaults.json`, and spreadsheet conversion helpers.
+- `archive/desktop_gui_2026-05-06/`: isolated PySide6 desktop GUI source and restore snapshot.
 
 ## Boundaries
 
@@ -17,10 +18,11 @@ Loop Calculator has four active surfaces:
 - Keep backend business behavior in `backend/app/services.py`.
 - Keep backend persistence rules in `backend/app/storage.py` and related storage modules.
 - Keep Vue API calls under `frontend/src/api/`, state under `frontend/src/stores/`, shared interfaces under `frontend/src/types/`, and calculation helpers under `frontend/src/utils/`.
+- Do not reintroduce PySide6 or desktop GUI modules into the active tree unless the user explicitly asks to restore the archived desktop app.
 
 ## Data Flow
 
-Product data should flow from source files or backend storage through product-manager/service APIs into UI layers. Do not duplicate electrical values or product identity rules inside PySide6 widgets or Vue components.
+Product data should flow from source files or backend storage through service APIs into UI layers. Do not duplicate electrical values or product identity rules inside Vue components.
 
 ## Calculation Rules
 

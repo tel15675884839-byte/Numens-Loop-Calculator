@@ -14,6 +14,8 @@ interface ApiProductRecord {
   built_in: boolean;
   created_at?: string;
   updated_at?: string;
+  deleted_at?: string;
+  deleted_by?: string;
 }
 
 interface ApiCategoryRecord {
@@ -35,7 +37,9 @@ function fromApiProduct(product: ApiProductRecord): ProductRecord {
     type: product.device_type,
     built_in: product.built_in,
     created_at: product.created_at,
-    updated_at: product.updated_at
+    updated_at: product.updated_at,
+    deleted_at: product.deleted_at,
+    deleted_by: product.deleted_by
   };
 }
 
@@ -54,8 +58,13 @@ function toApiProduct(product: ProductDraft) {
   };
 }
 
-export function listProducts() {
-  return requestJson<ApiProductRecord[]>("/api/products").then((products) => products.map(fromApiProduct));
+export function listProducts(options: { deleted?: "active" | "only" | "all" } = {}) {
+  const params = new URLSearchParams();
+  if (options.deleted && options.deleted !== "active") {
+    params.set("deleted", options.deleted);
+  }
+  const query = params.toString();
+  return requestJson<ApiProductRecord[]>(`/api/products${query ? `?${query}` : ""}`).then((products) => products.map(fromApiProduct));
 }
 
 export function createProduct(product: ProductDraft) {
@@ -72,10 +81,17 @@ export function updateProduct(productId: string, product: ProductDraft) {
   }).then(fromApiProduct);
 }
 
-export function deleteProduct(productId: string) {
-  return requestJson<void>(`/api/products/${productId}`, {
+export function deleteProduct(productId: string, force = false) {
+  const forceParam = force ? "?force=true" : "";
+  return requestJson<void>(`/api/products/${productId}${forceParam}`, {
     method: "DELETE"
   });
+}
+
+export function restoreProduct(productId: string) {
+  return requestJson<ApiProductRecord>(`/api/products/${productId}/restore`, {
+    method: "POST"
+  }).then(fromApiProduct);
 }
 
 export function listCategories() {

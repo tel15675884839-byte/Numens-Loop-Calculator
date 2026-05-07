@@ -125,9 +125,10 @@ def create_app(db_path: Path | str | None = None, seed_path: Path | str | None =
     def list_products(
         q: str | None = None,
         category: str | None = None,
+        deleted: str = "active",
         service: BackendService = Depends(get_service),
     ) -> list[dict[str, object]]:
-        return service.store.list_products(q=q, category=category)
+        return service.store.list_products(q=q, category=category, deleted=deleted)
 
     @app.post("/api/products", status_code=status.HTTP_201_CREATED)
     def create_product(product: ProductCreate, service: BackendService = Depends(get_service)) -> dict[str, object]:
@@ -141,11 +142,22 @@ def create_app(db_path: Path | str | None = None, seed_path: Path | str | None =
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 
     @app.delete("/api/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
-    def delete_product(product_id: str, service: BackendService = Depends(get_service)) -> None:
+    def delete_product(
+        product_id: str,
+        force: bool = False,
+        service: BackendService = Depends(get_service),
+    ) -> None:
         try:
-            service.store.delete_product(product_id)
+            service.store.delete_product(product_id, force=force)
         except ProductProtectedError as exc:
             raise HTTPException(status_code=409, detail="Built-in products cannot be deleted") from exc
+        except NotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.post("/api/products/{product_id}/restore")
+    def restore_product(product_id: str, service: BackendService = Depends(get_service)) -> dict[str, object]:
+        try:
+            return service.store.restore_product(product_id)
         except NotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -53,7 +54,9 @@ class SQLiteStore:
                     device_type TEXT NOT NULL DEFAULT '',
                     built_in INTEGER NOT NULL DEFAULT 0,
                     created_at TEXT NOT NULL DEFAULT (datetime('now')),
-                    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+                    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+                    deleted_at TEXT NOT NULL DEFAULT '',
+                    deleted_by TEXT NOT NULL DEFAULT ''
                 );
 
                 CREATE TABLE IF NOT EXISTS projects (
@@ -93,6 +96,8 @@ class SQLiteStore:
             )
             self._ensure_column(conn, "products", "created_at", "TEXT NOT NULL DEFAULT ''")
             self._ensure_column(conn, "products", "updated_at", "TEXT NOT NULL DEFAULT ''")
+            self._ensure_column(conn, "products", "deleted_at", "TEXT NOT NULL DEFAULT ''")
+            self._ensure_column(conn, "products", "deleted_by", "TEXT NOT NULL DEFAULT ''")
             self._ensure_column(conn, "projects", "created_at", "TEXT NOT NULL DEFAULT ''")
             self._ensure_column(conn, "projects", "updated_at", "TEXT NOT NULL DEFAULT ''")
             conn.execute("UPDATE products SET created_at = datetime('now') WHERE created_at = ''")
@@ -173,13 +178,23 @@ class SQLiteStore:
             ).fetchone()
         return dict(row)
 
-    def list_products(self, q: str | None = None, category: str | None = None) -> list[dict[str, Any]]:
+    def list_products(
+        self,
+        q: str | None = None,
+        category: str | None = None,
+        *,
+        deleted: str = "active",
+    ) -> list[dict[str, Any]]:
         query = [
-            "SELECT id, category, factory_name, customer_name, product_name, standby_ma, alarm_ma, led_cost, device_type, built_in, created_at, updated_at",
+            "SELECT id, category, factory_name, customer_name, product_name, standby_ma, alarm_ma, led_cost, device_type, built_in, created_at, updated_at, deleted_at, deleted_by",
             "FROM products",
         ]
         conditions: list[str] = []
         params: list[Any] = []
+        if deleted == "only":
+            conditions.append("deleted_at <> ''")
+        elif deleted != "all":
+            conditions.append("deleted_at = ''")
         if category:
             conditions.append("category = ?")
             params.append(category)
@@ -233,7 +248,7 @@ class SQLiteStore:
                     device_type=:device_type,
                     built_in=:built_in,
                     updated_at=datetime('now')
-                WHERE id=:id
+                WHERE id=:id AND deleted_at=''
                 """,
                 values,
             )
@@ -241,23 +256,51 @@ class SQLiteStore:
                 raise NotFoundError(product_id)
         return self.get_product(product_id)
 
-    def delete_product(self, product_id: str) -> None:
+    def delete_product(self, product_id: str, *, force: bool = False) -> None:
         product = self.get_product(product_id)
-        if product["built_in"]:
+        if product["built_in"] and not force:
             raise ProductProtectedError(product_id)
         with self._connect() as conn:
-            cursor = conn.execute("DELETE FROM products WHERE id = ?", (product_id,))
+            self._write_products_backup(conn, product_id)
+            cursor = conn.execute(
+                """
+                UPDATE products
+                SET deleted_at = datetime('now'),
+                    deleted_by = ?,
+                    updated_at = datetime('now')
+                WHERE id = ? AND deleted_at = ''
+                """,
+                ("admin" if force else "user", product_id),
+            )
             if cursor.rowcount == 0:
                 raise NotFoundError(product_id)
 
-    def get_product(self, product_id: str) -> dict[str, Any]:
+    def restore_product(self, product_id: str) -> dict[str, Any]:
         with self._connect() as conn:
-            row = conn.execute(
+            cursor = conn.execute(
                 """
+                UPDATE products
+                SET deleted_at = '',
+                    deleted_by = '',
+                    updated_at = datetime('now')
+                WHERE id = ? AND deleted_at <> ''
+                """,
+                (product_id,),
+            )
+            if cursor.rowcount == 0:
+                raise NotFoundError(product_id)
+        return self.get_product(product_id)
+
+    def get_product(self, product_id: str, *, include_deleted: bool = False) -> dict[str, Any]:
+        with self._connect() as conn:
+            deleted_clause = "" if include_deleted else "AND deleted_at = ''"
+            row = conn.execute(
+                f"""
                 SELECT id, category, factory_name, customer_name, product_name,
-                       standby_ma, alarm_ma, led_cost, device_type, built_in, created_at, updated_at
+                       standby_ma, alarm_ma, led_cost, device_type, built_in, created_at, updated_at,
+                       deleted_at, deleted_by
                 FROM products
-                WHERE id = ?
+                WHERE id = ? {deleted_clause}
                 """,
                 (product_id,),
             ).fetchone()
@@ -514,6 +557,28 @@ class SQLiteStore:
     def _normalize_product_row(self, row: dict[str, Any]) -> dict[str, Any]:
         row["built_in"] = bool(row["built_in"])
         return row
+
+    def _write_products_backup(self, conn: sqlite3.Connection, product_id: str) -> None:
+        backup_dir = self.db_path.parent / "backups"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        safe_product_id = "".join(char if char.isalnum() or char in ("-", "_") else "_" for char in product_id)
+        timestamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
+        rows = conn.execute(
+            """
+            SELECT id, category, factory_name, customer_name, product_name, standby_ma, alarm_ma,
+                   led_cost, device_type, built_in, created_at, updated_at, deleted_at, deleted_by
+            FROM products
+            ORDER BY category, product_name, id
+            """
+        ).fetchall()
+        payload = {
+            "generated_at": datetime.now().isoformat(timespec="seconds"),
+            "reason": "before product delete",
+            "product_id": product_id,
+            "products": [dict(row) for row in rows],
+        }
+        backup_path = backup_dir / f"products-before-delete-{safe_product_id}-{timestamp}.json"
+        backup_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
     def _normalize_print_profile_payload(self, payload: dict[str, Any]) -> dict[str, str]:
         return {

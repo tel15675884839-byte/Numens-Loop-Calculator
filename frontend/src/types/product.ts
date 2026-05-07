@@ -11,6 +11,8 @@ export interface ProductRecord {
   built_in: boolean;
   created_at?: string;
   updated_at?: string;
+  deleted_at?: string;
+  deleted_by?: string;
 }
 
 export interface ProductFilters {

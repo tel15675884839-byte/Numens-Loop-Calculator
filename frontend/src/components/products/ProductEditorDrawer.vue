@@ -63,7 +63,7 @@
         <div class="flex items-center justify-between gap-2 border-t border-zinc-200 px-4 py-3">
           <button class="toolbar-button" @click="$emit('close')">Cancel</button>
           <div class="flex items-center gap-2">
-            <button class="toolbar-button" :disabled="draft.built_in" @click="$emit('delete')">
+            <button class="toolbar-button" aria-label="Delete product" :disabled="draft.built_in && !isAdmin" @click="$emit('delete')">
               <Trash2 class="h-4 w-4" />
               <span>Delete</span>
             </button>
@@ -91,6 +91,7 @@ const props = defineProps<{
   open: boolean;
   draft: ProductDraft & { id?: string };
   categories: string[];
+  isAdmin: boolean;
 }>();
 
 const emit = defineEmits<{

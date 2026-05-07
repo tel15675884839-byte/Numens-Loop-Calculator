@@ -36,7 +36,9 @@ function sortTemplatesByCreatedAt(items: NamedTemplate[]) {
   });
 }
 
-
+function templatesCacheKey(id: string | null) {
+  return id ? `${TEMPLATES_CACHE_KEY}.${id}` : TEMPLATES_CACHE_KEY;
+}
 
 export const usePrintStore = defineStore("print", () => {
   const projectId = ref<string | null>(null);
@@ -51,7 +53,7 @@ export const usePrintStore = defineStore("print", () => {
 
   function initializeFromProject(project: ProjectRecord | null, issueDate = localDateString()) {
     projectId.value = project?.id ?? null;
-    templates.value = sortTemplatesByCreatedAt(readJson<NamedTemplate[]>(TEMPLATES_CACHE_KEY) ?? []);
+    templates.value = sortTemplatesByCreatedAt(readJson<NamedTemplate[]>(templatesCacheKey(projectId.value)) ?? []);
     calculationReady.value = projectCalculationsAreReady(project);
     savedProfile.value = project?.print_profile
       ? cloneProfile(project.print_profile)
@@ -113,7 +115,7 @@ export const usePrintStore = defineStore("print", () => {
     templates.value = sortTemplatesByCreatedAt([...filtered, newTemplate]);
     selectedTemplateName.value = newTemplate.template_name;
     editingProfile.value = cloneProfile(newTemplate);
-    writeJson(TEMPLATES_CACHE_KEY, templates.value);
+    writeJson(templatesCacheKey(projectId.value), templates.value);
   }
 
   function selectTemplate(name: string) {
@@ -146,7 +148,7 @@ export const usePrintStore = defineStore("print", () => {
     templates.value = sortTemplatesByCreatedAt(templates.value.map(t =>
       t.template_name === selectedTemplateName.value ? updatedTemplate : t
     ));
-    writeJson(TEMPLATES_CACHE_KEY, templates.value);
+    writeJson(templatesCacheKey(projectId.value), templates.value);
   }
 
   function clearSelectedTemplateDraft() {
@@ -170,7 +172,7 @@ export const usePrintStore = defineStore("print", () => {
       return t;
     });
     selectedTemplateName.value = freshName;
-    writeJson(TEMPLATES_CACHE_KEY, templates.value);
+    writeJson(templatesCacheKey(projectId.value), templates.value);
   }
 
   function deselectTemplate() {
@@ -193,7 +195,7 @@ export const usePrintStore = defineStore("print", () => {
     if (selectedTemplateName.value === name) {
       selectedTemplateName.value = null;
     }
-    writeJson(TEMPLATES_CACHE_KEY, templates.value);
+    writeJson(templatesCacheKey(projectId.value), templates.value);
   }
 
   function printNow() {

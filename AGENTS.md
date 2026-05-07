@@ -2,19 +2,20 @@
 
 ## Project Overview
 
-Loop Calculator is an industrial loop load and voltage-drop calculator. The repository currently contains:
+Loop Calculator is now maintained as a Web-first industrial loop load and voltage-drop calculator. The active repository contains:
 
-- `loop_calculator/`: Python/PySide6 desktop application and core calculation logic.
-- `backend/`: FastAPI backend backed by SQLite and seeded from `products_db.json`.
 - `frontend/`: Vue 3 + Vite + TypeScript frontend.
-- `tests/`: Python tests for calculation, database, integration, and GUI smoke coverage.
-- Root data files such as `products_db.json`, `products_db.defaults.json`, and `app_settings.json`.
+- `backend/`: FastAPI backend backed by SQLite and seeded from `products_db.json`.
+- `loop_calculator/`: Qt-free Python core logic kept for calculation, product data helpers, and legacy-compatible tests.
+- `tests/`: Python tests for calculation, database, integration, and pure state-model coverage.
+- Root data files such as `products_db.json` and `products_db.defaults.json`.
+- Archived desktop GUI artifacts under `archive/desktop_gui_2026-05-06/` and `archive/desktop_gui_2026-05-06.zip`.
 
 Use this file as the primary agent guidance. Keep agent-facing instructions here rather than maintaining parallel `AGENT.md` or tool-specific files.
 
 ## Setup Commands
 
-- Install Python dependencies from the repository root:
+- Install Python backend dependencies from the repository root:
   ```bash
   pip install -r requirements.txt
   ```
@@ -26,10 +27,6 @@ Use this file as the primary agent guidance. Keep agent-facing instructions here
 
 ## Run Commands
 
-- Run the PySide6 desktop app from the repository root:
-  ```bash
-  python LoopCalculatorApp.py
-  ```
 - Run the FastAPI backend:
   ```bash
   uvicorn backend.app.main:app --reload
@@ -47,7 +44,7 @@ Use this file as the primary agent guidance. Keep agent-facing instructions here
 
 ## Test Commands
 
-- Run all root Python tests:
+- Run all active root Python tests:
   ```bash
   pytest tests/
   ```
@@ -63,10 +60,6 @@ Use this file as the primary agent guidance. Keep agent-facing instructions here
   ```bash
   pytest backend/tests/
   ```
-- Run GUI smoke checks after changing PySide6 UI code:
-  ```bash
-  python tests/gui_smoke_runner.py
-  ```
 - Run frontend tests after changing `frontend/src/`:
   ```bash
   cd frontend
@@ -75,12 +68,13 @@ Use this file as the primary agent guidance. Keep agent-facing instructions here
 
 ## Architecture Guidelines
 
-- Keep `loop_calculator/calculator.py` Qt-free. Do not import PySide6, Qt widgets, or GUI-specific code into this module.
-- Keep electrical calculation logic in pure Python modules so it remains unit-testable.
+- Keep `loop_calculator/calculator.py` Qt-free. Do not import PySide6, Qt widgets, or GUI-specific code into active core modules.
+- Keep electrical calculation logic in pure Python modules so it remains unit-testable and reusable by the backend.
 - Treat `products_db.json` and `products_db.defaults.json` as data sources. Do not hard-code product electrical values in UI components.
-- Use `loop_calculator/product_manager.py` and backend storage/service APIs for product data changes instead of duplicating data access rules.
+- Use backend storage/service APIs for Web product data changes instead of duplicating data access rules in Vue components.
 - Keep FastAPI request/response contracts in `backend/app/schemas.py`; put backend business behavior in `backend/app/services.py`.
 - In the Vue app, keep API calls under `frontend/src/api/`, shared state under `frontend/src/stores/`, shared types under `frontend/src/types/`, and calculation helpers under `frontend/src/utils/`.
+- Do not reintroduce desktop GUI code into the active tree unless the user explicitly asks to restore the archived desktop app.
 
 ## Calculation Rules
 
@@ -94,10 +88,10 @@ Use this file as the primary agent guidance. Keep agent-facing instructions here
 
 ## UI and Localization
 
-- For PySide6 UI text, use the translation mechanism in `loop_calculator/i18n.py` where applicable.
-- Keep PySide6 styling centralized in `loop_calculator/styles.py` instead of adding one-off widget styles.
 - For the Vue frontend, follow the existing component structure and Tailwind-based styling in `frontend/src/styles.css`.
+- Keep shared UI behavior inside existing components, stores, and utilities before introducing new dependencies.
 - Use existing icons and component patterns before introducing new UI dependencies.
+- Keep user-facing Web text consistent with the current product terminology and data model.
 
 ## Data Maintenance
 

@@ -1,6 +1,6 @@
 import { computed, ref } from "vue";
 import { defineStore } from "pinia";
-import { createCategory, createProduct, deleteProduct, listCategories, listProducts, updateProduct } from "../api/products";
+import { createCategory, createProduct, deleteProduct, listCategories, listProducts, restoreProduct, updateProduct } from "../api/products";
 import { defaultProducts } from "../data/defaultProducts";
 import type { ProductDraft, ProductFilters, ProductRecord } from "../types/product";
 import { readJson, writeJson } from "../utils/storage";
@@ -24,8 +24,16 @@ function cloneProducts(products: ProductRecord[]) {
   return products.map((product) => ({ ...product }));
 }
 
+function isRejectedDelete(cause: unknown) {
+  return typeof cause === "object"
+    && cause !== null
+    && "status" in cause
+    && ((cause as { status?: unknown }).status === 403 || (cause as { status?: unknown }).status === 409);
+}
+
 export const useProductStore = defineStore("products", () => {
   const products = ref<ProductRecord[]>(cloneProducts(defaultProducts));
+  const deletedProducts = ref<ProductRecord[]>([]);
   const categories = ref<string[]>([]);
   const loading = ref(false);
   const error = ref<string | null>(null);
@@ -202,11 +210,19 @@ export const useProductStore = defineStore("products", () => {
       return { removed: false, message: "Built-in products are protected." };
     }
     try {
-      await deleteProduct(product.id);
-    } catch {
+      await deleteProduct(product.id, force);
+    } catch (cause) {
+      if (isRejectedDelete(cause)) {
+        statusMessage.value = "Delete rejected";
+        return { removed: false, message: "Backend rejected product deletion." };
+      }
       // Fall back to local deletion when the API is unavailable.
     }
     products.value = products.value.filter((item) => item.id !== product.id);
+    deletedProducts.value = [
+      { ...product, deleted_at: product.deleted_at || new Date().toISOString() },
+      ...deletedProducts.value.filter((item) => item.id !== product.id)
+    ];
     categories.value = categoriesFromProducts(products.value);
     writeJson(PRODUCTS_CACHE_KEY, products.value);
     writeJson(CATEGORIES_CACHE_KEY, categories.value);
@@ -215,6 +231,25 @@ export const useProductStore = defineStore("products", () => {
     }
     statusMessage.value = "Deleted";
     return { removed: true, message: "Product removed." };
+  }
+
+  async function loadDeletedProducts() {
+    deletedProducts.value = await listProducts({ deleted: "only" });
+    statusMessage.value = "Deleted products loaded";
+    return deletedProducts.value;
+  }
+
+  async function restoreProductRecord(productId: string) {
+    const restored = await restoreProduct(productId);
+    products.value = products.value.some((product) => product.id === restored.id)
+      ? products.value.map((product) => (product.id === restored.id ? restored : product))
+      : [...products.value, restored];
+    deletedProducts.value = deletedProducts.value.filter((product) => product.id !== restored.id);
+    categories.value = categoriesFromProducts(products.value);
+    writeJson(PRODUCTS_CACHE_KEY, products.value);
+    writeJson(CATEGORIES_CACHE_KEY, categories.value);
+    statusMessage.value = "Restored";
+    return { restored: true, message: "Product restored." };
   }
 
   async function addCategory(name: string) {
@@ -242,6 +277,7 @@ export const useProductStore = defineStore("products", () => {
 
   return {
     products,
+    deletedProducts,
     categories,
     loading,
     error,
@@ -259,6 +295,8 @@ export const useProductStore = defineStore("products", () => {
     beginNewProduct,
     saveProduct,
     removeProduct,
+    loadDeletedProducts,
+    restoreProductRecord,
     addCategory,
     draftFromProduct,
     getProduct,

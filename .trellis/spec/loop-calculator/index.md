@@ -1,6 +1,6 @@
 # Loop Calculator Spec Index
 
-> Load these specs before changing Loop Calculator desktop, backend, frontend, product-data, or calculation behavior.
+> Load these specs before changing Loop Calculator backend, frontend, product-data, or calculation behavior.
 
 ## Project Specs
 
@@ -14,7 +14,7 @@ Always read root `AGENTS.md` first. It is the canonical agent entry point for se
 
 ## Pre-Development Checklist
 
-- [ ] Identify whether the task touches desktop UI, pure calculation logic, backend API/storage, frontend UI/state, or data import.
+- [ ] Identify whether the task touches pure calculation logic, backend API/storage, frontend UI/state, or data import.
 - [ ] Read the matching spec file above and the relevant source module before editing.
 - [ ] If calculation behavior changes, plan a focused test update before implementation.
 - [ ] If data import/merge behavior changes, read `数据库合并去重机制.md`.
