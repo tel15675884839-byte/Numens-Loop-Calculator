@@ -70,4 +70,67 @@ describe("CalculationInspector", () => {
     expect(wrapper.text()).toContain("System Parameters");
     expect(wrapper.findAll('p > span.inline-flex').length).toBe(0);
   });
+
+  it("shows the selected loop cable parameters without recommended cable guidance", () => {
+    const wrapper = mount(CalculationInspector, {
+      props: {
+        loop: {
+          ...loop,
+          cable_size: "2.5",
+          cable_resistance_ohm_per_km: 7.41,
+          aux_current_ma: 25
+        },
+        project,
+        result: {
+          ...result,
+          recommended_cable_size: "1.0",
+          recommended_cable_unit: "mm²"
+        },
+        busy: false
+      }
+    });
+
+    expect(wrapper.text()).toContain("Cable Size");
+    expect(wrapper.text()).toContain("2.5");
+    expect(wrapper.text()).toContain("Cable Res.");
+    expect(wrapper.text()).toContain("7.41");
+    expect(wrapper.text()).toContain("AUX Current");
+    expect(wrapper.text()).toContain("25");
+    expect(wrapper.text()).not.toContain("Recommended Cable");
+  });
+
+  it("separates alarm load from standby load", () => {
+    const wrapper = mount(CalculationInspector, {
+      props: {
+        loop,
+        project,
+        result: {
+          ...result,
+          total_current_ma: 170.2,
+          standby_current_ma: 120
+        },
+        busy: false
+      }
+    });
+
+    expect(wrapper.text()).toContain("Alarm Load");
+    expect(wrapper.text()).toContain("170.2");
+    expect(wrapper.text()).toContain("Standby Load");
+    expect(wrapper.text()).toContain("120.0");
+    expect(wrapper.text()).not.toContain("Current Load");
+  });
+
+  it("orders secondary metrics from load and route to voltage result", () => {
+    const wrapper = mount(CalculationInspector, {
+      props: {
+        loop,
+        project,
+        result,
+        busy: false
+      }
+    });
+    const metricLabels = wrapper.findAll(".grid.grid-cols-2 p:first-child").map((item) => item.text());
+
+    expect(metricLabels).toEqual(["Standby Load", "Distance", "Drop", "End voltage"]);
+  });
 });

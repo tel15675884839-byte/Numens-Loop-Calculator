@@ -11,6 +11,14 @@
         </RouterView>
       </main>
     </div>
+    <a
+      class="fixed bottom-3 right-4 z-30 rounded-full border border-zinc-200 bg-white/90 px-3 py-1.5 text-xs font-semibold text-zinc-500 shadow-sm backdrop-blur transition hover:border-red-200 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 print:hidden"
+      href="https://www.numens.com"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      www.numens.com
+    </a>
     <DialogHost />
     <OnboardingTour />
   </div>

@@ -21,6 +21,14 @@ describe("responsive app layout", () => {
     expect(topBar).toContain("min-h-16");
   });
 
+  it("exposes a fixed Numens website link in the app shell", () => {
+    expect(appShell).toContain('href="https://www.numens.com"');
+    expect(appShell).toContain('target="_blank"');
+    expect(appShell).toContain('rel="noopener noreferrer"');
+    expect(appShell).toContain("fixed bottom-3 right-4");
+    expect(appShell).toContain("www.numens.com");
+  });
+
   it("wires the first-use tutorial into the main workspace shell", () => {
     expect(appShell).toContain("<OnboardingTour />");
     expect(appShell).toContain("onboarding.initialize");

@@ -40,7 +40,7 @@
 
         <div class="bg-white p-3 rounded-none border border-zinc-200 shadow-sm flex justify-between items-center">
           <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">Current Load</p>
+            <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">Alarm Load</p>
             <p class="text-xl font-extrabold mt-1 text-zinc-800">
               {{ result ? formatNumber(result.total_current_ma, 1) : "-" }}
               <span class="text-xs font-normal text-zinc-400">mA</span>
@@ -129,6 +129,24 @@
           <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Min Voltage</span>
           <span class="text-base font-bold text-zinc-800 tabular-nums text-right mr-2">{{ loop?.min_voltage_v ?? 17 }}</span>
           <span class="text-xs font-normal text-zinc-400">V</span>
+
+          <div class="col-span-3 border-t border-zinc-100/60 my-0.5"></div>
+
+          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Cable Size</span>
+          <span class="text-base font-bold text-zinc-800 tabular-nums text-right mr-2">{{ selectedCableSize }}</span>
+          <span class="text-xs font-normal text-zinc-400">mm²</span>
+
+          <div class="col-span-3 border-t border-zinc-100/60 my-0.5"></div>
+
+          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Cable Res.</span>
+          <span class="text-base font-bold text-zinc-800 tabular-nums text-right mr-2">{{ formatNumber(loop?.cable_resistance_ohm_per_km ?? 12.1, 2) }}</span>
+          <span class="text-xs font-normal text-zinc-400">Ω/km</span>
+
+          <div class="col-span-3 border-t border-zinc-100/60 my-0.5"></div>
+
+          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">AUX Current</span>
+          <span class="text-base font-bold text-zinc-800 tabular-nums text-right mr-2">{{ formatNumber(loop?.aux_current_ma ?? 0, 1) }}</span>
+          <span class="text-xs font-normal text-zinc-400">mA</span>
         </div>
       </div>
 
@@ -183,11 +201,16 @@ const statusToneClass = computed(() => {
 const metrics = computed(() => [
   { label: "Addresses", value: props.result ? `${props.result.total_addresses}/${props.result.addr_limit}` : "-", unit: "" },
   { label: "Current", value: props.result ? formatNumber(props.result.total_current_ma, 1) : "-", unit: "mA" },
-  { label: "End voltage", value: props.result ? formatNumber(props.result.end_voltage_v, 2) : "-", unit: "V" },
+  { label: "Standby Load", value: props.result ? formatNumber(props.result.standby_current_ma, 1) : "-", unit: "mA" },
   { label: "Distance", value: props.result ? formatNumber(props.result.total_distance_m, 1) : "-", unit: "m" },
-  { label: "Cable", value: props.result ? props.result.recommended_cable_size : "-", unit: props.result?.recommended_cable_unit ?? "" },
-  { label: "Drop", value: props.result ? formatNumber(props.result.voltage_drop_v, 2) : "-", unit: "V" }
+  { label: "Drop", value: props.result ? formatNumber(props.result.voltage_drop_v, 2) : "-", unit: "V" },
+  { label: "End voltage", value: props.result ? formatNumber(props.result.end_voltage_v, 2) : "-", unit: "V" }
 ]);
+
+const selectedCableSize = computed(() => {
+  const value = props.loop?.cable_size?.trim();
+  return value || "Custom";
+});
 
 const addressPercent = computed(() => {
   if (!props.result) return 0;
