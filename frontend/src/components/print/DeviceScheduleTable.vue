@@ -20,7 +20,7 @@
           <td>{{ row.sort_order }}</td>
           <td>{{ row.category }}</td>
           <td>
-            <div class="font-semibold text-zinc-900">{{ row.product_name || row.display_name || "Manual row" }}</div>
+            <div class="font-semibold text-zinc-900">{{ row.product_name || row.display_name || "Unassigned device" }}</div>
             <div class="text-[10px] text-zinc-500">{{ row.customer_name || row.factory_name || row.device_type }}</div>
           </td>
           <td class="text-right tabular-nums">{{ row.qty }}</td>

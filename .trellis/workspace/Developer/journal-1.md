@@ -207,3 +207,278 @@ Added a lightweight Service Worker for offline static frontend access and change
 
 - If desired, add a small UI indicator later for “offline cache active” or “new version available”.
 
+---
+
+## Session 5: First-Use Guided Tour
+
+**Date**: 2026-05-08
+**Task**: Web first-use onboarding tutorial
+**Branch**: `codex/web-migration-phase1-original`
+
+### Summary
+
+Added a frontend-only guided spotlight tour that auto-opens for first-time users and can be replayed from the top toolbar.
+
+### Main Changes
+
+- Added `docs/superpowers/plans/2026-05-08-first-use-guided-tour.md` to capture the implementation plan.
+- Added `frontend/src/stores/onboardingStore.ts` with six fixed tutorial steps and localStorage completion persistence.
+- Added `frontend/src/components/layout/OnboardingTour.vue` for the global overlay, highlighted target area, tooltip, and navigation controls.
+- Added a `Help` button in `TopBar.vue` to replay the tutorial.
+- Added stable `data-tour` markers to project actions, project list, loop tabs, system parameters, device table, and calculation results.
+- Added focused Vitest coverage for store behavior, tour component structure, and layout wiring.
+
+### Verification
+
+- [OK] Command: `cd frontend && npm test -- onboardingStore.test.ts`
+      Result: red/green cycle completed; 5 tests passed.
+- [OK] Command: `cd frontend && npm test -- OnboardingTour.test.ts`
+      Result: red/green cycle completed; 3 tests passed.
+- [OK] Command: `cd frontend && npm test -- ResponsiveLayout.test.ts`
+      Result: red/green cycle completed; 3 tests passed.
+- [OK] Command: `cd frontend && npm test`
+      Result: 19 files and 79 tests passed.
+- [OK] Command: `cd frontend && npm run build`
+      Result: Vite production build succeeded.
+
+### Pitfalls
+
+- The brainstorming visual companion server stopped because it treated the temporary PowerShell process as the owner process; static HTML preview was used instead.
+- `.superpowers/` contains local brainstorming artifacts and should remain uncommitted unless explicitly requested.
+
+### Next Plan
+
+- If desired, run a browser QA pass against the live dev server to tune exact spotlight placement on desktop and mobile.
+
+---
+
+## Session 6: Guided Tour Positioning Fixes
+
+**Date**: 2026-05-08
+**Task**: Fix guided tour resize/positioning and add print guidance
+**Branch**: `codex/web-migration-phase1-original`
+
+### Summary
+
+Fixed guided tour geometry so it updates on resize and scroll, stopped the overlay from blocking page scroll interactions, and added print preview guidance steps.
+
+### Main Changes
+
+- Changed `OnboardingTour.vue` from computed DOM measurement to a reactive measured rect updated via `requestAnimationFrame`.
+- Added resize plus window/document scroll listeners so the blue spotlight and tooltip follow layout and scroll changes.
+- Made the full-screen tour layer pointer-transparent while keeping the tooltip controls clickable, so scrollbars and resizing are not blocked during guidance.
+- Added `print-settings` and `print-preview` onboarding steps.
+- Added print page `data-tour` markers in `PrintPreviewView.vue`.
+- Added regression tests for reactive geometry updates, non-blocking overlay behavior, and print tour targets.
+
+### Verification
+
+- [OK] Command: `cd frontend && npm test -- OnboardingTour.test.ts`
+      Result: 5 tests passed after red/green regression cycle.
+- [OK] Command: `cd frontend && npm test -- onboardingStore.test.ts`
+      Result: 6 tests passed after red/green regression cycle.
+- [OK] Command: `cd frontend && npm test -- ResponsiveLayout.test.ts`
+      Result: 3 tests passed after red/green regression cycle.
+- [OK] Command: `cd frontend && npm test`
+      Result: 19 files and 82 tests passed.
+- [OK] Command: `cd frontend && npm run build`
+      Result: Vite production build succeeded.
+
+### Pitfalls
+
+- Vue computed properties do not re-run just because `getBoundingClientRect()` would now return different values; resize/scroll must update reactive state explicitly.
+- A full-screen onboarding overlay should not own pointer events unless it intentionally blocks the underlying UI.
+
+### Next Plan
+
+- Browser-test the tour on narrow/mobile widths to validate tooltip placement around left/right edges.
+
+---
+
+## Session 7: Scoped Workspace and Print Tours
+
+**Date**: 2026-05-08
+**Task**: Split guided onboarding by Workspace and Print pages
+**Branch**: `codex/web-migration-phase1-original`
+
+### Summary
+
+Split onboarding into separate Workspace and Print tours so first entering Print shows print-specific guidance and the Help button replays the current page's tour.
+
+### Main Changes
+
+- Added scoped onboarding state in `onboardingStore.ts` with separate `workspace` and `print` step sets.
+- Changed persistence keys to keep Workspace and Print first-run completion independent.
+- Updated `AppShell.vue` to initialize onboarding based on the current route and reinitialize when navigating between Workspace and Print.
+- Updated `TopBar.vue` so Help calls `startReplay(currentTourScope)` and targets `project-actions` or `print-actions` depending on the current page.
+- Replaced the old mixed Print steps with a dedicated 5-step Print tour covering print actions, saved templates, template fields, template actions, and print preview.
+- Added `data-tour` markers in `PrintProfilePanel.vue` and kept `print-preview` in `PrintPreviewView.vue`.
+
+### Verification
+
+- [OK] Command: `cd frontend && npm test -- onboardingStore.test.ts`
+      Result: 9 tests passed after red/green scope split.
+- [OK] Command: `cd frontend && npm test -- ResponsiveLayout.test.ts`
+      Result: 3 tests passed after updating route wiring assertions.
+- [OK] Command: `cd frontend && npm test`
+      Result: 19 files and 85 tests passed.
+- [OK] Command: `cd frontend && npm run build`
+      Result: Vite production build succeeded.
+
+### Pitfalls
+
+- A single global tour made Print Help replay Workspace guidance; tour scope needs to follow the current route.
+- Print template markers belong inside `PrintProfilePanel.vue`, not `PrintPreviewView.vue`, because the template UI is encapsulated in that component.
+
+### Next Plan
+
+- Browser-test first-run behavior by clearing `loop-calculator.onboarding.workspace.v1` and `loop-calculator.onboarding.print.v1` in localStorage.
+
+---
+
+## Session 8: Workspace Tour Target Precision
+
+**Date**: 2026-05-08
+**Task**: Fix Workspace tour step 1 and step 2 highlight offsets
+**Branch**: `codex/web-migration-phase1-original`
+
+### Summary
+
+Made the first Workspace tour targets more precise by moving `data-tour` markers from broad layout containers onto the specific UI regions users see.
+
+### Main Changes
+
+- Changed Workspace step 1 from the broad toolbar action group to `project-settings`, targeting the project title/name area.
+- Added a separate `project-actions` step for New/Save/Export/Import controls.
+- Moved the project list marker in `LeftNav.vue` from the whole scrollable sidebar area to a tighter wrapper around the Projects title and project rows.
+- Updated focused tests to prevent future regressions where tour markers are attached to oversized containers.
+
+### Verification
+
+- [OK] Command: `cd frontend && npm test -- ResponsiveLayout.test.ts onboardingStore.test.ts`
+      Result: 2 files and 13 tests passed after red/green cycle.
+- [OK] Command: `cd frontend && npm test`
+      Result: 19 files and 86 tests passed.
+- [OK] Command: `cd frontend && npm run build`
+      Result: Vite production build succeeded.
+
+### Pitfalls
+
+- The overlay measurement was working, but the target elements were too broad. Fixing geometry alone cannot make an oversized marker look precise.
+- Dynamic `:data-tour` bindings are useful for route-scoped Help, but precise tour steps should prefer static markers on exact visible regions.
+
+### Next Plan
+
+- If more offset issues appear, inspect the target element size first before changing overlay math.
+
+---
+
+## Session 9: Empty Default Workspace and Git Ignore Cleanup
+
+**Date**: 2026-05-08
+**Task**: Prevent local artifacts from upload and remove default sample devices
+**Branch**: `codex/web-migration-phase1-original`
+
+### Summary
+
+Changed fresh Web deployments to start with an empty loop instead of two sample devices and added local-only artifacts to `.gitignore`.
+
+### Main Changes
+
+- Updated `workspaceStore.ts` so `getLocalProjects()` returns an empty list when localStorage has no workspace cache, instead of falling back to `sampleWorkspaceProjects`.
+- Added a regression test that verifies a first-run workspace with no backend/local project has an empty `device_rows` list.
+- Added `.superpowers/`, `build.bat`, `loop_calculator.spec`, `requirements-build.txt`, and `run_server.py` to `.gitignore`.
+- Confirmed those local artifacts show as ignored in `git status --short --ignored`.
+
+### Verification
+
+- [OK] Command: `cd frontend && npm test -- workspaceStore.test.ts`
+      Result: 16 tests passed after red/green fallback change.
+- [OK] Command: `cd frontend && npm test`
+      Result: 19 files and 87 tests passed.
+- [OK] Command: `cd frontend && npm run build`
+      Result: Vite production build succeeded.
+
+### Pitfalls
+
+- Vercel/fresh environments showed two default devices because frontend fallback data used `sampleWorkspaceProjects`, which builds a sample project from default products.
+- `.superpowers/` is generated by visual brainstorming and should not be committed.
+
+### Next Plan
+
+- If `frontend/src/data/sampleWorkspace.ts` becomes unused everywhere after this change, consider removing it in a cleanup pass.
+
+---
+
+## Session 10: Remove Manual Row Option
+
+**Date**: 2026-05-08
+**Task**: Remove manual device row option and clarify Vercel catalog behavior
+**Branch**: `codex/web-migration-phase1-original`
+
+### Summary
+
+Removed the `Manual row` option from the workspace device selector and verified frontend-only catalog behavior for Vercel deployments.
+
+### Main Changes
+
+- Removed the empty-value `Manual row` option from `DeviceTable.vue` device selectors.
+- Changed print schedule fallback text from `Manual row` to `Unassigned device` for any legacy rows without product/display names.
+- Added a DeviceTable regression assertion that `Manual row` is not rendered and no empty product option exists.
+
+### Verification
+
+- [OK] Command: `cd frontend && npm test -- DeviceTable.test.ts`
+      Result: 2 tests passed after red/green removal.
+- [OK] Command: frontend source grep for `Manual row`
+      Result: only the negative regression test still references the string.
+- [OK] Command: `cd frontend && npm test`
+      Result: 19 files and 87 tests passed.
+- [OK] Command: `cd frontend && npm run build`
+      Result: Vite production build succeeded.
+
+### Pitfalls
+
+- In Vercel without a backend, Device Catalog changes are frontend bundle changes plus localStorage cache behavior; existing users may keep cached products until cache invalidation/merge logic updates them.
+
+### Next Plan
+
+- Consider adding frontend seed-version synchronization so product catalog changes deployed to Vercel update existing users without requiring manual localStorage clearing.
+
+---
+
+## Session 11: Static Catalog Cache Refresh
+
+**Date**: 2026-05-08
+**Task**: Make Vercel/static frontend Device Catalog updates reach existing offline users
+**Branch**: `codex/web-migration-phase1-original`
+
+### Summary
+
+Added frontend product-cache metadata so static bundled catalog updates can refresh cached built-in products while preserving user-created custom products.
+
+### Main Changes
+
+- Added `loop-calculator.products.meta` cache metadata with source and bundled catalog signature.
+- Offline bootstrap now refreshes cached seed/bundled products when the deployed `defaultProducts` signature changes.
+- Custom `built_in: false` products are preserved during bundled catalog refresh.
+- API-sourced product caches are not overwritten by bundled frontend data when the backend is temporarily offline.
+- Added product-store regression tests for both static refresh and API-cache preservation.
+
+### Verification
+
+- [OK] Command: `cd frontend && npm test -- productStore.test.ts`
+      Result: 9 product-store tests passed after red/green coverage.
+- [OK] Command: `cd frontend && npm test`
+      Result: 19 files and 89 tests passed.
+- [OK] Command: `cd frontend && npm run build`
+      Result: Vite production build succeeded.
+
+### Pitfalls
+
+- Previous offline logic could never distinguish bundled/static cache from API-sourced cache. Metadata is required so static Vercel deployments update existing users without corrupting backend-managed catalogs.
+
+### Next Plan
+
+- If backend product APIs later expose their own catalog version, keep that version separate from the frontend bundled signature.
+

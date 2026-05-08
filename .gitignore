@@ -12,3 +12,12 @@ backend/data/
 
 frontend/node_modules/
 frontend/dist/
+
+# Local agent/design artifacts
+.superpowers/
+
+# Local desktop packaging/runtime helpers
+build.bat
+loop_calculator.spec
+requirements-build.txt
+run_server.py

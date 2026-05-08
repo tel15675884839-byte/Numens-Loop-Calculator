@@ -12,21 +12,33 @@
       </main>
     </div>
     <DialogHost />
+    <OnboardingTour />
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
-import { RouterView } from "vue-router";
+import { computed, onMounted, watch } from "vue";
+import { RouterView, useRoute } from "vue-router";
+import { useOnboardingStore } from "../../stores/onboardingStore";
 import { useThemeStore } from "../../stores/themeStore";
 import DialogHost from "./DialogHost.vue";
 import LeftNav from "./LeftNav.vue";
+import OnboardingTour from "./OnboardingTour.vue";
 import TopBar from "./TopBar.vue";
 
 const theme = useThemeStore();
+const onboarding = useOnboardingStore();
+const route = useRoute();
+
+const currentTourScope = computed(() => route.name === "print" ? "print" : "workspace");
 
 onMounted(() => {
   theme.initializeTheme();
+  onboarding.initialize(currentTourScope.value);
+});
+
+watch(currentTourScope, (scope) => {
+  onboarding.initialize(scope);
 });
 </script>
 

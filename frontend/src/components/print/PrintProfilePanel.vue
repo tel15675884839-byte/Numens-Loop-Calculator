@@ -3,7 +3,7 @@
     <div class="panel-title border-b border-zinc-100 pb-2">Report Profile</div>
     
     <!-- Template Selection -->
-    <div class="px-4 pt-3 pb-1">
+    <div class="px-4 pt-3 pb-1" data-tour="print-templates">
       <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Saved Templates</div>
       <div v-if="print.templates.length > 0" class="grid gap-2">
         <button 
@@ -34,7 +34,7 @@
       </div>
     </div>
 
-    <div class="flex-1 overflow-hidden relative">
+    <div class="flex-1 overflow-hidden relative" data-tour="print-template-editor">
       <Transition name="fade-slide">
         <div v-if="print.selectedTemplateName" :key="print.selectedTemplateName" class="absolute inset-0 p-4 space-y-3 overflow-auto">
           <label v-for="field in fields" :key="field.key" class="block">
@@ -60,7 +60,7 @@
       </Transition>
     </div>
 
-    <div class="border-t border-zinc-200 bg-zinc-50 p-4 space-y-2">
+    <div class="border-t border-zinc-200 bg-zinc-50 p-4 space-y-2" data-tour="print-template-actions">
       <!-- Actions when a template is selected -->
       <template v-if="print.selectedTemplateName">
         <button 

@@ -3,7 +3,6 @@ import { defineStore } from "pinia";
 import { calculateLoop } from "../api/calculations";
 import { createProject, deleteProject, getProject, listProjects, updateProject } from "../api/projects";
 import { defaultProducts } from "../data/defaultProducts";
-import { sampleWorkspaceProjects } from "../data/sampleWorkspace";
 import { useDialogStore } from "./dialogStore";
 import type { CalculationLoopRequest, CalculationLoopResponse } from "../types/calculation";
 import type { LoopCalculationSnapshot, LoopDeviceRow, ProjectListItem, ProjectLoop, ProjectPrintProfile, ProjectRecord } from "../types/project";
@@ -163,7 +162,7 @@ function createDeviceRowFromProduct(product: ProductRecord, sortOrder: number): 
 }
 
 function getLocalProjects() {
-  return readJson<ProjectRecord[]>(WORKSPACE_CACHE_KEY) ?? sampleWorkspaceProjects;
+  return readJson<ProjectRecord[]>(WORKSPACE_CACHE_KEY) ?? [];
 }
 
 function isMissingBackendProject(cause: unknown): boolean {

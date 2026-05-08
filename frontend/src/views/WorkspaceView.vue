@@ -2,43 +2,51 @@
   <div class="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_22rem]">
     <section class="min-h-0 overflow-visible px-4 py-4 lg:overflow-hidden">
       <div class="flex h-full min-h-0 flex-col gap-4">
-        <LoopTabs
-          v-if="workspace.activeProject"
-          :loops="workspace.activeProject.loops"
-          :active-loop-id="workspace.activeLoopId"
-          :can-add="workspace.canAddLoop"
-          @select="workspace.setActiveLoop"
-          @add="workspace.addLoop"
-        />
-        <SystemParameters
-          v-if="workspace.activeLoop"
-          :loop="workspace.activeLoop"
-          :categories="deviceCategories"
-          @update="workspace.updateSystemParameters(workspace.activeLoopId, $event)"
-          @add-category="onAddCategory"
-        />
-        <DeviceTable
-          v-if="workspace.activeLoop"
-          class="min-h-[18rem] flex-1"
-          :rows="workspace.activeLoop.device_rows"
-          :products="productStore.products"
-          :categories="deviceCategories"
-          @add-category="onAddCategory"
-          @remove-row="workspace.removeDeviceRow(workspace.activeLoopId, $event)"
-          @update-row="onUpdateRow"
-          @select-product="onSelectProduct"
-        />
+        <div data-tour="loop-tabs">
+          <LoopTabs
+            v-if="workspace.activeProject"
+            :loops="workspace.activeProject.loops"
+            :active-loop-id="workspace.activeLoopId"
+            :can-add="workspace.canAddLoop"
+            @select="workspace.setActiveLoop"
+            @add="workspace.addLoop"
+          />
+        </div>
+        <div data-tour="system-parameters">
+          <SystemParameters
+            v-if="workspace.activeLoop"
+            :loop="workspace.activeLoop"
+            :categories="deviceCategories"
+            @update="workspace.updateSystemParameters(workspace.activeLoopId, $event)"
+            @add-category="onAddCategory"
+          />
+        </div>
+        <div class="min-h-[18rem] flex-1" data-tour="device-table">
+          <DeviceTable
+            v-if="workspace.activeLoop"
+            class="h-full"
+            :rows="workspace.activeLoop.device_rows"
+            :products="productStore.products"
+            :categories="deviceCategories"
+            @add-category="onAddCategory"
+            @remove-row="workspace.removeDeviceRow(workspace.activeLoopId, $event)"
+            @update-row="onUpdateRow"
+            @select-product="onSelectProduct"
+          />
+        </div>
       </div>
     </section>
 
     <div class="border-t border-zinc-200 bg-zinc-50/60 p-4 lg:border-l lg:border-t-0">
       <div class="h-auto overflow-visible lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] lg:overflow-auto">
-        <CalculationInspector
-          :loop="workspace.activeLoop"
-          :project="workspace.activeProject"
-          :result="workspace.activeLoop?.calculation_result ?? null"
-          :busy="Boolean(workspace.activeLoopId && workspace.calculationBusyLoopIds.includes(workspace.activeLoopId))"
-        />
+        <div data-tour="calculation-results">
+          <CalculationInspector
+            :loop="workspace.activeLoop"
+            :project="workspace.activeProject"
+            :result="workspace.activeLoop?.calculation_result ?? null"
+            :busy="Boolean(workspace.activeLoopId && workspace.calculationBusyLoopIds.includes(workspace.activeLoopId))"
+          />
+        </div>
       </div>
     </div>
   </div>

@@ -4,6 +4,7 @@ import { createPinia, setActivePinia } from "pinia";
 import { useProductStore } from "../productStore";
 import { createCategory, createProduct, deleteProduct, listProducts, restoreProduct, verifyAdminPassword } from "../../api/products";
 import { ApiError } from "../../api/client";
+import { defaultProducts } from "../../data/defaultProducts";
 import type { ProductRecord } from "../../types/product";
 
 vi.mock("../../api/products", () => ({
@@ -131,5 +132,52 @@ describe("productStore", () => {
     await expect(store.addCategory("Detector")).rejects.toBeInstanceOf(ApiError);
 
     expect(store.categories).toEqual([]);
+  });
+
+  it("refreshes cached built-in products from the bundled catalog while preserving custom products offline", async () => {
+    vi.mocked(listProducts).mockRejectedValueOnce(new Error("offline"));
+    const customProduct: ProductRecord = {
+      id: "product-custom-1",
+      category: "Detector",
+      factory_name: "Custom factory",
+      customer_name: "Custom customer",
+      product_name: "Custom detector",
+      standby: 0.7,
+      alarm: 3,
+      ledCost: 1,
+      type: "Detector",
+      built_in: false
+    };
+    const staleBuiltIn: ProductRecord = {
+      ...defaultProducts[0],
+      factory_name: "old-factory",
+      product_name: "Old bundled device"
+    };
+    window.localStorage.setItem("loop-calculator.products", JSON.stringify([staleBuiltIn, customProduct]));
+
+    const store = useProductStore();
+
+    await store.bootstrap();
+
+    expect(store.products.find((product) => product.id === defaultProducts[0].id)).toEqual(defaultProducts[0]);
+    expect(store.products).toContainEqual(customProduct);
+    expect(JSON.parse(window.localStorage.getItem("loop-calculator.products") ?? "[]")).toContainEqual(defaultProducts[0]);
+  });
+
+  it("keeps API-sourced built-in products when the backend is temporarily offline", async () => {
+    vi.mocked(listProducts).mockRejectedValueOnce(new Error("offline"));
+    const apiProduct: ProductRecord = {
+      ...defaultProducts[0],
+      factory_name: "api-factory",
+      product_name: "API managed product"
+    };
+    window.localStorage.setItem("loop-calculator.products", JSON.stringify([apiProduct]));
+    window.localStorage.setItem("loop-calculator.products.meta", JSON.stringify({ source: "api", seedSignature: null }));
+
+    const store = useProductStore();
+
+    await store.bootstrap();
+
+    expect(store.products).toEqual([apiProduct]);
   });
 });

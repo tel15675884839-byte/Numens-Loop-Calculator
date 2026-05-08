@@ -20,42 +20,44 @@
     </div>
 
     <div class="min-h-0 flex-1 overflow-auto">
-      <div class="panel-title">Projects</div>
-      <div class="divide-y divide-zinc-200">
-        <div
-          v-for="project in workspace.projects"
-          :key="project.id"
-          class="flex items-center justify-between px-3 py-2.5 transition"
-          :class="{ 'bg-blue-50': project.id === workspace.activeProjectId }"
-        >
-          <div class="min-w-0 flex-1 cursor-pointer" @click="workspace.selectProject(project.id)">
-            <div class="flex min-w-0 items-center gap-2">
-              <p class="truncate text-sm font-medium" :class="project.id === workspace.activeProjectId ? 'text-blue-700 font-semibold' : 'text-zinc-900'">{{ project.name }}</p>
-              <span
-                v-if="workspace.isProjectUnsaved(project.id)"
-                class="shrink-0 border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none text-amber-700"
-              >
-                Unsaved
-              </span>
+      <div data-tour="project-list">
+        <div class="panel-title">Projects</div>
+        <div class="divide-y divide-zinc-200">
+          <div
+            v-for="project in workspace.projects"
+            :key="project.id"
+            class="flex items-center justify-between px-3 py-2.5 transition"
+            :class="{ 'bg-blue-50': project.id === workspace.activeProjectId }"
+          >
+            <div class="min-w-0 flex-1 cursor-pointer" @click="workspace.selectProject(project.id)">
+              <div class="flex min-w-0 items-center gap-2">
+                <p class="truncate text-sm font-medium" :class="project.id === workspace.activeProjectId ? 'text-blue-700 font-semibold' : 'text-zinc-900'">{{ project.name }}</p>
+                <span
+                  v-if="workspace.isProjectUnsaved(project.id)"
+                  class="shrink-0 border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none text-amber-700"
+                >
+                  Unsaved
+                </span>
+              </div>
+              <p class="text-xs text-zinc-500">{{ project.loop_count }} {{ project.loop_count === 1 ? "loop" : "loops" }}</p>
             </div>
-            <p class="text-xs text-zinc-500">{{ project.loop_count }} {{ project.loop_count === 1 ? "loop" : "loops" }}</p>
-          </div>
-          
-          <div class="flex items-center gap-1.5 ml-2">
-            <button
-              class="p-1.5 text-zinc-400 hover:text-blue-600 hover:bg-white rounded-none transition"
-              title="Rename project"
-              @click.stop="handleRename(project)"
-            >
-              <Pencil class="h-3.5 w-3.5" />
-            </button>
-            <button
-              class="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-white rounded-none transition"
-              title="Delete project"
-              @click.stop="handleDelete(project)"
-            >
-              <Trash2 class="h-3.5 w-3.5" />
-            </button>
+            
+            <div class="flex items-center gap-1.5 ml-2">
+              <button
+                class="p-1.5 text-zinc-400 hover:text-blue-600 hover:bg-white rounded-none transition"
+                title="Rename project"
+                @click.stop="handleRename(project)"
+              >
+                <Pencil class="h-3.5 w-3.5" />
+              </button>
+              <button
+                class="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-white rounded-none transition"
+                title="Delete project"
+                @click.stop="handleDelete(project)"
+              >
+                <Trash2 class="h-3.5 w-3.5" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

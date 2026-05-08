@@ -5,7 +5,9 @@ import { describe, expect, it } from "vitest";
 const appShell = readFileSync(resolve(process.cwd(), "src/components/layout/AppShell.vue"), "utf8");
 const workspaceView = readFileSync(resolve(process.cwd(), "src/views/WorkspaceView.vue"), "utf8");
 const printPreviewView = readFileSync(resolve(process.cwd(), "src/views/PrintPreviewView.vue"), "utf8");
+const printProfilePanel = readFileSync(resolve(process.cwd(), "src/components/print/PrintProfilePanel.vue"), "utf8");
 const topBar = readFileSync(resolve(process.cwd(), "src/components/layout/TopBar.vue"), "utf8");
+const leftNav = readFileSync(resolve(process.cwd(), "src/components/layout/LeftNav.vue"), "utf8");
 
 describe("responsive app layout", () => {
   it("keeps desktop two-column shells behind the large-screen breakpoint", () => {
@@ -17,5 +19,32 @@ describe("responsive app layout", () => {
   it("allows the top toolbar to wrap instead of forcing horizontal page overflow", () => {
     expect(topBar).toContain("flex-wrap");
     expect(topBar).toContain("min-h-16");
+  });
+
+  it("wires the first-use tutorial into the main workspace shell", () => {
+    expect(appShell).toContain("<OnboardingTour />");
+    expect(appShell).toContain("onboarding.initialize");
+    expect(topBar).toContain('data-tour="project-actions"');
+    expect(topBar).toContain("onboarding.startReplay");
+    expect(leftNav).toContain("data-tour=\"project-list\"");
+    expect(workspaceView).toContain("data-tour=\"loop-tabs\"");
+    expect(workspaceView).toContain("data-tour=\"system-parameters\"");
+    expect(workspaceView).toContain("data-tour=\"device-table\"");
+    expect(workspaceView).toContain("data-tour=\"calculation-results\"");
+    expect(topBar).toContain("currentTourScope");
+    expect(appShell).toContain("onboarding.initialize(currentTourScope.value)");
+    expect(topBar).toContain("'print-actions'");
+    expect(printProfilePanel).toContain("data-tour=\"print-templates\"");
+    expect(printProfilePanel).toContain("data-tour=\"print-template-editor\"");
+    expect(printProfilePanel).toContain("data-tour=\"print-template-actions\"");
+    expect(printPreviewView).toContain("data-tour=\"print-preview\"");
+  });
+
+  it("uses tight targets for the first two workspace tour steps", () => {
+    expect(topBar).toContain('data-tour="project-actions"');
+    expect(topBar).toContain("'project-settings'");
+    expect(topBar).not.toContain(':data-tour="isPrint ? \'print-actions\' : \'project-actions\'"');
+    expect(leftNav).toContain('data-tour="project-list"');
+    expect(leftNav).not.toContain('class="min-h-0 flex-1 overflow-auto" data-tour="project-list"');
   });
 });

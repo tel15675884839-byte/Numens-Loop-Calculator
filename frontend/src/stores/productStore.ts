@@ -9,6 +9,14 @@ import { createId } from "../utils/ids";
 
 const PRODUCTS_CACHE_KEY = "loop-calculator.products";
 const CATEGORIES_CACHE_KEY = "loop-calculator.categories";
+const PRODUCTS_META_CACHE_KEY = "loop-calculator.products.meta";
+
+interface ProductsCacheMeta {
+  source: "api" | "seed";
+  seedSignature: string | null;
+}
+
+const bundledCatalogSignature = JSON.stringify(defaultProducts);
 
 function normalizeDraft(product: ProductDraft): ProductDraft {
   return {
@@ -23,6 +31,17 @@ function normalizeDraft(product: ProductDraft): ProductDraft {
 
 function cloneProducts(products: ProductRecord[]) {
   return products.map((product) => ({ ...product }));
+}
+
+function mergeBundledProducts(cachedProducts: ProductRecord[]) {
+  const customProducts = cachedProducts.filter((product) => !product.built_in);
+  const bundledIds = new Set(defaultProducts.map((product) => product.id));
+  const customOnly = customProducts.filter((product) => !bundledIds.has(product.id));
+  return [...cloneProducts(defaultProducts), ...customOnly.map((product) => ({ ...product }))];
+}
+
+function shouldRefreshBundledProducts(meta: ProductsCacheMeta | null) {
+  return !meta || (meta.source === "seed" && meta.seedSignature !== bundledCatalogSignature);
 }
 
 function isRejectedDelete(cause: unknown) {
@@ -95,12 +114,18 @@ export const useProductStore = defineStore("products", () => {
     return values;
   }
 
-  function hydrateProducts(items: ProductRecord[], source: "api" | "cache" | "seed") {
+  function hydrateProducts(items: ProductRecord[], source: "api" | "cache" | "seed", metaSource: ProductsCacheMeta["source"] | null = source === "api" ? "api" : source === "seed" ? "seed" : null) {
     products.value = cloneProducts(items);
     categories.value = categoriesFromProducts(items);
     statusMessage.value = source === "api" ? "Loaded" : source === "cache" ? "Cache" : "Seeded";
     writeJson(PRODUCTS_CACHE_KEY, items);
     writeJson(CATEGORIES_CACHE_KEY, categories.value);
+    if (metaSource) {
+      writeJson(PRODUCTS_META_CACHE_KEY, {
+        source: metaSource,
+        seedSignature: metaSource === "seed" ? bundledCatalogSignature : null
+      });
+    }
   }
 
   async function bootstrap() {
@@ -109,6 +134,7 @@ export const useProductStore = defineStore("products", () => {
 
     const cachedProducts = readJson<ProductRecord[]>(PRODUCTS_CACHE_KEY);
     const cachedCategories = readJson<string[]>(CATEGORIES_CACHE_KEY);
+    const cachedMeta = readJson<ProductsCacheMeta>(PRODUCTS_META_CACHE_KEY);
 
     try {
       const [remoteProducts, remoteCategories] = await Promise.all([
@@ -122,9 +148,13 @@ export const useProductStore = defineStore("products", () => {
       }
     } catch (cause) {
       if (cachedProducts?.length) {
-        hydrateProducts(cachedProducts, "cache");
-        if (cachedCategories?.length) {
-          categories.value = cachedCategories;
+        if (shouldRefreshBundledProducts(cachedMeta)) {
+          hydrateProducts(mergeBundledProducts(cachedProducts), "cache", "seed");
+        } else {
+          hydrateProducts(cachedProducts, "cache", cachedMeta?.source ?? null);
+        }
+        if (cachedMeta?.source !== "seed" && cachedCategories?.length) {
+          categories.value = categoriesFromProducts(products.value);
         }
       } else {
         hydrateProducts(defaultProducts, "seed");

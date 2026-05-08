@@ -55,6 +55,14 @@ describe("workspaceStore", () => {
     expect(store.error).toBe("Address limit reached for this loop.");
   });
 
+  it("starts with an empty loop when no backend or local project exists", async () => {
+    const store = useWorkspaceStore();
+
+    await store.bootstrap();
+
+    expect(store.activeLoop?.device_rows).toEqual([]);
+  });
+
   it("limits projects to six loops", () => {
     const store = useWorkspaceStore();
     store.createBlankProject();

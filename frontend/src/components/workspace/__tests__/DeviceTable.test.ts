@@ -62,6 +62,8 @@ describe("DeviceTable", () => {
     expect(wrapper.text()).not.toContain("Lead m");
     expect(wrapper.text()).not.toContain("Interval m");
     expect(wrapper.text()).not.toContain("Alarm mA");
+    expect(wrapper.text()).not.toContain("Manual row");
+    expect(wrapper.find('option[value=""]').exists()).toBe(false);
   });
 
   it("selects numeric field text on focus so replacement typing does not append", async () => {

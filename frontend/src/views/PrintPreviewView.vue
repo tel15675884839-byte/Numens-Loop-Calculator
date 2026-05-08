@@ -23,7 +23,7 @@
         <div class="min-h-0 overflow-auto border-r border-zinc-200 bg-white p-4 print:hidden">
           <PrintProfilePanel v-if="print.editingProfile" :profile="print.editingProfile" @update="print.updateEditingProfile" />
         </div>
-        <div class="print-preview-pane min-h-0 overflow-auto p-6 print:overflow-visible print:p-0">
+        <div class="print-preview-pane min-h-0 overflow-auto p-6 print:overflow-visible print:p-0" data-tour="print-preview">
           <PrintPageStack :project="workspace.activeProject" :profile="print.draftProfile" />
         </div>
       </div>

@@ -39,7 +39,6 @@
             </td>
             <td class="table-cell !py-3">
               <select class="field" :value="row.product_id ?? ''" @change="onProductSelect(row.id, inputValue($event))">
-                <option value="">Manual row</option>
                 <option v-for="product in productOptionsForRow(row)" :key="product.id" :value="product.id">
                   {{ product.category }} - {{ product.customer_name }} - {{ product.product_name }}
                 </option>
