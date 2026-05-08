@@ -88,6 +88,14 @@
     font-feature-settings: "tnum" 1, "ss01" 1;
   }
 
+  :dir(rtl) .tabular-nums,
+  :dir(rtl) input,
+  :dir(rtl) select,
+  :dir(rtl) .print-page {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
   button,
   input,
   select,

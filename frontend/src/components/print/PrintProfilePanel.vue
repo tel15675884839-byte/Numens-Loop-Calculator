@@ -1,27 +1,27 @@
 <template>
   <aside class="panel bg-white flex flex-col h-full relative">
-    <div class="panel-title border-b border-zinc-100 pb-2">Report Profile</div>
+    <div class="panel-title border-b border-zinc-100 pb-2">{{ t("print.reportProfile") }}</div>
     
     <!-- Template Selection -->
     <div class="px-4 pt-3 pb-1" data-tour="print-templates">
-      <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">Saved Templates</div>
+      <div class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">{{ t("print.savedTemplates") }}</div>
       <div v-if="print.templates.length > 0" class="grid gap-2">
         <button 
-          v-for="t in print.templates" 
-          :key="t.template_name"
+          v-for="template in print.templates" 
+          :key="template.template_name"
           type="button"
-          :data-template-name="t.template_name"
+          :data-template-name="template.template_name"
           class="group flex min-h-11 w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left transition-all duration-200"
-          :class="print.selectedTemplateName === t.template_name ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:border-zinc-300'"
-          @click="print.selectTemplate(t.template_name)"
+          :class="print.selectedTemplateName === template.template_name ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-zinc-200 bg-zinc-50 text-zinc-700 hover:border-zinc-300'"
+          @click="print.selectTemplate(template.template_name)"
         >
-          <span class="truncate text-sm font-medium">{{ t.template_name }}</span>
+          <span class="truncate text-sm font-medium">{{ template.template_name }}</span>
           <div class="flex items-center gap-2">
-            <span v-if="print.selectedTemplateName === t.template_name" class="text-[10px] font-bold uppercase tracking-wider">Selected</span>
+            <span v-if="print.selectedTemplateName === template.template_name" class="text-[10px] font-bold uppercase tracking-wider">{{ t("print.selected") }}</span>
             <button 
-              v-if="print.selectedTemplateName === t.template_name"
+              v-if="print.selectedTemplateName === template.template_name"
               class="rounded-full p-1 hover:bg-blue-100 transition-colors"
-              title="Exit Template"
+              :title="t('print.exitTemplate')"
               @click.stop="print.deselectTemplate()"
             >
               <X class="h-3 w-3" />
@@ -30,7 +30,7 @@
         </button>
       </div>
       <div v-else class="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 px-3 py-4 text-sm text-zinc-500">
-        No templates yet.
+        {{ t("print.noTemplates") }}
       </div>
     </div>
 
@@ -55,7 +55,7 @@
         </div>
         <div v-else class="absolute inset-0 px-4 py-6 text-sm text-zinc-500 flex flex-col items-center justify-center text-center">
           <Bookmark class="h-12 w-12 text-zinc-100 mb-2" />
-          <p>Select a template above to edit its report fields.</p>
+          <p>{{ t("print.selectTemplate") }}</p>
         </div>
       </Transition>
     </div>
@@ -70,7 +70,7 @@
         >
           <Zap v-if="activeFeedback !== 'apply'" class="h-4 w-4" />
           <CheckCircle2 v-else class="h-4 w-4" />
-          <span>{{ activeFeedback === 'apply' ? 'Applied!' : 'Apply' }}</span>
+          <span>{{ activeFeedback === 'apply' ? t('print.applied') : t('print.apply') }}</span>
         </button>
 
         <div class="grid grid-cols-2 gap-2">
@@ -81,7 +81,7 @@
           >
             <Save v-if="activeFeedback !== 'save'" class="h-4 w-4" />
             <CheckCircle2 v-else class="h-4 w-4" />
-            <span>{{ activeFeedback === 'save' ? 'Saved!' : 'Save' }}</span>
+            <span>{{ activeFeedback === 'save' ? `${t('topBar.saved')}!` : t('topBar.save') }}</span>
           </button>
 
           <button 
@@ -91,7 +91,7 @@
           >
             <Type v-if="activeFeedback !== 'rename'" class="h-4 w-4" />
             <CheckCircle2 v-else class="h-4 w-4" />
-            <span>{{ activeFeedback === 'rename' ? 'Renamed!' : 'Rename' }}</span>
+            <span>{{ activeFeedback === 'rename' ? t('print.renamed') : t('common.rename') }}</span>
           </button>
         </div>
 
@@ -101,7 +101,7 @@
           @click="print.deleteSelectedTemplate"
         >
           <Trash2 class="h-4 w-4" />
-          <span>Delete</span>
+          <span>{{ t("common.delete") }}</span>
         </button>
       </template>
 
@@ -114,7 +114,7 @@
         >
           <Plus v-if="activeFeedback !== 'new'" class="h-4 w-4" />
           <CheckCircle2 v-else class="h-4 w-4" />
-          <span>{{ activeFeedback === 'new' ? 'Created!' : 'New Template' }}</span>
+          <span>{{ activeFeedback === 'new' ? `${t('topBar.saved')}!` : t('print.newTemplate') }}</span>
         </button>
       </template>
     </div>
@@ -124,6 +124,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { Plus, Save, Trash2, X, Bookmark, CheckCircle2, Type, Zap } from "lucide-vue-next";
+import { translateMessage as t } from "../../i18n";
 import { usePrintStore } from "../../stores/printStore";
 import { useDialogStore } from "../../stores/dialogStore";
 import type { ProjectPrintProfile } from "../../types/project";
@@ -151,14 +152,14 @@ const emit = defineEmits<{
 }>();
 
 const fields: Array<{ key: keyof ProjectPrintProfile; label: string }> = [
-  { key: "project_no", label: "Project No" },
-  { key: "customer", label: "Customer" },
-  { key: "site", label: "Site" },
-  { key: "panel", label: "Panel" },
-  { key: "revision", label: "Revision" },
-  { key: "prepared_by", label: "Prepared By" },
-  { key: "issue_date", label: "Issue Date" },
-  { key: "notes", label: "Notes" }
+  { key: "project_no", label: t("print.projectNo") },
+  { key: "customer", label: t("print.customer") },
+  { key: "site", label: t("print.site") },
+  { key: "panel", label: t("print.panel") },
+  { key: "revision", label: t("print.revision") },
+  { key: "prepared_by", label: t("print.preparedBy") },
+  { key: "issue_date", label: t("print.issueDate") },
+  { key: "notes", label: t("print.notes") }
 ];
 
 function emitUpdate(key: keyof ProjectPrintProfile, value: string) {
@@ -177,8 +178,8 @@ function handleSave() {
 
 async function handleRename() {
   const newName = await dialog.prompt({
-    title: "Rename Template",
-    message: "Enter a new name for this template:",
+    title: t("common.rename"),
+    message: t("print.templateRenameMessage"),
     initialValue: print.selectedTemplateName || ""
   });
   
@@ -190,8 +191,8 @@ async function handleRename() {
 
 async function handleCreateNew() {
   const name = await dialog.prompt({
-    title: "New Template",
-    message: "Enter a name for this new report profile template:",
+    title: t("print.newTemplate"),
+    message: t("print.templateNameMessage"),
     initialValue: ""
   });
   

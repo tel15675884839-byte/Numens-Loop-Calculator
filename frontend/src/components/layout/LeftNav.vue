@@ -3,25 +3,25 @@
     <div class="border-b border-zinc-200 px-3 py-3">
       <RouterLink class="nav-link mb-1" :class="{ 'nav-link-active': isWorkspace }" to="/">
         <Layers3 class="h-4 w-4" />
-        <span>Loop Designer</span>
+        <span>{{ t("nav.loopDesigner") }}</span>
       </RouterLink>
       <RouterLink class="nav-link" :class="{ 'nav-link-active': isProducts }" to="/products">
         <LibraryBig class="h-4 w-4" />
-        <span>Device Catalog</span>
+        <span>{{ t("nav.deviceCatalog") }}</span>
       </RouterLink>
       <RouterLink v-if="workspace.activeProject" class="nav-link" :class="{ 'nav-link-active': isPrint }" to="/print">
         <Printer class="h-4 w-4" />
-        <span>Print</span>
+        <span>{{ t("common.print") }}</span>
       </RouterLink>
       <button v-else class="nav-link w-full cursor-not-allowed text-zinc-400" disabled>
         <Printer class="h-4 w-4" />
-        <span>Print</span>
+        <span>{{ t("common.print") }}</span>
       </button>
     </div>
 
     <div class="min-h-0 flex-1 overflow-auto">
       <div data-tour="project-list">
-        <div class="panel-title">Projects</div>
+        <div class="panel-title">{{ t("nav.projects") }}</div>
         <div class="divide-y divide-zinc-200">
           <div
             v-for="project in workspace.projects"
@@ -36,23 +36,23 @@
                   v-if="workspace.isProjectUnsaved(project.id)"
                   class="shrink-0 border border-amber-300 bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold uppercase leading-none text-amber-700"
                 >
-                  Unsaved
+                  {{ t("common.unsaved") }}
                 </span>
               </div>
-              <p class="text-xs text-zinc-500">{{ project.loop_count }} {{ project.loop_count === 1 ? "loop" : "loops" }}</p>
+              <p class="text-xs text-zinc-500">{{ project.loop_count }} {{ project.loop_count === 1 ? t("common.loop") : t("common.loops") }}</p>
             </div>
             
             <div class="flex items-center gap-1.5 ml-2">
               <button
                 class="p-1.5 text-zinc-400 hover:text-blue-600 hover:bg-white rounded-none transition"
-                title="Rename project"
+                :title="t('dialogs.renameProject')"
                 @click.stop="handleRename(project)"
               >
                 <Pencil class="h-3.5 w-3.5" />
               </button>
               <button
                 class="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-white rounded-none transition"
-                title="Delete project"
+                :title="t('dialogs.deleteProjectTitle')"
                 @click.stop="handleDelete(project)"
               >
                 <Trash2 class="h-3.5 w-3.5" />
@@ -69,6 +69,7 @@
 import { computed, onMounted } from "vue";
 import { RouterLink, useRoute } from "vue-router";
 import { Layers3, LibraryBig, Pencil, Printer, Trash2 } from "lucide-vue-next";
+import { translateMessage as t } from "../../i18n";
 import { useDialogStore } from "../../stores/dialogStore";
 import { useWorkspaceStore } from "../../stores/workspaceStore";
 import type { ProjectListItem } from "../../types/project";
@@ -86,11 +87,11 @@ async function handleRename(project: ProjectListItem) {
     return;
   }
 
-  const newName = await dialog.prompt({
-    title: "Rename project",
-    message: "Enter new project name:",
+    const newName = await dialog.prompt({
+    title: t("dialogs.renameProjectTitle"),
+    message: t("dialogs.enterProjectName"),
     initialValue: project.name,
-    confirmLabel: "Rename"
+    confirmLabel: t("common.rename")
   });
   if (newName !== null && newName.trim() !== "") {
     const trimmed = newName.trim();
@@ -99,8 +100,8 @@ async function handleRename(project: ProjectListItem) {
     );
     if (isDuplicate) {
       await dialog.alert({
-        title: "Duplicate project name",
-        message: "A project with this name already exists. Please choose a different name."
+        title: t("dialogs.duplicateProjectTitle"),
+        message: t("dialogs.duplicateProjectMessage")
       });
       return;
     }
@@ -112,9 +113,9 @@ async function handleRename(project: ProjectListItem) {
 
 async function handleDelete(project: ProjectListItem) {
   const confirmed = await dialog.confirm({
-    title: "Delete project",
-    message: `Are you sure you want to delete project "${project.name}"?`,
-    confirmLabel: "Delete"
+    title: t("dialogs.deleteProjectTitle"),
+    message: t("dialogs.deleteProjectMessage", { name: project.name }),
+    confirmLabel: t("common.delete")
   });
   if (confirmed) {
     void workspace.removeProject(project.id);

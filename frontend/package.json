@@ -13,12 +13,13 @@
     "lucide-vue-next": "^0.475.0",
     "pinia": "^2.3.1",
     "vue": "^3.5.13",
+    "vue-i18n": "^11.4.2",
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@types/node": "^22.15.3",
     "@vitejs/plugin-vue": "^6.0.1",
     "@vue/test-utils": "^2.4.6",
-    "@types/node": "^22.15.3",
     "autoprefixer": "^10.4.21",
     "jsdom": "^26.1.0",
     "postcss": "^8.5.3",

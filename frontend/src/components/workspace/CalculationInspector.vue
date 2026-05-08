@@ -1,13 +1,13 @@
 <template>
   <aside class="panel h-full flex flex-col bg-zinc-50 border-l border-zinc-200">
     <div class="panel-title border-b border-zinc-200 bg-white px-4 py-3 text-xs font-bold uppercase tracking-wider text-zinc-600 flex items-center justify-between">
-      <span>Calculation Inspector</span>
+      <span>{{ t("inspector.calculationInspector") }}</span>
     </div>
 
     <div class="flex-1 overflow-y-auto space-y-4 p-4">
       <div class="rounded-none border border-zinc-200 shadow-sm overflow-hidden bg-white">
         <div class="status-strip" :class="statusToneClass">
-          <span class="text-xs font-bold uppercase tracking-wider">System Status</span>
+          <span class="text-xs font-bold uppercase tracking-wider">{{ t("inspector.systemStatus") }}</span>
           <span class="flex h-2 w-2 relative">
             <span class="status-pulse animate-ping absolute inline-flex h-full w-full rounded-none opacity-75"></span>
             <span class="status-dot relative inline-flex rounded-none h-2 w-2"></span>
@@ -21,7 +21,7 @@
       <div class="space-y-3">
         <div class="bg-white p-3 rounded-none border border-zinc-200 shadow-sm">
           <div class="flex justify-between items-end mb-1">
-            <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Devices Qty</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">{{ t("inspector.devicesQty") }}</span>
             <span class="text-xl font-extrabold text-zinc-800">{{ result ? `${result.total_addresses} / ${result.addr_limit}` : "0 / 125" }}</span>
           </div>
           <div class="w-full bg-zinc-100 rounded-none h-2">
@@ -40,7 +40,7 @@
 
         <div class="bg-white p-3 rounded-none border border-zinc-200 shadow-sm flex justify-between items-center">
           <div>
-            <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">Alarm Load</p>
+            <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">{{ t("inspector.alarmLoad") }}</p>
             <p class="text-xl font-extrabold mt-1 text-zinc-800">
               {{ result ? formatNumber(result.total_current_ma, 1) : "-" }}
               <span class="text-xs font-normal text-zinc-400">mA</span>
@@ -86,16 +86,16 @@
       </div>
 
       <div class="bg-zinc-50 p-3 rounded-none border border-zinc-200">
-        <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-2">Power Calculations</p>
+        <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-2">{{ t("inspector.powerCalculations") }}</p>
         <div class="bg-white p-3 rounded-none border border-zinc-100">
           <div class="grid grid-cols-[1fr_auto] gap-3 items-center">
             <div class="space-y-3">
               <div class="flex items-end justify-between gap-3" data-testid="battery-standby">
-                <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Standby</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">{{ t("common.standby") }}</span>
                 <span class="text-base font-bold text-zinc-800 tabular-nums">{{ formatNumber(battery.standby_hours, 1) }}h</span>
               </div>
               <div class="flex items-end justify-between gap-3 border-t border-zinc-100 pt-3" data-testid="battery-alarm">
-                <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Alarm</span>
+                <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">{{ t("common.alarm") }}</span>
                 <span class="text-base font-bold text-zinc-800 tabular-nums">{{ formatNumber(battery.alarm_hours, 1) }}h</span>
               </div>
             </div>
@@ -112,39 +112,39 @@
       </div>
 
       <div class="bg-zinc-50 p-3 rounded-none border border-zinc-200">
-        <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-2">System Parameters</p>
+        <p class="text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-2">{{ t("inspector.systemParameters") }}</p>
         <div class="grid grid-cols-[1fr_auto_auto] gap-y-2 items-center bg-white p-3 border border-zinc-100">
-          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Address Limit</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">{{ t("inspector.addressLimit") }}</span>
           <span class="text-base font-bold text-zinc-800 tabular-nums text-right mr-2">{{ loop?.address_limit ?? 125 }}</span>
           <span class="text-xs font-normal text-zinc-400">Dev.</span>
 
           <div class="col-span-3 border-t border-zinc-100/60 my-0.5"></div>
 
-          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Max Current</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">{{ t("inspector.maxCurrent") }}</span>
           <span class="text-base font-bold text-zinc-800 tabular-nums text-right mr-2">{{ loop?.max_current_ma ?? 400 }}</span>
           <span class="text-xs font-normal text-zinc-400">mA</span>
 
           <div class="col-span-3 border-t border-zinc-100/60 my-0.5"></div>
 
-          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Min Voltage</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">{{ t("inspector.minVoltage") }}</span>
           <span class="text-base font-bold text-zinc-800 tabular-nums text-right mr-2">{{ loop?.min_voltage_v ?? 17 }}</span>
           <span class="text-xs font-normal text-zinc-400">V</span>
 
           <div class="col-span-3 border-t border-zinc-100/60 my-0.5"></div>
 
-          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Cable Size</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">{{ t("inspector.cableSize") }}</span>
           <span class="text-base font-bold text-zinc-800 tabular-nums text-right mr-2">{{ selectedCableSize }}</span>
           <span class="text-xs font-normal text-zinc-400">mm²</span>
 
           <div class="col-span-3 border-t border-zinc-100/60 my-0.5"></div>
 
-          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Cable Res.</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">{{ t("inspector.cableResistance") }}</span>
           <span class="text-base font-bold text-zinc-800 tabular-nums text-right mr-2">{{ formatNumber(loop?.cable_resistance_ohm_per_km ?? 12.1, 2) }}</span>
           <span class="text-xs font-normal text-zinc-400">Ω/km</span>
 
           <div class="col-span-3 border-t border-zinc-100/60 my-0.5"></div>
 
-          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">AUX Current</span>
+          <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">{{ t("inspector.auxCurrent") }}</span>
           <span class="text-base font-bold text-zinc-800 tabular-nums text-right mr-2">{{ formatNumber(loop?.aux_current_ma ?? 0, 1) }}</span>
           <span class="text-xs font-normal text-zinc-400">mA</span>
         </div>
@@ -153,7 +153,7 @@
       <div v-if="diagnostics.length" class="bg-amber-50/50 border border-amber-200 rounded-none p-3 text-xs shadow-sm">
         <p class="text-xs font-bold text-amber-800 uppercase tracking-wider mb-2 flex items-center gap-1">
           <span>!</span>
-          <span>Diagnostics</span>
+          <span>{{ t("inspector.diagnostics") }}</span>
         </p>
         <ul class="space-y-1.5 text-amber-900">
           <li v-for="item in diagnostics" :key="item" class="flex items-start gap-1">
@@ -170,6 +170,7 @@
 import { computed } from "vue";
 
 import type { CalculationLoopResponse } from "../../types/calculation";
+import { translateMessage as t } from "../../i18n";
 import type { ProjectLoop, ProjectRecord } from "../../types/project";
 import { formatNumber } from "../../utils/format";
 import { calculateGlobalBatteryRuntime } from "../../utils/power";
@@ -185,11 +186,11 @@ const diagnostics = computed(() => props.result?.diagnostics ?? []);
 const battery = computed(() => calculateGlobalBatteryRuntime(props.project));
 
 const statusLabel = computed(() => {
-  if (!props.loop) return "No active loop";
-  if (props.busy) return "Calculating";
-  if (diagnostics.value.length > 0) return "Attention required";
-  if (!props.result) return "Waiting for calculation";
-  return "Within limits";
+  if (!props.loop) return t("inspector.noActiveLoop");
+  if (props.busy) return t("common.calculating");
+  if (diagnostics.value.length > 0) return t("inspector.attentionRequired");
+  if (!props.result) return t("inspector.waitingForCalculation");
+  return t("inspector.withinLimits");
 });
 
 const statusToneClass = computed(() => {
@@ -199,17 +200,17 @@ const statusToneClass = computed(() => {
 });
 
 const metrics = computed(() => [
-  { label: "Addresses", value: props.result ? `${props.result.total_addresses}/${props.result.addr_limit}` : "-", unit: "" },
-  { label: "Current", value: props.result ? formatNumber(props.result.total_current_ma, 1) : "-", unit: "mA" },
-  { label: "Standby Load", value: props.result ? formatNumber(props.result.standby_current_ma, 1) : "-", unit: "mA" },
-  { label: "Distance", value: props.result ? formatNumber(props.result.total_distance_m, 1) : "-", unit: "m" },
-  { label: "Drop", value: props.result ? formatNumber(props.result.voltage_drop_v, 2) : "-", unit: "V" },
-  { label: "End voltage", value: props.result ? formatNumber(props.result.end_voltage_v, 2) : "-", unit: "V" }
+  { label: t("common.actions"), value: props.result ? `${props.result.total_addresses}/${props.result.addr_limit}` : "-", unit: "" },
+  { label: t("inspector.alarmLoad"), value: props.result ? formatNumber(props.result.total_current_ma, 1) : "-", unit: "mA" },
+  { label: t("inspector.standbyLoad"), value: props.result ? formatNumber(props.result.standby_current_ma, 1) : "-", unit: "mA" },
+  { label: t("common.distance"), value: props.result ? formatNumber(props.result.total_distance_m, 1) : "-", unit: "m" },
+  { label: t("common.drop"), value: props.result ? formatNumber(props.result.voltage_drop_v, 2) : "-", unit: "V" },
+  { label: t("inspector.endVoltage"), value: props.result ? formatNumber(props.result.end_voltage_v, 2) : "-", unit: "V" }
 ]);
 
 const selectedCableSize = computed(() => {
   const value = props.loop?.cable_size?.trim();
-  return value || "Custom";
+  return value || t("common.custom");
 });
 
 const addressPercent = computed(() => {

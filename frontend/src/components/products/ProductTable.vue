@@ -4,13 +4,13 @@
       <table class="w-full border-collapse">
         <thead class="sticky top-0 z-10">
           <tr>
-            <th class="table-head w-[8%] min-w-[80px] px-2 py-2">Source</th>
-            <th class="table-head w-[12%] min-w-[100px] px-2 py-2">Category</th>
-            <th class="table-head w-[36%] min-w-[200px] px-2 py-2">Product</th>
-            <th class="table-head w-[16%] min-w-[140px] px-2 py-2">Factory</th>
-            <th class="table-head w-[8%] min-w-[70px] px-2 py-2 text-right">Standby</th>
-            <th class="table-head w-[8%] min-w-[70px] px-2 py-2 text-right">Alarm</th>
-            <th class="table-head w-[12%] min-w-[100px] px-2 py-2 text-right">Actions</th>
+            <th class="table-head w-[8%] min-w-[80px] px-2 py-2">{{ t("products.source") }}</th>
+            <th class="table-head w-[12%] min-w-[100px] px-2 py-2">{{ t("common.category") }}</th>
+            <th class="table-head w-[36%] min-w-[200px] px-2 py-2">{{ t("products.product") }}</th>
+            <th class="table-head w-[16%] min-w-[140px] px-2 py-2">{{ t("products.factory") }}</th>
+            <th class="table-head w-[8%] min-w-[70px] px-2 py-2 text-right">{{ t("common.standby") }}</th>
+            <th class="table-head w-[8%] min-w-[70px] px-2 py-2 text-right">{{ t("common.alarm") }}</th>
+            <th class="table-head w-[12%] min-w-[100px] px-2 py-2 text-right">{{ t("common.actions") }}</th>
           </tr>
         </thead>
         <template v-for="(groupProducts, category) in groupedProducts" :key="category">
@@ -39,7 +39,7 @@
             <tr v-for="product in groupProducts" :key="product.id">
               <td class="table-cell">
                 <span class="inline-flex border px-2 py-1 text-[11px] font-semibold uppercase tracking-wide" :class="product.built_in ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-zinc-200 bg-zinc-50 text-zinc-600'">
-                  {{ product.built_in ? "Built-in" : "Custom" }}
+                  {{ product.built_in ? t("products.builtIn") : t("products.custom") }}
                 </span>
               </td>
               <td class="table-cell">
@@ -98,7 +98,7 @@
                   @click="$emit('delete', product)"
                 >
                   <Trash2 class="h-4 w-4" />
-                  <span>Delete</span>
+                  <span>{{ t("common.delete") }}</span>
                 </button>
               </td>
             </tr>
@@ -112,6 +112,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { ChevronDown, Trash2 } from "lucide-vue-next";
+import { translateMessage as t } from "../../i18n";
 import type { ProductRecord } from "../../types/product";
 
 const props = defineProps<{
@@ -139,7 +140,7 @@ function updateNumberField(product: ProductRecord, field: string, event: Event) 
 const groupedProducts = computed(() => {
   const groups: Record<string, ProductRecord[]> = {};
   for (const product of props.products) {
-    const cat = product.category || "Unknown";
+    const cat = product.category || "-";
     if (!groups[cat]) {
       groups[cat] = [];
     }

@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 import { calculateLoop } from "../api/calculations";
 import { createProject, deleteProject, getProject, listProjects, updateProject } from "../api/projects";
 import { defaultProducts } from "../data/defaultProducts";
+import { translateMessage as t } from "../i18n";
 import { useDialogStore } from "./dialogStore";
 import type { CalculationLoopRequest, CalculationLoopResponse } from "../types/calculation";
 import type { LoopCalculationSnapshot, LoopDeviceRow, ProjectListItem, ProjectLoop, ProjectPrintProfile, ProjectRecord } from "../types/project";
@@ -201,9 +202,9 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     }
     const dialog = useDialogStore();
     return dialog.confirm({
-      title: "Unsaved changes",
-      message: "This project has unsaved changes. Discard changes before leaving?",
-      confirmLabel: "Discard changes"
+      title: t("dialogs.unsavedChangesTitle"),
+      message: t("dialogs.unsavedChangesMessage"),
+      confirmLabel: t("dialogs.discardChanges")
     }).then((shouldDiscard) => {
       if (shouldDiscard) {
         discardActiveProjectChanges();

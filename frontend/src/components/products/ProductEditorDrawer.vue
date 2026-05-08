@@ -4,8 +4,8 @@
       <div class="flex h-full min-h-0 flex-col">
         <div class="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
           <div>
-            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Product editor</p>
-            <p class="text-sm text-zinc-600">{{ draft.id ? (draft.built_in ? "Built-in product" : "Custom product") : "New product" }}</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ t("products.productEditor") }}</p>
+            <p class="text-sm text-zinc-600">{{ draft.id ? (draft.built_in ? t("products.builtInProduct") : t("products.customProduct")) : t("products.newProduct") }}</p>
           </div>
           <button class="toolbar-button-ghost" @click="$emit('close')">
             <X class="h-4 w-4" />
@@ -15,13 +15,13 @@
         <div class="min-h-0 flex-1 overflow-auto px-4 py-4">
           <div class="space-y-3">
             <label class="flex flex-col gap-1">
-              <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Category</span>
+              <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("common.category") }}</span>
               <input
                 class="field"
                 list="category-list"
                 :value="draft.category"
                 @input="patch({ category: inputValue($event), type: inputValue($event) })"
-                placeholder="Select or type category..."
+                :placeholder="t('products.selectOrTypeCategory')"
               />
               <datalist id="category-list">
                 <option v-for="option in categoryOptions" :key="option" :value="option" />
@@ -29,24 +29,24 @@
             </label>
 
             <label class="flex flex-col gap-1">
-              <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Product name</span>
+              <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("products.productName") }}</span>
               <input class="field" :value="draft.product_name" @input="patch({ product_name: inputValue($event) })" />
             </label>
 
 
             <label class="flex flex-col gap-1">
-              <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Factory name</span>
+              <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("products.factoryName") }}</span>
               <input class="field" :value="draft.factory_name" @input="patch({ factory_name: inputValue($event) })" />
             </label>
 
 
             <div class="grid grid-cols-2 gap-3">
               <label class="flex flex-col gap-1">
-                <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Standby mA</span>
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("products.standbyMa") }}</span>
                 <input class="field-number" inputmode="decimal" :value="draft.standby" @input="patchNumber('standby', $event)" />
               </label>
               <label class="flex flex-col gap-1">
-                <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Alarm mA</span>
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("deviceTable.alarm") }} mA</span>
                 <input class="field-number" inputmode="decimal" :value="draft.alarm" @input="patchNumber('alarm', $event)" />
               </label>
             </div>
@@ -61,11 +61,11 @@
         </div>
 
         <div class="flex items-center justify-between gap-2 border-t border-zinc-200 px-4 py-3">
-          <button class="toolbar-button" @click="$emit('close')">Cancel</button>
+      <button class="toolbar-button" @click="$emit('close')">{{ t("common.cancel") }}</button>
           <div class="flex items-center gap-2">
-            <button class="toolbar-button" aria-label="Delete product" :disabled="draft.built_in && !isAdmin" @click="$emit('delete')">
+            <button class="toolbar-button" :aria-label="t('products.deleteProduct')" :disabled="draft.built_in && !isAdmin" @click="$emit('delete')">
               <Trash2 class="h-4 w-4" />
-              <span>Delete</span>
+              <span>{{ t("common.delete") }}</span>
             </button>
             <button
               class="toolbar-button-primary"
@@ -73,7 +73,7 @@
               @click="handleSave"
             >
               <Save class="h-4 w-4" />
-              <span>Save</span>
+              <span>{{ t("topBar.save") }}</span>
             </button>
           </div>
         </div>
@@ -85,6 +85,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Save, Trash2, X } from "lucide-vue-next";
+import { translateMessage as t } from "../../i18n";
 import type { ProductDraft } from "../../types/product";
 
 const props = defineProps<{

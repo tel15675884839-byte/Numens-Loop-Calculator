@@ -12,7 +12,7 @@
         :title="loop.name"
         @click="$emit('select', loop.id)"
       >
-        <span>Loop {{ loop.sort_order }}</span>
+        <span>{{ t("loopTabs.loop") }} {{ loop.sort_order }}</span>
       </button>
     </div>
 
@@ -20,17 +20,18 @@
     <button
       class="toolbar-button h-8 py-0 px-3 text-xs flex-shrink-0 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-white"
       :disabled="!canAdd"
-      :title="canAdd ? 'Add loop' : 'Maximum 6 loops'"
+      :title="canAdd ? t('loopTabs.addLoop') : t('loopTabs.maxLoops')"
       @click="$emit('add')"
     >
       <CirclePlus class="h-3.5 w-3.5" />
-      <span>Add loop</span>
+      <span>{{ t("loopTabs.addLoop") }}</span>
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { CirclePlus } from "lucide-vue-next";
+import { translateMessage as t } from "../../i18n";
 import type { ProjectLoop } from "../../types/project";
 
 defineProps<{

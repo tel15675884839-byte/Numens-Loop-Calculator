@@ -2,8 +2,8 @@
   <div class="panel flex min-h-0 flex-col">
     <div class="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
       <div class="flex items-center gap-2">
-        <span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Device list</span>
-        <span class="text-xs text-zinc-400">({{ rows.length }} {{ rows.length === 1 ? 'device' : 'devices' }})</span>
+        <span class="text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ t("deviceTable.deviceList") }}</span>
+        <span class="text-xs text-zinc-400">({{ rows.length }} {{ rows.length === 1 ? t('common.device') : t('common.devices') }})</span>
       </div>
     </div>
 
@@ -12,23 +12,23 @@
         <thead class="sticky top-0 z-10">
           <tr>
             <th class="table-head w-12 px-2 py-2">#</th>
-            <th class="table-head px-2 py-2">Category</th>
-            <th class="table-head px-2 py-2">Device</th>
-            <th class="table-head w-[105px] px-2 py-2" title="Distance to the previous device">
+            <th class="table-head px-2 py-2">{{ t("deviceTable.category") }}</th>
+            <th class="table-head px-2 py-2">{{ t("deviceTable.device") }}</th>
+            <th class="table-head w-[105px] px-2 py-2" :title="t('deviceTable.leadTitle')">
               <div class="flex items-center justify-end gap-1 cursor-help">
-                <span class="whitespace-nowrap">Lead</span>
+                <span class="whitespace-nowrap">{{ t("deviceTable.lead") }}</span>
                 <HelpCircle class="h-3.5 w-3.5 text-zinc-400" />
               </div>
             </th>
-            <th class="table-head w-[105px] px-2 py-2" title="Spacing between identical devices (when Qty > 1)">
+            <th class="table-head w-[105px] px-2 py-2" :title="t('deviceTable.intervalTitle')">
               <div class="flex items-center justify-end gap-1 cursor-help">
-                <span class="whitespace-nowrap">Interval</span>
+                <span class="whitespace-nowrap">{{ t("deviceTable.interval") }}</span>
                 <HelpCircle class="h-3.5 w-3.5 text-zinc-400" />
               </div>
             </th>
-            <th class="table-head w-20 px-2 py-2 text-right">Qty</th>
-            <th class="table-head w-24 px-2 py-2 text-right">Alarm</th>
-            <th class="table-head w-20 px-2 py-2 text-center">Actions</th>
+            <th class="table-head w-20 px-2 py-2 text-right">{{ t("common.qty") }}</th>
+            <th class="table-head w-24 px-2 py-2 text-right">{{ t("deviceTable.alarm") }}</th>
+            <th class="table-head w-20 px-2 py-2 text-center">{{ t("common.actions") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -89,6 +89,7 @@
 
 <script setup lang="ts">
 import { Trash2, HelpCircle } from "lucide-vue-next";
+import { translateMessage as t } from "../../i18n";
 import type { LoopDeviceRow } from "../../types/project";
 import type { ProductRecord } from "../../types/product";
 

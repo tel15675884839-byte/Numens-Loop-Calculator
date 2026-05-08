@@ -24,10 +24,10 @@
       <section v-if="recoveryOpen && productStore.isAdmin" class="panel">
         <div class="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
           <div>
-            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">Deleted products</p>
-            <p class="text-sm text-zinc-600">{{ productStore.deletedProducts.length }} products available to restore</p>
+            <p class="text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ t("products.deletedProducts") }}</p>
+            <p class="text-sm text-zinc-600">{{ productStore.deletedProducts.length }} {{ t("products.productsRestoreCount") }}</p>
           </div>
-          <button class="toolbar-button px-3 py-1.5 text-xs" @click="recoveryOpen = false">Close</button>
+          <button class="toolbar-button px-3 py-1.5 text-xs" @click="recoveryOpen = false">{{ t("products.close") }}</button>
         </div>
         <div v-if="productStore.deletedProducts.length" class="divide-y divide-zinc-200">
           <div
@@ -38,14 +38,14 @@
             <div class="min-w-0">
               <p class="truncate text-sm font-semibold text-zinc-900">{{ product.product_name || product.customer_name || product.id }}</p>
               <p class="truncate text-xs text-zinc-500">{{ product.category }} · {{ product.factory_name }}</p>
-              <p v-if="product.deleted_at" class="text-xs text-zinc-400">Deleted {{ product.deleted_at }}</p>
+              <p v-if="product.deleted_at" class="text-xs text-zinc-400">{{ t("products.deleted") }} {{ product.deleted_at }}</p>
             </div>
             <button class="toolbar-button-primary px-3 py-1.5 text-xs" @click="restoreDeletedProduct(product.id)">
-              Restore
+              {{ t("products.restore") }}
             </button>
           </div>
         </div>
-        <div v-else class="px-4 py-6 text-sm text-zinc-500">No deleted products.</div>
+        <div v-else class="px-4 py-6 text-sm text-zinc-500">{{ t("products.noDeletedProducts") }}</div>
       </section>
     </div>
 
@@ -67,6 +67,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import ProductEditorDrawer from "../components/products/ProductEditorDrawer.vue";
 import ProductFilters from "../components/products/ProductFilters.vue";
 import ProductTable from "../components/products/ProductTable.vue";
+import { translateMessage as t } from "../i18n";
 import { useDialogStore } from "../stores/dialogStore";
 import { useProductStore } from "../stores/productStore";
 import type { ProductDraft, ProductRecord } from "../types/product";
@@ -144,10 +145,10 @@ async function handleAdminUnlock() {
     return;
   }
   const pwd = await dialog.prompt({
-    title: "Administrator Access",
-    message: "Please enter the admin password to unlock edit permissions:",
+    title: t("products.adminAccess"),
+    message: t("products.unlockMessage"),
     initialValue: "",
-    confirmLabel: "Unlock"
+    confirmLabel: t("products.unlock")
   });
   if (pwd === null) {
     return;
@@ -156,8 +157,8 @@ async function handleAdminUnlock() {
     await productStore.unlockAdmin(pwd);
   } catch {
     await dialog.alert({
-      title: "Access Denied",
-      message: "Incorrect password."
+      title: t("products.accessDenied"),
+      message: t("products.incorrectPassword")
     });
   }
 }
@@ -179,9 +180,9 @@ async function deleteProduct() {
     return;
   }
   const confirmed = await dialog.confirm({
-    title: "Delete product",
+    title: t("products.deleteProduct"),
     message: `Delete ${current.product_name || current.customer_name || current.id}?`,
-    confirmLabel: "Delete"
+    confirmLabel: t("common.delete")
   });
   if (!confirmed) {
     return;
@@ -195,15 +196,15 @@ async function deleteProduct() {
 async function confirmDelete(product: ProductRecord) {
   if (product.built_in && !productStore.isAdmin) {
     await dialog.alert({
-      title: "Protected product",
-      message: "Built-in products are protected."
+      title: t("products.protectedProduct"),
+      message: t("products.builtInProtected")
     });
     return;
   }
   const confirmed = await dialog.confirm({
-    title: "Delete product",
+    title: t("products.deleteProduct"),
     message: `Delete ${product.product_name || product.customer_name || product.id}?`,
-    confirmLabel: "Delete"
+    confirmLabel: t("common.delete")
   });
   if (confirmed) {
     await productStore.removeProduct(product, productStore.isAdmin);

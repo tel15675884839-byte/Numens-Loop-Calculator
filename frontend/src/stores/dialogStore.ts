@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import { defineStore } from "pinia";
+import { translateMessage as t } from "../i18n";
 
 type DialogKind = "alert" | "confirm" | "prompt";
 
@@ -35,8 +36,8 @@ export const useDialogStore = defineStore("dialog", () => {
       kind,
       title: options.title,
       message: options.message,
-      confirmLabel: options.confirmLabel ?? (kind === "alert" ? "OK" : "Continue"),
-      cancelLabel: options.cancelLabel ?? "Cancel",
+      confirmLabel: options.confirmLabel ?? (kind === "alert" ? t("common.ok") : t("common.continue")),
+      cancelLabel: options.cancelLabel ?? t("common.cancel"),
       promptValue: options.initialValue ?? ""
     };
 

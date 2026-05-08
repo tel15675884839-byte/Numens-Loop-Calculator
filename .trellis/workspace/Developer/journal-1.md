@@ -482,3 +482,47 @@ Added frontend product-cache metadata so static bundled catalog updates can refr
 
 - If backend product APIs later expose their own catalog version, keep that version separate from the frontend bundled signature.
 
+---
+
+## Session 12: Frontend Multi-Language Support
+
+**Date**: 2026-05-08
+**Task**: Add English, Arabic, Russian, German, French, and Spanish UI languages
+**Branch**: `main`
+
+### Summary
+
+Added Vue i18n infrastructure and a top-toolbar language selector for English, Arabic, Russian, German, French, and Spanish. Core workspace, product library, print preview, report template, and printed report UI labels now use locale messages while product names, model numbers, user data, and electrical units remain untranslated.
+
+### Main Changes
+
+- Added `vue-i18n` and new `frontend/src/i18n/` infrastructure with supported locale metadata, localStorage persistence, locale normalization, document `lang`, and Arabic `dir="rtl"` handling.
+- Added a language selector in `TopBar.vue` showing `EN / AR / RU / DE / FR / ES`.
+- Replaced key layout/workspace labels in `TopBar`, `LeftNav`, `CalculationInspector`, `SystemParameters`, `DeviceTable`, and `LoopTabs` with i18n keys.
+- Replaced major Product Library and Print Preview/report labels with i18n keys.
+- Added RTL safeguards in `styles.css` so numeric/unit/model-heavy fields remain LTR-isolated under Arabic.
+- Removed remaining printed-report recommended-cable display and used the user-selected cable size instead.
+- Added focused i18n tests for approved locale set, fallback normalization, RTL direction, persistence, and representative translated labels.
+
+### Verification
+
+- [OK] Command: `cd frontend && npm test -- src/i18n/__tests__/i18n.test.ts`
+      Result: red/green cycle completed; 5 tests passed.
+- [OK] Command: `cd frontend && npm test -- src/i18n/__tests__/i18n.test.ts src/components/layout/__tests__/ResponsiveLayout.test.ts src/components/workspace/__tests__/CalculationInspector.test.ts`
+      Result: 3 files and 15 tests passed after language selector/core UI wiring.
+- [OK] Command: `cd frontend && npm test -- --maxWorkers=1`
+      Result: 20 files and 99 tests passed.
+- [OK] Command: `cd frontend && npm run build`
+      Result: Vite production build succeeded.
+
+### Pitfalls
+
+- Arabic requires direction handling beyond translated strings. The first implementation sets document RTL and isolates numeric/model/unit-heavy content rather than mirroring the whole app shell.
+- Product categories, product names, model numbers, and user-authored project/template content intentionally remain untranslated to preserve official device Library data and user input.
+- Default Vitest parallelism can hit esbuild memory failures on this Windows workspace, so full frontend verification used `--maxWorkers=1`.
+
+### Next Plan
+
+- Run a browser visual QA pass for Arabic and German on desktop and narrow widths, focusing on the top toolbar, right inspector cards, device table, product filters, and print preview.
+- If market-quality translations are required, have a native speaker or technical translator review the locale strings before release.
+

@@ -1,13 +1,13 @@
 <template>
   <div class="panel border border-zinc-200 bg-white rounded-none shadow-sm">
     <div class="panel-title border-b border-zinc-200 bg-zinc-50 px-4 py-2 text-xs font-bold uppercase tracking-wider text-zinc-600">
-      System Parameters
+      {{ t("systemParameters.systemParameters") }}
     </div>
     <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 px-4 py-4">
       <div class="flex flex-wrap items-end gap-x-3 gap-y-3">
         <!-- Cable Size Select -->
         <div ref="cableMenuRef" class="relative flex w-56 flex-col gap-1">
-          <span :id="cableSizeLabelId" class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Cable Size</span>
+          <span :id="cableSizeLabelId" class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("systemParameters.cableSize") }}</span>
           <button
             type="button"
             data-testid="cable-size-trigger"
@@ -50,7 +50,7 @@
         <!-- Custom Cable Inputs -->
         <template v-if="isCustomCable">
           <label class="flex w-24 flex-col gap-1">
-            <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Area (mm²)</span>
+            <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("systemParameters.area") }}</span>
             <input
               class="field-number h-[38px] px-2 text-center"
               :value="loop?.cable_size"
@@ -60,7 +60,7 @@
             />
           </label>
           <label class="flex w-28 flex-col gap-1">
-            <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Res. (Ω/km)</span>
+            <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("systemParameters.resistance") }}</span>
             <input
               class="field-number h-[38px] px-2 text-center"
               :value="loop?.cable_resistance_ohm_per_km"
@@ -72,7 +72,7 @@
 
         <!-- AUX Current Input -->
         <label class="flex w-32 flex-col gap-1">
-          <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">AUX current</span>
+          <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("systemParameters.auxCurrent") }}</span>
           <div class="relative" data-testid="aux-current-field">
             <input
               class="field-number h-[38px] pr-10 pl-3"
@@ -104,6 +104,7 @@
 <script setup lang="ts">
 import { ChevronDown, Check } from "lucide-vue-next";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { translateMessage as t } from "../../i18n";
 import type { ProjectLoop } from "../../types/project";
 
 const props = withDefaults(
@@ -137,13 +138,14 @@ const cableOptions = [
   { size: "1.5", resistance: 12.1, label: "1.5 mm² (12.1 Ω/km)" },
   { size: "2.5", resistance: 7.41, label: "2.5 mm² (7.41 Ω/km)" },
   { size: "4.0", resistance: 4.61, label: "4.0 mm² (4.61 Ω/km)" },
-  { size: "Custom", resistance: 0, label: "Custom…" },
+  { size: "Custom", resistance: 0, label: "Custom..." },
 ];
 
 const selectedCableValue = computed(() => (isCustomCable.value ? "Custom" : (props.loop?.cable_size || "1.5")));
 
 const selectedCableLabel = computed(() => {
-  return cableOptions.find((option) => option.size === selectedCableValue.value)?.label ?? "Select cable size";
+  if (selectedCableValue.value === "Custom") return t("systemParameters.customCable");
+  return cableOptions.find((option) => option.size === selectedCableValue.value)?.label ?? t("systemParameters.selectCableSize");
 });
 
 function toggleCableMenu() {

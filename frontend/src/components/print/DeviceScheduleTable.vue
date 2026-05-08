@@ -1,18 +1,18 @@
 <template>
   <section class="print-section">
-    <h3 class="print-section-title">Device Schedule</h3>
+    <h3 class="print-section-title">{{ t("print.deviceSchedule") }}</h3>
     <table class="print-table">
       <thead>
         <tr>
           <th>#</th>
-          <th>Category</th>
-          <th>Device & Model</th>
-          <th class="text-right">Qty</th>
+          <th>{{ t("common.category") }}</th>
+          <th>{{ t("print.deviceModel") }}</th>
+          <th class="text-right">{{ t("common.qty") }}</th>
 
-          <th class="text-right">Standby</th>
-          <th class="text-right">Alarm</th>
-          <th class="text-right">Lead</th>
-          <th class="text-right">Interval</th>
+          <th class="text-right">{{ t("common.standby") }}</th>
+          <th class="text-right">{{ t("common.alarm") }}</th>
+          <th class="text-right">{{ t("deviceTable.lead") }}</th>
+          <th class="text-right">{{ t("deviceTable.interval") }}</th>
         </tr>
       </thead>
       <tbody>
@@ -20,7 +20,7 @@
           <td>{{ row.sort_order }}</td>
           <td>{{ row.category }}</td>
           <td>
-            <div class="font-semibold text-zinc-900">{{ row.product_name || row.display_name || "Unassigned device" }}</div>
+            <div class="font-semibold text-zinc-900">{{ row.product_name || row.display_name || t("print.unassignedDevice") }}</div>
             <div class="text-[10px] text-zinc-500">{{ row.customer_name || row.factory_name || row.device_type }}</div>
           </td>
           <td class="text-right tabular-nums">{{ row.qty }}</td>
@@ -37,6 +37,7 @@
 
 <script setup lang="ts">
 import type { LoopDeviceRow } from "../../types/project";
+import { translateMessage as t } from "../../i18n";
 import { formatNumber } from "../../utils/format";
 
 defineProps<{

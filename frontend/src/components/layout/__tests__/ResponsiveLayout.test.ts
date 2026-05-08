@@ -21,6 +21,19 @@ describe("responsive app layout", () => {
     expect(topBar).toContain("min-h-16");
   });
 
+  it("exposes language switching from the top toolbar", () => {
+    expect(topBar).toContain("SUPPORTED_LOCALES");
+    expect(topBar).toContain("selectedLocale");
+    expect(topBar).toContain("setLocale");
+  });
+
+  it("uses a styled custom language menu instead of the native select popup", () => {
+    expect(topBar).toContain('data-testid="language-menu-trigger"');
+    expect(topBar).toContain('data-testid="language-menu"');
+    expect(topBar).not.toContain("<select");
+    expect(topBar).toContain("isLanguageMenuOpen");
+  });
+
   it("exposes a fixed Numens website link in the app shell", () => {
     expect(appShell).toContain('href="https://www.numens.com"');
     expect(appShell).toContain('target="_blank"');

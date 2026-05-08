@@ -3,18 +3,18 @@
     <div class="flex h-full min-h-0 flex-col print:block print:h-auto print:overflow-visible">
       <div class="flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 print:hidden">
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Print Preview</p>
-          <h1 class="mt-1 text-lg font-semibold text-zinc-900">{{ workspace.activeProject?.name ?? "No active project" }}</h1>
-          <p v-if="workspace.hasUnsavedChanges" class="mt-1 text-xs text-amber-700">Printing current unsaved working state.</p>
+          <p class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("print.printPreview") }}</p>
+          <h1 class="mt-1 text-lg font-semibold text-zinc-900">{{ workspace.activeProject?.name ?? t("print.noActiveProject") }}</h1>
+          <p v-if="workspace.hasUnsavedChanges" class="mt-1 text-xs text-amber-700">{{ t("print.printingUnsaved") }}</p>
         </div>
         <div class="flex items-center gap-2">
           <RouterLink class="toolbar-button" to="/">
             <ArrowLeft class="h-4 w-4" />
-            <span>Back to Workspace</span>
+            <span>{{ t("print.backToWorkspace") }}</span>
           </RouterLink>
           <button class="toolbar-button-primary" @click="print.printNow">
             <Printer class="h-4 w-4" />
-            <span>Print</span>
+            <span>{{ t("common.print") }}</span>
           </button>
         </div>
       </div>
@@ -29,7 +29,7 @@
       </div>
 
       <div v-else class="flex flex-1 items-center justify-center p-8 text-sm text-zinc-500">
-        No active project is available for printing.
+        {{ t("print.noProjectForPrinting") }}
       </div>
     </div>
   </section>
@@ -39,6 +39,7 @@
 import { onMounted, watch } from "vue";
 import { RouterLink } from "vue-router";
 import { ArrowLeft, Printer } from "lucide-vue-next";
+import { translateMessage as t } from "../i18n";
 import PrintPageStack from "../components/print/PrintPageStack.vue";
 import PrintProfilePanel from "../components/print/PrintProfilePanel.vue";
 import { usePrintStore } from "../stores/printStore";

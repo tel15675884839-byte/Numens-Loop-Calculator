@@ -4,12 +4,12 @@
 
     <header class="print-page-header">
       <div>
-        <p class="print-kicker">Project Summary</p>
+        <p class="print-kicker">{{ t("print.projectSummary") }}</p>
         <h2 class="text-2xl font-bold text-zinc-950">{{ project.name }}</h2>
       </div>
       <div class="text-right text-xs text-zinc-500">
-        <p>Project No. {{ profile.project_no || "-" }}</p>
-        <p>Revision {{ profile.revision || "-" }}</p>
+        <p>{{ t("print.projectNo") }} {{ profile.project_no || "-" }}</p>
+        <p>{{ t("print.revision") }} {{ profile.revision || "-" }}</p>
       </div>
     </header>
 
@@ -42,17 +42,17 @@
     </section>
 
     <section class="print-section">
-      <h3 class="print-section-title">Loop Summary</h3>
+      <h3 class="print-section-title">{{ t("print.loopSummary") }}</h3>
       <table class="print-table">
         <thead>
           <tr>
-            <th>Loop</th>
-            <th class="text-right">Device Qty</th>
-            <th class="text-right">Current Used / Limit</th>
-            <th class="text-right">Distance</th>
-            <th class="text-right">End Voltage</th>
-            <th>Cable</th>
-            <th>Status</th>
+            <th>{{ t("loopTabs.loop") }}</th>
+            <th class="text-right">{{ t("print.deviceQty") }}</th>
+            <th class="text-right">{{ t("print.currentUsedLimit") }}</th>
+            <th class="text-right">{{ t("common.distance") }}</th>
+            <th class="text-right">{{ t("inspector.endVoltage") }}</th>
+            <th>{{ t("print.cable") }}</th>
+            <th>{{ t("print.status") }}</th>
           </tr>
         </thead>
         <tbody>
@@ -70,8 +70,8 @@
     </section>
 
     <footer class="print-page-footer">
-      <span>Project Summary</span>
-      <span>Page 1 of 1</span>
+      <span>{{ t("print.projectSummary") }}</span>
+      <span>{{ t("print.page") }} 1 of 1</span>
     </footer>
   </article>
 </template>
@@ -79,6 +79,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import PrintWatermark from "./PrintWatermark.vue";
+import { translateMessage as t } from "../../i18n";
 import type { ProjectLoop, ProjectPrintProfile, ProjectRecord } from "../../types/project";
 import { formatNumber } from "../../utils/format";
 import { calculateGlobalBatteryRuntime } from "../../utils/power";
@@ -89,12 +90,12 @@ const props = defineProps<{
 }>();
 
 const metadata = computed(() => [
-  { label: "Customer", value: props.profile.customer },
-  { label: "Site", value: props.profile.site },
-  { label: "Panel", value: props.profile.panel },
-  { label: "Prepared By", value: props.profile.prepared_by },
-  { label: "Issue Date", value: props.profile.issue_date },
-  { label: "Notes", value: props.profile.notes }
+  { label: t("print.customer"), value: props.profile.customer },
+  { label: t("print.site"), value: props.profile.site },
+  { label: t("print.panel"), value: props.profile.panel },
+  { label: t("print.preparedBy"), value: props.profile.prepared_by },
+  { label: t("print.issueDate"), value: props.profile.issue_date },
+  { label: t("print.notes"), value: props.profile.notes }
 ]);
 
 const battery = computed(() => calculateGlobalBatteryRuntime(props.project));
@@ -114,13 +115,13 @@ const metrics = computed(() => {
   const lowestVoltage = voltages.length > 0 ? Math.min(...voltages) : NaN;
 
   return [
-    { label: "Total Loops", value: String(loops.length) },
-    { label: "Total Devices", value: String(totalDevices) },
-    { label: "Lowest End Voltage", value: `${formatNumber(lowestVoltage, 2)} V` },
-    { label: "Worst Address Utilization", value: `${formatNumber(worstAddress, 0)}%` },
-    { label: "Worst Current Utilization", value: `${formatNumber(worstCurrent, 0)}%` },
-    { label: "Global Battery Standby Runtime", value: `${formatNumber(battery.value.standby_hours, 1)} h` },
-    { label: "Global Battery Alarm Runtime", value: `${formatNumber(battery.value.alarm_hours, 1)} h` }
+    { label: t("print.totalLoops"), value: String(loops.length) },
+    { label: t("print.totalDevices"), value: String(totalDevices) },
+    { label: t("print.lowestEndVoltage"), value: `${formatNumber(lowestVoltage, 2)} V` },
+    { label: t("print.worstAddress"), value: `${formatNumber(worstAddress, 0)}%` },
+    { label: t("print.worstCurrent"), value: `${formatNumber(worstCurrent, 0)}%` },
+    { label: t("print.globalStandbyRuntime"), value: `${formatNumber(battery.value.standby_hours, 1)} h` },
+    { label: t("print.globalAlarmRuntime"), value: `${formatNumber(battery.value.alarm_hours, 1)} h` }
   ];
 });
 
@@ -143,12 +144,11 @@ function voltageLabel(loop: ProjectLoop) {
 }
 
 function cableLabel(loop: ProjectLoop) {
-  const result = loop.calculation_result;
-  return result ? `${result.recommended_cable_size} ${result.recommended_cable_unit}` : loop.cable_size;
+  return loop.cable_size ? `${loop.cable_size} mm2` : "-";
 }
 
 function statusLabel(loop: ProjectLoop) {
   const diagnostics = loop.calculation_result?.diagnostics ?? [];
-  return diagnostics.length > 0 ? "Attention" : "Within limits";
+  return diagnostics.length > 0 ? t("inspector.attentionRequired") : t("inspector.withinLimits");
 }
 </script>
