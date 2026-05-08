@@ -1,5 +1,5 @@
 import { mount } from "@vue/test-utils";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import DeviceTable from "../DeviceTable.vue";
 import type { LoopDeviceRow } from "../../../types/project";
 import type { ProductRecord } from "../../../types/product";
@@ -62,5 +62,25 @@ describe("DeviceTable", () => {
     expect(wrapper.text()).not.toContain("Lead m");
     expect(wrapper.text()).not.toContain("Interval m");
     expect(wrapper.text()).not.toContain("Alarm mA");
+  });
+
+  it("selects numeric field text on focus so replacement typing does not append", async () => {
+    const wrapper = mount(DeviceTable, {
+      props: {
+        rows,
+        products,
+        categories: ["Detector"]
+      }
+    });
+
+    const quantityInput = wrapper.get('input[inputmode="numeric"]');
+    const selectSpy = vi.spyOn(quantityInput.element as HTMLInputElement, "select");
+
+    await quantityInput.trigger("mousedown");
+    await quantityInput.trigger("mouseup");
+    await quantityInput.trigger("click");
+
+    expect(selectSpy).toHaveBeenCalledTimes(3);
+    expect(quantityInput.attributes("type")).toBe("text");
   });
 });

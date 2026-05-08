@@ -163,18 +163,30 @@ def _coerce_text(value: Any, default: str = "") -> str:
 
 def coerce_device_input(value: LoopDeviceInput | Mapping[str, Any]) -> LoopDeviceInput:
     if isinstance(value, LoopDeviceInput):
-        return value
-    data = dict(value)
+        data = {
+            "product_id": value.product_id,
+            "display_name": value.display_name,
+            "category": value.category,
+            "standby_ma": value.standby_ma,
+            "alarm_ma": value.alarm_ma,
+            "led_cost": value.led_cost,
+            "device_type": value.device_type,
+            "lead_dist_m": value.lead_dist_m,
+            "interval_dist_m": value.interval_dist_m,
+            "qty": value.qty,
+        }
+    else:
+        data = dict(value)
     return LoopDeviceInput(
         product_id=_coerce_text(data.get("product_id"), "") or None,
         display_name=_coerce_text(data.get("display_name"), ""),
         category=_coerce_text(data.get("category"), "Other"),
-        standby_ma=_coerce_float(data.get("standby", data.get("standby_ma")), 0.5),
-        alarm_ma=_coerce_float(data.get("alarm", data.get("alarm_ma")), 0.0),
+        standby_ma=max(0.0, _coerce_float(data.get("standby", data.get("standby_ma")), 0.5)),
+        alarm_ma=max(0.0, _coerce_float(data.get("alarm", data.get("alarm_ma")), 0.0)),
         led_cost=max(0, _coerce_int(data.get("ledCost", data.get("led_cost")), 1)),
         device_type=_coerce_text(data.get("type", data.get("device_type")), ""),
-        lead_dist_m=_coerce_float(data.get("lead_dist", data.get("lead_dist_m")), 0.0),
-        interval_dist_m=_coerce_float(data.get("interval_dist", data.get("interval_dist_m")), 0.0),
+        lead_dist_m=max(0.0, _coerce_float(data.get("lead_dist", data.get("lead_dist_m")), 0.0)),
+        interval_dist_m=max(0.0, _coerce_float(data.get("interval_dist", data.get("interval_dist_m")), 0.0)),
         qty=max(0, _coerce_int(data.get("qty"), 1)),
     )
 

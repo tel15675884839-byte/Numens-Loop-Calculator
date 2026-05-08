@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { deleteProduct, listProducts, restoreProduct } from "../products";
+import { deleteProduct, listProducts, restoreProduct, verifyAdminPassword } from "../products";
 import { requestJson } from "../client";
 
 vi.mock("../client", () => ({
@@ -15,10 +15,13 @@ describe("products API", () => {
   it("requests a forced product delete when admin mode allows removing protected records", async () => {
     vi.mocked(requestJson).mockResolvedValueOnce(undefined);
 
-    await deleteProduct("product-0001", true);
+    await deleteProduct("product-0001", true, "secret");
 
     expect(requestJson).toHaveBeenCalledWith("/api/products/product-0001?force=true", {
-      method: "DELETE"
+      method: "DELETE",
+      headers: {
+        "X-Admin-Password": "secret"
+      }
     });
   });
 
@@ -45,11 +48,27 @@ describe("products API", () => {
       deleted_at: ""
     });
 
-    const restored = await restoreProduct("product-0001");
+    const restored = await restoreProduct("product-0001", "secret");
 
     expect(requestJson).toHaveBeenCalledWith("/api/products/product-0001/restore", {
-      method: "POST"
+      method: "POST",
+      headers: {
+        "X-Admin-Password": "secret"
+      }
     });
     expect(restored.deleted_at).toBe("");
+  });
+
+  it("verifies an admin password with the backend", async () => {
+    vi.mocked(requestJson).mockResolvedValueOnce({ ok: true });
+
+    await verifyAdminPassword("secret");
+
+    expect(requestJson).toHaveBeenCalledWith("/api/admin/verify", {
+      method: "POST",
+      headers: {
+        "X-Admin-Password": "secret"
+      }
+    });
   });
 });

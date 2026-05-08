@@ -19,7 +19,7 @@
         </div>
       </div>
 
-      <div v-if="workspace.activeProject && print.draftProfile" class="grid min-h-0 flex-1 grid-cols-[20rem_minmax(0,1fr)] print:block print:overflow-visible">
+      <div v-if="workspace.activeProject && print.draftProfile" class="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[20rem_minmax(0,1fr)] print:block print:overflow-visible">
         <div class="min-h-0 overflow-auto border-r border-zinc-200 bg-white p-4 print:hidden">
           <PrintProfilePanel v-if="print.editingProfile" :profile="print.editingProfile" @update="print.updateEditingProfile" />
         </div>

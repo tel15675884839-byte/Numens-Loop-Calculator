@@ -142,4 +142,12 @@ describe("PrintPageStack", () => {
     expect(styles).toContain("@container print-preview (min-width: 450mm)");
     expect(styles).toContain("grid-template-columns: repeat(2, 210mm);");
   });
+
+  it("keeps browser print preview paper white and readable in dark mode", () => {
+    expect(styles).toContain(".theme-dark .print-page");
+    expect(styles).toContain("background: #ffffff;");
+    expect(styles).toContain("color: #18181b;");
+    expect(styles).toContain(".theme-dark .print-page .print-metric-value");
+    expect(styles).toContain(".theme-dark .print-page .print-table td");
+  });
 });

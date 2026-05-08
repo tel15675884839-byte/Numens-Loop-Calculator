@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from loop_calculator.calculator import (
     LoopCalculationRequest,
+    LoopDeviceInput,
     calculate_loop,
     coerce_device_input,
     render_diagnostic_messages,
@@ -169,3 +170,23 @@ def test_coerce_device_input_handles_invalid_values() -> None:
     assert device.alarm_ma == 0.0
     assert device.led_cost == 0
     assert device.qty == 1
+
+
+def test_loop_device_input_instances_are_sanitized_before_calculation() -> None:
+    invalid_device = LoopDeviceInput(
+        display_name="Invalid",
+        qty=-10,
+        standby_ma=-0.5,
+        alarm_ma=-2.0,
+        lead_dist_m=-100.0,
+        interval_dist_m=-50.0,
+    )
+    request = LoopCalculationRequest(devices=[invalid_device])
+
+    result = calculate_loop(request)
+
+    assert result.total_addresses == 0
+    assert result.standby_current_ma == 0.0
+    assert result.total_current_ma == 0.0
+    assert result.total_distance_m == 0.0
+    assert result.end_voltage_v == result.panel_voltage_v

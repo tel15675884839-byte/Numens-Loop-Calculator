@@ -15,7 +15,8 @@ vi.mock("../../api/products", () => ({
   listCategories: vi.fn(() => Promise.resolve([])),
   listProducts: vi.fn(() => Promise.resolve([])),
   restoreProduct: vi.fn(),
-  updateProduct: vi.fn()
+  updateProduct: vi.fn(),
+  verifyAdminPassword: vi.fn(() => Promise.resolve({ ok: true }))
 }));
 
 const builtInProduct: ProductRecord = {

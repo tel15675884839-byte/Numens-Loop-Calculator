@@ -2,6 +2,11 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
+.codex-run-logs/
+build/
+dist/
+*.log
+
 backend/data/
 *dev*.log
 

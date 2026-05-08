@@ -1,6 +1,7 @@
 import { computed, ref } from "vue";
 import { defineStore } from "pinia";
-import { createCategory, createProduct, deleteProduct, listCategories, listProducts, restoreProduct, updateProduct } from "../api/products";
+import { ApiError } from "../api/client";
+import { createCategory, createProduct, deleteProduct, listCategories, listProducts, restoreProduct, updateProduct, verifyAdminPassword } from "../api/products";
 import { defaultProducts } from "../data/defaultProducts";
 import type { ProductDraft, ProductFilters, ProductRecord } from "../types/product";
 import { readJson, writeJson } from "../utils/storage";
@@ -31,6 +32,10 @@ function isRejectedDelete(cause: unknown) {
     && ((cause as { status?: unknown }).status === 403 || (cause as { status?: unknown }).status === 409);
 }
 
+function isHttpError(cause: unknown) {
+  return cause instanceof ApiError;
+}
+
 export const useProductStore = defineStore("products", () => {
   const products = ref<ProductRecord[]>(cloneProducts(defaultProducts));
   const deletedProducts = ref<ProductRecord[]>([]);
@@ -43,6 +48,17 @@ export const useProductStore = defineStore("products", () => {
   const editorMode = ref<"new" | "edit">("edit");
   const statusMessage = ref<string>("Ready");
   const isAdmin = ref(false);
+  const adminPassword = ref<string | null>(null);
+
+  function setAdminAccess(password: string | null) {
+    adminPassword.value = password;
+    isAdmin.value = Boolean(password);
+  }
+
+  async function unlockAdmin(password: string) {
+    await verifyAdminPassword(password);
+    setAdminAccess(password);
+  }
 
   const activeProduct = computed(() => products.value.find((product) => product.id === activeId.value) ?? null);
 
@@ -169,8 +185,8 @@ export const useProductStore = defineStore("products", () => {
       const payload = { ...normalized };
       const isUpdate = editorMode.value === "edit" && Boolean(normalized.id) && products.value.some((product) => product.id === normalized.id);
       const result = isUpdate && normalized.id
-        ? await updateProduct(normalized.id, payload)
-        : await createProduct(payload);
+        ? await updateProduct(normalized.id, payload, adminPassword.value)
+        : await createProduct(payload, adminPassword.value);
       if (isUpdate && normalized.id) {
         products.value = products.value.map((product) => (product.id === normalized.id ? result : product));
       } else if (normalized.id && products.value.some((product) => product.id === normalized.id)) {
@@ -186,7 +202,12 @@ export const useProductStore = defineStore("products", () => {
       editorOpen.value = true;
       statusMessage.value = "Saved";
       return result;
-    } catch {
+    } catch (cause) {
+      if (isHttpError(cause)) {
+        statusMessage.value = "Save rejected";
+        error.value = cause.message;
+        throw cause;
+      }
       const record: ProductRecord = {
         id: normalized.id ?? createId("product"),
         ...normalized
@@ -201,6 +222,7 @@ export const useProductStore = defineStore("products", () => {
       editorMode.value = "edit";
       editorOpen.value = true;
       statusMessage.value = "Saved locally";
+      error.value = "Backend unavailable; product saved locally only.";
       return record;
     }
   }
@@ -210,13 +232,18 @@ export const useProductStore = defineStore("products", () => {
       return { removed: false, message: "Built-in products are protected." };
     }
     try {
-      await deleteProduct(product.id, force);
+      await deleteProduct(product.id, force, adminPassword.value);
     } catch (cause) {
       if (isRejectedDelete(cause)) {
         statusMessage.value = "Delete rejected";
         return { removed: false, message: "Backend rejected product deletion." };
       }
-      // Fall back to local deletion when the API is unavailable.
+      if (isHttpError(cause)) {
+        statusMessage.value = "Delete rejected";
+        error.value = cause.message;
+        return { removed: false, message: "Backend rejected product deletion." };
+      }
+      error.value = "Backend unavailable; product deleted locally only.";
     }
     products.value = products.value.filter((item) => item.id !== product.id);
     deletedProducts.value = [
@@ -240,7 +267,7 @@ export const useProductStore = defineStore("products", () => {
   }
 
   async function restoreProductRecord(productId: string) {
-    const restored = await restoreProduct(productId);
+    const restored = await restoreProduct(productId, adminPassword.value);
     products.value = products.value.some((product) => product.id === restored.id)
       ? products.value.map((product) => (product.id === restored.id ? restored : product))
       : [...products.value, restored];
@@ -258,9 +285,14 @@ export const useProductStore = defineStore("products", () => {
       return trimmed;
     }
     try {
-      await createCategory(trimmed);
-    } catch {
-      // Cache only when the backend is not present.
+      await createCategory(trimmed, adminPassword.value);
+    } catch (cause) {
+      if (isHttpError(cause)) {
+        statusMessage.value = "Category rejected";
+        error.value = cause.message;
+        throw cause;
+      }
+      error.value = "Backend unavailable; category cached locally only.";
     }
     categories.value = [...categories.value, trimmed];
     writeJson(CATEGORIES_CACHE_KEY, categories.value);
@@ -287,6 +319,8 @@ export const useProductStore = defineStore("products", () => {
     filteredProducts,
     statusMessage,
     editorMode,
+    setAdminAccess,
+    unlockAdmin,
     bootstrap,
     setSearch,
     setCategory,

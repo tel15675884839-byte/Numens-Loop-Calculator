@@ -19,9 +19,9 @@ class ProductBase(BaseModel):
     factory_name: str
     customer_name: str
     product_name: str
-    standby_ma: float = 0.0
-    alarm_ma: float = 0.0
-    led_cost: int = 1
+    standby_ma: float = Field(default=0.0, ge=0)
+    alarm_ma: float = Field(default=0.0, ge=0)
+    led_cost: int = Field(default=1, ge=0)
     device_type: str = ""
     built_in: bool = False
 
@@ -51,13 +51,13 @@ class DeviceRowBase(BaseModel):
     customer_name: str = ""
     factory_name: str = ""
     product_name: str = ""
-    standby_ma: float = 0.5
-    alarm_ma: float = 0.0
-    led_cost: int = 1
+    standby_ma: float = Field(default=0.5, ge=0)
+    alarm_ma: float = Field(default=0.0, ge=0)
+    led_cost: int = Field(default=1, ge=0)
     device_type: str = ""
-    lead_dist_m: float = 0.0
-    interval_dist_m: float = 0.0
-    qty: int = 1
+    lead_dist_m: float = Field(default=0.0, ge=0)
+    interval_dist_m: float = Field(default=0.0, ge=0)
+    qty: int = Field(default=1, ge=1)
 
 
 class ProjectPrintProfile(BaseModel):
@@ -75,12 +75,12 @@ class LoopBase(BaseModel):
     id: str | None = None
     name: str
     sort_order: int = 0
-    address_limit: int = 125
-    max_current_ma: float = 400.0
-    min_voltage_v: float = 17.0
+    address_limit: int = Field(default=125, ge=1)
+    max_current_ma: float = Field(default=400.0, gt=0)
+    min_voltage_v: float = Field(default=17.0, gt=0)
     cable_size: str = ""
-    cable_resistance_ohm_per_km: float = 12.1
-    aux_current_ma: float = 0.0
+    cable_resistance_ohm_per_km: float = Field(default=12.1, gt=0)
+    aux_current_ma: float = Field(default=0.0, ge=0)
     device_rows: list[DeviceRowBase] = Field(default_factory=list)
 
 
@@ -107,23 +107,23 @@ class CalculationDevice(BaseModel):
     product_id: str | None = None
     display_name: str = ""
     category: str = "Other"
-    standby: float = 0.5
-    alarm: float = 0.0
-    ledCost: int = Field(default=1, alias="ledCost")
+    standby: float = Field(default=0.5, ge=0)
+    alarm: float = Field(default=0.0, ge=0)
+    ledCost: int = Field(default=1, ge=0, alias="ledCost")
     type_: str = Field(default="", alias="type")
-    lead_dist: float = 0.0
-    interval_dist: float = 0.0
-    qty: int = 1
+    lead_dist: float = Field(default=0.0, ge=0)
+    interval_dist: float = Field(default=0.0, ge=0)
+    qty: int = Field(default=1, ge=1)
 
     model_config = ConfigDict(populate_by_name=True)
 
 
 class CalculationRequest(BaseModel):
     devices: list[CalculationDevice] = Field(default_factory=list)
-    max_current_ma: float = 400.0
-    min_voltage_v: float = 17.0
-    cable_resistance_ohm_per_km: float = 12.1
-    addr_limit: int = 125
+    max_current_ma: float = Field(default=400.0, gt=0)
+    min_voltage_v: float = Field(default=17.0, gt=0)
+    cable_resistance_ohm_per_km: float = Field(default=12.1, gt=0)
+    addr_limit: int = Field(default=125, ge=1)
 
 
 class CalculationDiagnostic(BaseModel):

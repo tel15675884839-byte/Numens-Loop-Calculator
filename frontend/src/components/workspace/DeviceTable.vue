@@ -47,7 +47,7 @@
             </td>
             <td class="table-cell !py-3">
               <div class="relative" data-testid="lead-field">
-                <input class="field-number pr-8" :value="row.lead_dist_m" @input="updateNumber(row.id, 'lead_dist_m', inputValue($event))" />
+                <input class="field-number pr-8" :value="row.lead_dist_m" @focus="selectInputText" @mousedown.prevent="focusAndSelectInputText" @mouseup.prevent="focusAndSelectInputText" @click="focusAndSelectInputText" @input="updateNumber(row.id, 'lead_dist_m', inputValue($event))" />
                 <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-zinc-400">m</span>
               </div>
             </td>
@@ -58,13 +58,17 @@
                   :disabled="row.qty <= 1"
                   :class="{ 'cursor-not-allowed bg-zinc-50 text-zinc-400': row.qty <= 1 }"
                   :value="row.qty <= 1 ? 0 : row.interval_dist_m" 
+                  @focus="selectInputText"
+                  @mousedown.prevent="focusAndSelectInputText"
+                  @mouseup.prevent="focusAndSelectInputText"
+                  @click="focusAndSelectInputText"
                   @input="updateNumber(row.id, 'interval_dist_m', inputValue($event))" 
                 />
                 <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-zinc-400">m</span>
               </div>
             </td>
             <td class="table-cell !py-3">
-              <input class="field-number" type="number" min="1" :value="row.qty" @input="updateInteger(row.id, 'qty', inputValue($event))" />
+              <input class="field-number" type="text" inputmode="numeric" pattern="[0-9]*" :value="row.qty" @focus="selectInputText" @mousedown.prevent="focusAndSelectInputText" @mouseup.prevent="focusAndSelectInputText" @click="focusAndSelectInputText" @input="updateInteger(row.id, 'qty', inputValue($event))" />
             </td>
             <td class="table-cell !py-3">
               <div class="relative" data-testid="alarm-field">
@@ -105,6 +109,19 @@ const emit = defineEmits<{
 
 function inputValue(event: Event) {
   return (event.target as HTMLInputElement | HTMLSelectElement).value;
+}
+
+function selectInputText(event: FocusEvent) {
+  const input = event.target as HTMLInputElement;
+  input.select();
+  window.setTimeout(() => input.select(), 0);
+}
+
+function focusAndSelectInputText(event: MouseEvent) {
+  const input = event.currentTarget as HTMLInputElement;
+  input.focus();
+  input.select();
+  window.setTimeout(() => input.select(), 0);
 }
 
 function updateRow(rowId: string, patch: Partial<LoopDeviceRow>) {

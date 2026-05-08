@@ -21,7 +21,7 @@
       <div class="space-y-3">
         <div class="bg-white p-3 rounded-none border border-zinc-200 shadow-sm">
           <div class="flex justify-between items-end mb-1">
-            <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Loop Addresses</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-zinc-500">Devices Qty</span>
             <span class="text-xl font-extrabold text-zinc-800">{{ result ? `${result.total_addresses} / ${result.addr_limit}` : "0 / 125" }}</span>
           </div>
           <div class="w-full bg-zinc-100 rounded-none h-2">

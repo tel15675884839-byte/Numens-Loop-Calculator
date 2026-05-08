@@ -105,11 +105,25 @@ class SQLiteStore:
             conn.execute("UPDATE projects SET created_at = datetime('now') WHERE created_at = ''")
             conn.execute("UPDATE projects SET updated_at = datetime('now') WHERE updated_at = ''")
 
-        if self._count_products() == 0:
-            self.seed_from_json(self.seed_path)
+        self.sync_builtin_products_from_json(self.seed_path)
+
+    def sync_builtin_products_from_json(self, path: Path) -> None:
+        with path.open("r", encoding="utf-8-sig") as handle:
+            payload = json.load(handle)
+
+        seed_product_ids = [str(product["id"]) for product in payload.get("products", [])]
+        with self._connect() as conn:
+            if seed_product_ids:
+                conn.execute(
+                    f"DELETE FROM products WHERE built_in = 1 AND id NOT IN ({','.join('?' for _ in seed_product_ids)})",
+                    seed_product_ids,
+                )
+            else:
+                conn.execute("DELETE FROM products WHERE built_in = 1")
+        self.seed_from_json(path)
 
     def seed_from_json(self, path: Path) -> None:
-        with path.open("r", encoding="utf-8") as handle:
+        with path.open("r", encoding="utf-8-sig") as handle:
             payload = json.load(handle)
 
         categories = payload.get("categories", [])
@@ -218,6 +232,7 @@ class SQLiteStore:
     def create_product(self, payload: dict[str, Any]) -> dict[str, Any]:
         product_id = payload.get("id") or f"product-{uuid4().hex[:12]}"
         values = self._normalize_product_payload(payload, product_id)
+        values["built_in"] = 0
         with self._connect() as conn:
             conn.execute(
                 """
@@ -246,7 +261,6 @@ class SQLiteStore:
                     alarm_ma=:alarm_ma,
                     led_cost=:led_cost,
                     device_type=:device_type,
-                    built_in=:built_in,
                     updated_at=datetime('now')
                 WHERE id=:id AND deleted_at=''
                 """,
@@ -336,34 +350,7 @@ class SQLiteStore:
         print_profile = payload.get("print_profile")
         loops = payload.get("loops", [])
 
-        # --- Server-side validation ---
-        if len(loops) > MAX_LOOPS:
-            raise ValidationError(f"A project cannot have more than {MAX_LOOPS} loops (got {len(loops)}).")
-
-        for loop in loops:
-            device_rows = loop.get("device_rows", [])
-            address_limit = int(loop.get("address_limit", 125))
-            total_qty = 0
-            sounder_qty = 0
-            for row in device_rows:
-                qty = int(row.get("qty", 1))
-                if qty < 1:
-                    raise ValidationError(f"Device qty must be at least 1 (got {qty}).")
-                total_qty += qty
-                category = str(row.get("category", "")).strip().lower()
-                haystack = " ".join(
-                    str(row.get(k, "")) for k in ("display_name", "product_name", "customer_name", "factory_name", "device_type")
-                ).upper()
-                if category == "sounder" or "LSM" in haystack or "620-003" in haystack:
-                    sounder_qty += qty
-            if total_qty > address_limit:
-                raise ValidationError(
-                    f"Loop '{loop.get('name', '')}' has {total_qty} addresses but limit is {address_limit}."
-                )
-            if sounder_qty > MAX_SOUNDER_PER_LOOP:
-                raise ValidationError(
-                    f"Loop '{loop.get('name', '')}' has {sounder_qty} sounders but max is {MAX_SOUNDER_PER_LOOP}."
-                )
+        self._validate_project_loops(loops)
 
         with self._connect() as conn:
             if create:
@@ -386,6 +373,72 @@ class SQLiteStore:
             for loop in loops:
                 self._insert_loop(conn, project_id, loop)
             self._replace_print_profile(conn, project_id, print_profile)
+
+    def _as_int(self, value: Any, default: int, field_name: str) -> int:
+        try:
+            return int(float(value if value is not None and value != "" else default))
+        except (TypeError, ValueError) as exc:
+            raise ValidationError(f"{field_name} must be an integer.") from exc
+
+    def _as_float(self, value: Any, default: float, field_name: str) -> float:
+        try:
+            return float(value if value is not None and value != "" else default)
+        except (TypeError, ValueError) as exc:
+            raise ValidationError(f"{field_name} must be a number.") from exc
+
+    def _validate_project_loops(self, loops: list[dict[str, Any]]) -> None:
+        if len(loops) > MAX_LOOPS:
+            raise ValidationError(f"A project cannot have more than {MAX_LOOPS} loops (got {len(loops)}).")
+        for loop in loops:
+            self._validate_loop_payload(loop)
+
+    def _validate_loop_payload(self, loop: dict[str, Any]) -> None:
+        loop_name = str(loop.get("name", "") or "")
+        address_limit = self._as_int(loop.get("address_limit"), 125, "address_limit")
+        max_current_ma = self._as_float(loop.get("max_current_ma"), 400.0, "max_current_ma")
+        min_voltage_v = self._as_float(loop.get("min_voltage_v"), 17.0, "min_voltage_v")
+        cable_resistance = self._as_float(
+            loop.get("cable_resistance_ohm_per_km"),
+            12.1,
+            "cable_resistance_ohm_per_km",
+        )
+        aux_current_ma = self._as_float(loop.get("aux_current_ma"), 0.0, "aux_current_ma")
+
+        if address_limit < 1:
+            raise ValidationError("address_limit must be at least 1.")
+        if max_current_ma <= 0:
+            raise ValidationError("max_current_ma must be greater than 0.")
+        if min_voltage_v <= 0:
+            raise ValidationError("min_voltage_v must be greater than 0.")
+        if cable_resistance <= 0:
+            raise ValidationError("cable_resistance_ohm_per_km must be greater than 0.")
+        if aux_current_ma < 0:
+            raise ValidationError("aux_current_ma must be at least 0.")
+
+        total_qty = 0
+        sounder_qty = 0
+        for row in loop.get("device_rows", []):
+            qty = self._as_int(row.get("qty"), 1, "qty")
+            if qty < 1:
+                raise ValidationError(f"Device qty must be at least 1 (got {qty}).")
+            for field_name in ("standby_ma", "alarm_ma", "lead_dist_m", "interval_dist_m"):
+                if self._as_float(row.get(field_name), 0.0, field_name) < 0:
+                    raise ValidationError(f"{field_name} must be at least 0.")
+            if self._as_int(row.get("led_cost"), 1, "led_cost") < 0:
+                raise ValidationError("led_cost must be at least 0.")
+
+            total_qty += qty
+            category = str(row.get("category", "")).strip().lower()
+            haystack = " ".join(
+                str(row.get(k, "")) for k in ("display_name", "product_name", "customer_name", "factory_name", "device_type")
+            ).upper()
+            if category == "sounder" or "LSM" in haystack or "620-003" in haystack:
+                sounder_qty += qty
+
+        if total_qty > address_limit:
+            raise ValidationError(f"Loop '{loop_name}' has {total_qty} addresses but limit is {address_limit}.")
+        if sounder_qty > MAX_SOUNDER_PER_LOOP:
+            raise ValidationError(f"Loop '{loop_name}' has {sounder_qty} sounders but max is {MAX_SOUNDER_PER_LOOP}.")
 
     def get_project(self, project_id: str) -> dict[str, Any]:
         with self._connect() as conn:
@@ -431,11 +484,23 @@ class SQLiteStore:
             project = conn.execute("SELECT id FROM projects WHERE id = ?", (project_id,)).fetchone()
             if project is None:
                 raise NotFoundError(project_id)
+            row = conn.execute("SELECT COUNT(*) AS count FROM project_loops WHERE project_id = ?", (project_id,)).fetchone()
+            loop_count = int(row["count"] if row is not None else 0)
+            if loop_count >= MAX_LOOPS:
+                raise ValidationError(f"A project cannot have more than {MAX_LOOPS} loops.")
+            self._validate_loop_payload(payload)
             self._insert_loop(conn, project_id, payload, loop_id=loop_id)
         return self.get_loop(project_id, loop_id)
 
     def update_loop(self, project_id: str, loop_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         with self._connect() as conn:
+            existing = conn.execute(
+                "SELECT id FROM project_loops WHERE id = ? AND project_id = ?",
+                (loop_id, project_id),
+            ).fetchone()
+            if existing is None:
+                raise NotFoundError(loop_id)
+            self._validate_loop_payload(payload)
             cursor = conn.execute(
                 """
                 UPDATE project_loops
@@ -446,8 +511,6 @@ class SQLiteStore:
                 """,
                 self._loop_update_values(payload) + (loop_id, project_id),
             )
-            if cursor.rowcount == 0:
-                raise NotFoundError(loop_id)
         return self.get_loop(project_id, loop_id)
 
     def delete_loop(self, project_id: str, loop_id: str) -> None:

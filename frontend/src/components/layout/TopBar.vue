@@ -1,13 +1,13 @@
 <template>
-  <header class="flex h-16 items-center justify-between border-b border-zinc-200 bg-white px-4">
+  <header class="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-zinc-200 bg-white px-4 py-2 lg:h-16 lg:flex-nowrap lg:py-0">
     <div class="flex min-w-0 items-center gap-4">
       <img :src="logoSrc" class="h-8 w-auto object-contain" alt="Numens Logo" />
-      <div v-if="isWorkspace || isPrint">
+      <div v-if="isWorkspace || isPrint" class="min-w-0">
         <p class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ sectionLabel }}</p>
         <div class="flex min-w-0 items-center gap-3">
           <input
             v-if="isWorkspace"
-            class="field max-w-[18rem] border-transparent bg-transparent px-2 py-1 text-base font-semibold text-zinc-900 focus:border-blue-600 focus:bg-white"
+            class="field max-w-[12rem] border-transparent bg-transparent px-2 py-1 text-base font-semibold text-zinc-900 focus:border-blue-600 focus:bg-white sm:max-w-[18rem]"
             :value="projectName"
             @input="onProjectNameInput"
             aria-label="Project name"
@@ -17,7 +17,7 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex min-w-0 flex-wrap items-center gap-2">
       <button class="toolbar-button" :aria-label="themeToggleLabel" @click="theme.toggleTheme">
         <Sun v-if="theme.theme === 'dark'" class="h-4 w-4" />
         <Moon v-else class="h-4 w-4" />

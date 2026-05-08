@@ -271,6 +271,38 @@
   .print-diagnostics {
     @apply mt-5 border border-amber-300 bg-amber-50 p-3 text-xs text-amber-900;
   }
+
+  .theme-dark .print-page {
+    background: #ffffff;
+    color: #18181b;
+  }
+
+  .theme-dark .print-page .print-page-header,
+  .theme-dark .print-page .print-page-footer,
+  .theme-dark .print-page .print-metric,
+  .theme-dark .print-page .print-table th,
+  .theme-dark .print-page .print-table td {
+    border-color: #d4d4d8;
+  }
+
+  .theme-dark .print-page .print-kicker,
+  .theme-dark .print-page .print-metric-label,
+  .theme-dark .print-page .print-section-title,
+  .theme-dark .print-page .print-table th {
+    color: #52525b;
+  }
+
+  .theme-dark .print-page .print-metric-value {
+    color: #09090b;
+  }
+
+  .theme-dark .print-page .print-table th {
+    background: #f4f4f5;
+  }
+
+  .theme-dark .print-page .print-table td {
+    color: #27272a;
+  }
 }
 
 @page {

@@ -157,6 +157,33 @@ def test_calculation_api_matches_core_for_mixed_led_and_lsm_loads(client: TestCl
     ]
 
 
+def test_calculation_api_rejects_negative_numeric_inputs(client: TestClient) -> None:
+    response = client.post(
+        "/api/calculations/loop",
+        json={
+            "devices": [
+                {
+                    "display_name": "Invalid Device",
+                    "category": "Detector",
+                    "standby": -0.5,
+                    "alarm": -2.0,
+                    "ledCost": 1,
+                    "type": "Detector",
+                    "lead_dist": -10,
+                    "interval_dist": -5,
+                    "qty": -1,
+                }
+            ],
+            "max_current_ma": -400,
+            "min_voltage_v": 0,
+            "cable_resistance_ohm_per_km": 0,
+            "addr_limit": 0,
+        },
+    )
+
+    assert response.status_code == 422
+
+
 def test_seeded_products_support_search_and_builtin_delete_protection(client: TestClient) -> None:
     seeded = client.get("/api/products")
     assert seeded.status_code == 200
@@ -171,10 +198,14 @@ def test_seeded_products_support_search_and_builtin_delete_protection(client: Te
     search_payload = search.json()
     assert [product["id"] for product in search_payload] == ["product-0001"]
 
-    delete_builtin = client.delete("/api/products/product-0001")
+    delete_builtin = client.delete("/api/products/product-0001", headers={"X-Admin-Password": "numens888"})
     assert delete_builtin.status_code == 409
 
-    force_delete_builtin = client.delete("/api/products/product-0001", params={"force": "true"})
+    force_delete_builtin = client.delete(
+        "/api/products/product-0001",
+        params={"force": "true"},
+        headers={"X-Admin-Password": "numens888"},
+    )
     assert force_delete_builtin.status_code == 204
     backup_files = sorted((client.app.state.store.db_path.parent / "backups").glob("products-before-delete-*.json"))
     assert backup_files
@@ -188,7 +219,7 @@ def test_seeded_products_support_search_and_builtin_delete_protection(client: Te
     assert [product["id"] for product in deleted_payload] == ["product-0001"]
     assert deleted_payload[0]["deleted_at"]
 
-    restore_builtin = client.post("/api/products/product-0001/restore")
+    restore_builtin = client.post("/api/products/product-0001/restore", headers={"X-Admin-Password": "numens888"})
     assert restore_builtin.status_code == 200
     assert restore_builtin.json()["deleted_at"] == ""
 
@@ -198,6 +229,7 @@ def test_seeded_products_support_search_and_builtin_delete_protection(client: Te
 
     created = client.post(
         "/api/products",
+        headers={"X-Admin-Password": "numens888"},
         json={
             "category": "Detector",
             "factory_name": "CUSTOM-001",
@@ -216,8 +248,26 @@ def test_seeded_products_support_search_and_builtin_delete_protection(client: Te
     assert created_payload["created_at"]
     assert created_payload["updated_at"]
 
-    delete_custom = client.delete(f"/api/products/{created_id}")
+    delete_custom = client.delete(f"/api/products/{created_id}", headers={"X-Admin-Password": "numens888"})
     assert delete_custom.status_code == 204
+
+
+def test_product_writes_require_admin_and_cannot_demote_builtin_flag(client: TestClient) -> None:
+    seeded_product = next(product for product in client.get("/api/products").json() if product["id"] == "product-0001")
+
+    unauthorized_delete = client.delete("/api/products/product-0001", params={"force": "true"})
+    assert unauthorized_delete.status_code == 403
+
+    demote_response = client.put(
+        "/api/products/product-0001",
+        headers={"X-Admin-Password": "numens888"},
+        json={**seeded_product, "built_in": False},
+    )
+    assert demote_response.status_code == 200
+    assert demote_response.json()["built_in"] is True
+
+    still_protected = client.delete("/api/products/product-0001", headers={"X-Admin-Password": "numens888"})
+    assert still_protected.status_code == 409
 
 
 def test_project_save_and_reload_round_trip_preserves_loops_and_rows(client: TestClient) -> None:
@@ -282,6 +332,52 @@ def test_project_save_and_reload_round_trip_preserves_loops_and_rows(client: Tes
     assert loop["address_limit"] == 125
     assert loop["device_rows"][0]["product_id"] == "product-0001"
     assert loop["device_rows"][0]["product_name"] == "Input Module, Single Input"
+
+
+def test_loop_endpoints_reuse_project_validation_rules(client: TestClient) -> None:
+    create_project_response = client.post(
+        "/api/projects",
+        json={
+            "name": "Loop Endpoint Project",
+            "active_loop_id": None,
+            "loops": [],
+        },
+    )
+    assert create_project_response.status_code == 201
+    project_id = create_project_response.json()["id"]
+
+    invalid_loop = {
+        "name": "Invalid Loop",
+        "sort_order": 1,
+        "address_limit": 2,
+        "max_current_ma": 400,
+        "min_voltage_v": 17,
+        "cable_size": "1.5",
+        "cable_resistance_ohm_per_km": 12.1,
+        "aux_current_ma": 0,
+        "device_rows": [
+            {
+                "sort_order": 1,
+                "product_id": "product-0001",
+                "category": "I/O Module",
+                "display_name": "Input Module, Single Input",
+                "customer_name": "626-001",
+                "factory_name": "626-001",
+                "product_name": "Input Module, Single Input",
+                "standby_ma": 0.5,
+                "alarm_ma": 2.1,
+                "led_cost": 1,
+                "device_type": "I/O Module",
+                "lead_dist_m": 10.0,
+                "interval_dist_m": 5.0,
+                "qty": 3,
+            }
+        ],
+    }
+
+    create_loop_response = client.post(f"/api/projects/{project_id}/loops", json=invalid_loop)
+
+    assert create_loop_response.status_code == 422
 
 
 def test_project_print_profile_round_trip(client: TestClient) -> None:

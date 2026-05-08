@@ -24,6 +24,14 @@ interface ApiCategoryRecord {
   sort_order: number;
 }
 
+function adminHeaders(adminPassword: string | null | undefined) {
+  return adminPassword
+    ? {
+        "X-Admin-Password": adminPassword
+      }
+    : undefined;
+}
+
 function fromApiProduct(product: ApiProductRecord): ProductRecord {
   return {
     id: product.id,
@@ -67,30 +75,34 @@ export function listProducts(options: { deleted?: "active" | "only" | "all" } = 
   return requestJson<ApiProductRecord[]>(`/api/products${query ? `?${query}` : ""}`).then((products) => products.map(fromApiProduct));
 }
 
-export function createProduct(product: ProductDraft) {
+export function createProduct(product: ProductDraft, adminPassword?: string | null) {
   return requestJson<ApiProductRecord>("/api/products", {
     method: "POST",
+    headers: adminHeaders(adminPassword),
     body: JSON.stringify(toApiProduct(product))
   }).then(fromApiProduct);
 }
 
-export function updateProduct(productId: string, product: ProductDraft) {
+export function updateProduct(productId: string, product: ProductDraft, adminPassword?: string | null) {
   return requestJson<ApiProductRecord>(`/api/products/${productId}`, {
     method: "PUT",
+    headers: adminHeaders(adminPassword),
     body: JSON.stringify(toApiProduct(product))
   }).then(fromApiProduct);
 }
 
-export function deleteProduct(productId: string, force = false) {
+export function deleteProduct(productId: string, force = false, adminPassword?: string | null) {
   const forceParam = force ? "?force=true" : "";
   return requestJson<void>(`/api/products/${productId}${forceParam}`, {
-    method: "DELETE"
+    method: "DELETE",
+    headers: adminHeaders(adminPassword)
   });
 }
 
-export function restoreProduct(productId: string) {
+export function restoreProduct(productId: string, adminPassword?: string | null) {
   return requestJson<ApiProductRecord>(`/api/products/${productId}/restore`, {
-    method: "POST"
+    method: "POST",
+    headers: adminHeaders(adminPassword)
   }).then(fromApiProduct);
 }
 
@@ -98,9 +110,17 @@ export function listCategories() {
   return requestJson<ApiCategoryRecord[]>("/api/categories").then((categories) => categories.map((category) => category.name));
 }
 
-export function createCategory(name: string) {
+export function createCategory(name: string, adminPassword?: string | null) {
   return requestJson<ApiCategoryRecord>("/api/categories", {
     method: "POST",
+    headers: adminHeaders(adminPassword),
     body: JSON.stringify({ name })
   }).then((category) => category.name);
+}
+
+export function verifyAdminPassword(adminPassword: string) {
+  return requestJson<{ ok: boolean }>("/api/admin/verify", {
+    method: "POST",
+    headers: adminHeaders(adminPassword)
+  });
 }

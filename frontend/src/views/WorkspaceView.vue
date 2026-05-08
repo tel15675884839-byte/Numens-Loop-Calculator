@@ -1,6 +1,6 @@
 <template>
-  <div class="grid h-full min-h-0 grid-cols-[minmax(0,1fr)_22rem]">
-    <section class="min-h-0 overflow-hidden px-4 py-4">
+  <div class="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <section class="min-h-0 overflow-visible px-4 py-4 lg:overflow-hidden">
       <div class="flex h-full min-h-0 flex-col gap-4">
         <LoopTabs
           v-if="workspace.activeProject"
@@ -31,8 +31,8 @@
       </div>
     </section>
 
-    <div class="border-l border-zinc-200 bg-zinc-50/60 p-4">
-      <div class="sticky top-20 h-[calc(100vh-6rem)] overflow-auto">
+    <div class="border-t border-zinc-200 bg-zinc-50/60 p-4 lg:border-l lg:border-t-0">
+      <div class="h-auto overflow-visible lg:sticky lg:top-20 lg:h-[calc(100vh-6rem)] lg:overflow-auto">
         <CalculationInspector
           :loop="workspace.activeLoop"
           :project="workspace.activeProject"

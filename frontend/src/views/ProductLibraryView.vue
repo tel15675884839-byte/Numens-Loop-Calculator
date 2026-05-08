@@ -140,7 +140,7 @@ function patchDraft(patch: Partial<ProductDraft>) {
 
 async function handleAdminUnlock() {
   if (productStore.isAdmin) {
-    productStore.isAdmin = false;
+    productStore.setAdminAccess(null);
     return;
   }
   const pwd = await dialog.prompt({
@@ -149,9 +149,12 @@ async function handleAdminUnlock() {
     initialValue: "",
     confirmLabel: "Unlock"
   });
-  if (pwd === "numens888") {
-    productStore.isAdmin = true;
-  } else if (pwd !== null) {
+  if (pwd === null) {
+    return;
+  }
+  try {
+    await productStore.unlockAdmin(pwd);
+  } catch {
     await dialog.alert({
       title: "Access Denied",
       message: "Incorrect password."

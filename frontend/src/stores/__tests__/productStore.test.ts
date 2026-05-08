@@ -2,7 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 
 import { useProductStore } from "../productStore";
-import { deleteProduct, listProducts, restoreProduct } from "../../api/products";
+import { createCategory, createProduct, deleteProduct, listProducts, restoreProduct, verifyAdminPassword } from "../../api/products";
+import { ApiError } from "../../api/client";
 import type { ProductRecord } from "../../types/product";
 
 vi.mock("../../api/products", () => ({
@@ -12,7 +13,8 @@ vi.mock("../../api/products", () => ({
   listCategories: vi.fn(() => Promise.resolve([])),
   listProducts: vi.fn(() => Promise.resolve([])),
   restoreProduct: vi.fn(),
-  updateProduct: vi.fn()
+  updateProduct: vi.fn(),
+  verifyAdminPassword: vi.fn(() => Promise.resolve({ ok: true }))
 }));
 
 const protectedProduct: ProductRecord = {
@@ -49,10 +51,11 @@ describe("productStore", () => {
   it("passes force to the API and removes a built-in product after admin confirmation", async () => {
     const store = useProductStore();
     store.products = [protectedProduct];
+    store.setAdminAccess("secret");
 
     const result = await store.removeProduct(protectedProduct, true);
 
-    expect(deleteProduct).toHaveBeenCalledWith("product-0001", true);
+    expect(deleteProduct).toHaveBeenCalledWith("product-0001", true, "secret");
     expect(result).toEqual({ removed: true, message: "Product removed." });
     expect(store.products).toEqual([]);
   });
@@ -61,6 +64,7 @@ describe("productStore", () => {
     vi.mocked(deleteProduct).mockRejectedValueOnce(Object.assign(new Error("protected"), { status: 409 }));
     const store = useProductStore();
     store.products = [protectedProduct];
+    store.setAdminAccess("secret");
 
     const result = await store.removeProduct(protectedProduct, true);
 
@@ -74,15 +78,58 @@ describe("productStore", () => {
     vi.mocked(restoreProduct).mockResolvedValueOnce({ ...protectedProduct, deleted_at: "" });
     const store = useProductStore();
     store.products = [];
+    store.setAdminAccess("secret");
 
     await store.loadDeletedProducts();
     const result = await store.restoreProductRecord(protectedProduct.id);
 
     expect(listProducts).toHaveBeenCalledWith({ deleted: "only" });
-    expect(restoreProduct).toHaveBeenCalledWith(protectedProduct.id);
+    expect(restoreProduct).toHaveBeenCalledWith(protectedProduct.id, "secret");
     expect(result).toEqual({ restored: true, message: "Product restored." });
     expect(store.deletedProducts).toEqual([]);
     expect(store.products).toEqual([{ ...protectedProduct, deleted_at: "" }]);
     expect(store.statusMessage).toBe("Restored");
+  });
+
+  it("validates admin access through the backend before enabling product edits", async () => {
+    const store = useProductStore();
+
+    await store.unlockAdmin("secret");
+
+    expect(verifyAdminPassword).toHaveBeenCalledWith("secret");
+    expect(store.isAdmin).toBe(true);
+  });
+
+  it("does not silently save locally when the backend rejects a product write", async () => {
+    vi.mocked(createProduct).mockRejectedValueOnce(new ApiError("Request failed with status 422", 422, {}));
+    const store = useProductStore();
+    store.setAdminAccess("secret");
+    store.products = [];
+
+    await expect(store.saveProduct({
+      category: "Detector",
+      factory_name: "Invalid",
+      customer_name: "Invalid",
+      product_name: "Invalid",
+      standby: -0.5,
+      alarm: 2,
+      ledCost: 1,
+      type: "Detector",
+      built_in: false
+    })).rejects.toBeInstanceOf(ApiError);
+
+    expect(store.products).toEqual([]);
+    expect(store.statusMessage).toBe("Save rejected");
+  });
+
+  it("does not silently cache a category when the backend rejects the write", async () => {
+    vi.mocked(createCategory).mockRejectedValueOnce(new ApiError("Request failed with status 403", 403, {}));
+    const store = useProductStore();
+    store.setAdminAccess("bad-secret");
+    store.categories = [];
+
+    await expect(store.addCategory("Detector")).rejects.toBeInstanceOf(ApiError);
+
+    expect(store.categories).toEqual([]);
   });
 });
