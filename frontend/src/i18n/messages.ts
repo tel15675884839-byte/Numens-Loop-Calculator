@@ -49,6 +49,13 @@ export const messages = {
       projects: "Projects",
       deviceCatalog: "Device Catalog"
     },
+    categories: {
+      detector: "Detector",
+      sounder: "Sounder",
+      mcp: "MCP",
+      ioModule: "I/O Module",
+      isolator: "Isolator"
+    },
     dialogs: {
       deleteProjectTitle: "Delete project",
       deleteProjectMessage: "Are you sure you want to delete project \"{name}\"?",
@@ -238,6 +245,13 @@ export const messages = {
       loopDesigner: "مصمم الحلقة",
       projects: "المشاريع",
       deviceCatalog: "كتالوج الأجهزة"
+    },
+    categories: {
+      detector: "كاشف",
+      sounder: "صافرة",
+      mcp: "نقطة نداء",
+      ioModule: "وحدة إدخال/إخراج",
+      isolator: "عازل"
     },
     dialogs: {
       deleteProjectTitle: "حذف المشروع",
@@ -429,6 +443,13 @@ export const messages = {
       projects: "Проекты",
       deviceCatalog: "Каталог устройств"
     },
+    categories: {
+      detector: "Детектор",
+      sounder: "Оповещатель",
+      mcp: "Ручной извещатель",
+      ioModule: "Модуль ввода/вывода",
+      isolator: "Изолятор"
+    },
     dialogs: {
       deleteProjectTitle: "Удалить проект",
       deleteProjectMessage: "Удалить проект \"{name}\"?",
@@ -618,6 +639,13 @@ export const messages = {
       loopDesigner: "Loop-Designer",
       projects: "Projekte",
       deviceCatalog: "Gerätekatalog"
+    },
+    categories: {
+      detector: "Melder",
+      sounder: "Signalgeber",
+      mcp: "Handmelder",
+      ioModule: "E/A-Modul",
+      isolator: "Isolator"
     },
     dialogs: {
       deleteProjectTitle: "Projekt löschen",
@@ -809,6 +837,13 @@ export const messages = {
       projects: "Projets",
       deviceCatalog: "Catalogue"
     },
+    categories: {
+      detector: "Détecteur",
+      sounder: "Sirène",
+      mcp: "Déclencheur manuel",
+      ioModule: "Module E/S",
+      isolator: "Isolateur"
+    },
     dialogs: {
       deleteProjectTitle: "Supprimer le projet",
       deleteProjectMessage: "Voulez-vous supprimer le projet \"{name}\" ?",
@@ -998,6 +1033,13 @@ export const messages = {
       loopDesigner: "Diseñador de lazo",
       projects: "Proyectos",
       deviceCatalog: "Catálogo"
+    },
+    categories: {
+      detector: "Detector",
+      sounder: "Sirena",
+      mcp: "Pulsador manual",
+      ioModule: "Módulo E/S",
+      isolator: "Aislador"
     },
     dialogs: {
       deleteProjectTitle: "Eliminar proyecto",

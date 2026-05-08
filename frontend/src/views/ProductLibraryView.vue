@@ -37,7 +37,7 @@
           >
             <div class="min-w-0">
               <p class="truncate text-sm font-semibold text-zinc-900">{{ product.product_name || product.customer_name || product.id }}</p>
-              <p class="truncate text-xs text-zinc-500">{{ product.category }} · {{ product.factory_name }}</p>
+              <p class="truncate text-xs text-zinc-500">{{ translateCurrentCategoryLabel(product.category) }} · {{ product.factory_name }}</p>
               <p v-if="product.deleted_at" class="text-xs text-zinc-400">{{ t("products.deleted") }} {{ product.deleted_at }}</p>
             </div>
             <button class="toolbar-button-primary px-3 py-1.5 text-xs" @click="restoreDeletedProduct(product.id)">
@@ -67,7 +67,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import ProductEditorDrawer from "../components/products/ProductEditorDrawer.vue";
 import ProductFilters from "../components/products/ProductFilters.vue";
 import ProductTable from "../components/products/ProductTable.vue";
-import { translateMessage as t } from "../i18n";
+import { translateCurrentCategoryLabel, translateMessage as t } from "../i18n";
 import { useDialogStore } from "../stores/dialogStore";
 import { useProductStore } from "../stores/productStore";
 import type { ProductDraft, ProductRecord } from "../types/product";

@@ -43,7 +43,7 @@
               :class="{ 'border-blue-600 bg-blue-50 text-blue-700 font-semibold': category === item }"
               @click="$emit('update:category', item)"
             >
-              {{ item }}
+              {{ translateCurrentCategoryLabel(item) }}
             </button>
           </div>
         </div>
@@ -70,7 +70,7 @@
 
 <script setup lang="ts">
 import { CirclePlus, Lock, RotateCcw } from "lucide-vue-next";
-import { translateMessage as t } from "../../i18n";
+import { translateCurrentCategoryLabel, translateMessage as t } from "../../i18n";
 
 defineProps<{
   search: string;

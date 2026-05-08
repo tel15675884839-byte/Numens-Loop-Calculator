@@ -35,7 +35,7 @@
 
 
             <label class="flex flex-col gap-1">
-              <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("products.factoryName") }}</span>
+              <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">Factory name</span>
               <input class="field" :value="draft.factory_name" @input="patch({ factory_name: inputValue($event) })" />
             </label>
 

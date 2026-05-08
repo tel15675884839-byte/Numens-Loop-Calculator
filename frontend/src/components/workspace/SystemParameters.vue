@@ -93,7 +93,7 @@
           class="toolbar-button h-[38px] justify-center px-3 text-sm font-medium"
           @click="$emit('add-category', category)"
         >
-          {{ category }}
+          {{ translateCurrentCategoryLabel(category) }}
         </button>
       </div>
 
@@ -104,7 +104,7 @@
 <script setup lang="ts">
 import { ChevronDown, Check } from "lucide-vue-next";
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import { translateMessage as t } from "../../i18n";
+import { translateCurrentCategoryLabel, translateMessage as t } from "../../i18n";
 import type { ProjectLoop } from "../../types/project";
 
 const props = withDefaults(

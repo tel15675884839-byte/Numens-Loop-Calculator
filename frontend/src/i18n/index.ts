@@ -48,6 +48,15 @@ export function translate(locale: LocaleCode, key: string) {
   return i18n.global.t(key, {}, { locale });
 }
 
+export function translateCategoryLabel(locale: LocaleCode, category: string) {
+  const key = CATEGORY_KEYS[category.trim().toLowerCase()];
+  return key ? translate(locale, key) : category;
+}
+
+export function translateCurrentCategoryLabel(category: string) {
+  return translateCategoryLabel(i18n.global.locale.value, category);
+}
+
 export function translateMessage(key: string, values?: Record<string, string | number>) {
   return i18n.global.t(key, values ?? {});
 }
@@ -70,3 +79,11 @@ function initialLocale() {
 function isLocaleCode(locale: string): locale is LocaleCode {
   return Object.prototype.hasOwnProperty.call(messages, locale);
 }
+
+const CATEGORY_KEYS: Record<string, string> = {
+  detector: "categories.detector",
+  sounder: "categories.sounder",
+  mcp: "categories.mcp",
+  "i/o module": "categories.ioModule",
+  isolator: "categories.isolator"
+};

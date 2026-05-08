@@ -26,7 +26,7 @@
                     class="h-4 w-4 transition-transform"
                     :class="{ '-rotate-90': collapsedSections[category as string] }"
                   />
-                  {{ category }}
+                  {{ translateCurrentCategoryLabel(category as string) }}
                   <span class="ml-1 rounded-full bg-zinc-200/60 px-2 py-0.5 text-[10px] font-normal normal-case text-zinc-500">
                     {{ groupProducts.length }}
                   </span>
@@ -49,7 +49,7 @@
                   :value="product.category"
                   @change="updateField(product, 'category', $event)"
                 />
-                <span v-else>{{ product.category }}</span>
+                <span v-else>{{ translateCurrentCategoryLabel(product.category) }}</span>
               </td>
               <td class="table-cell">
                 <input
@@ -112,7 +112,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { ChevronDown, Trash2 } from "lucide-vue-next";
-import { translateMessage as t } from "../../i18n";
+import { translateCurrentCategoryLabel, translateMessage as t } from "../../i18n";
 import type { ProductRecord } from "../../types/product";
 
 const props = defineProps<{

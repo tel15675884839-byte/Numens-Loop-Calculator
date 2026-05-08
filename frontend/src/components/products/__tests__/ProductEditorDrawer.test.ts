@@ -2,6 +2,7 @@ import { mount } from "@vue/test-utils";
 import { describe, expect, it } from "vitest";
 
 import ProductEditorDrawer from "../ProductEditorDrawer.vue";
+import { setLocale } from "../../../i18n";
 
 const builtInDraft = {
   id: "product-0001",
@@ -37,5 +38,23 @@ describe("ProductEditorDrawer", () => {
 
     expect(locked.get("button[aria-label='Delete product']").attributes("disabled")).toBeDefined();
     expect(unlocked.get("button[aria-label='Delete product']").attributes("disabled")).toBeUndefined();
+  });
+
+  it("keeps Factory name label in English while translating other editor labels", () => {
+    setLocale("de");
+    const wrapper = mount(ProductEditorDrawer, {
+      props: {
+        open: true,
+        draft: builtInDraft,
+        categories: ["Detector"],
+        isAdmin: true
+      }
+    });
+
+    expect(wrapper.text()).toContain("Factory name");
+    expect(wrapper.text()).toContain("Produktname");
+    expect(wrapper.text()).not.toContain("Werksname");
+
+    setLocale("en");
   });
 });

@@ -18,7 +18,7 @@
       <tbody>
         <tr v-for="row in rows" :key="row.id">
           <td>{{ row.sort_order }}</td>
-          <td>{{ row.category }}</td>
+          <td>{{ translateCurrentCategoryLabel(row.category) }}</td>
           <td>
             <div class="font-semibold text-zinc-900">{{ row.product_name || row.display_name || t("print.unassignedDevice") }}</div>
             <div class="text-[10px] text-zinc-500">{{ row.customer_name || row.factory_name || row.device_type }}</div>
@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 import type { LoopDeviceRow } from "../../types/project";
-import { translateMessage as t } from "../../i18n";
+import { translateCurrentCategoryLabel, translateMessage as t } from "../../i18n";
 import { formatNumber } from "../../utils/format";
 
 defineProps<{

@@ -5,6 +5,7 @@ import {
   LOCALE_STORAGE_KEY,
   SUPPORTED_LOCALES,
   getTextDirection,
+  translateCategoryLabel,
   normalizeLocale,
   setLocale,
   translate
@@ -45,5 +46,14 @@ describe("i18n", () => {
     expect(translate("es", "nav.deviceCatalog")).toBe("Catálogo");
     expect(translate("ru", "inspector.endVoltage")).toBe("Конечное напряжение");
     expect(translate("ar", "inspector.alarmLoad")).toBe("حمل الإنذار");
+  });
+
+  it("translates built-in category labels without changing their source values", () => {
+    expect(translateCategoryLabel("de", "Detector")).toBe("Melder");
+    expect(translateCategoryLabel("fr", "Sounder")).toBe("Sirène");
+    expect(translateCategoryLabel("es", "I/O Module")).toBe("Módulo E/S");
+    expect(translateCategoryLabel("ru", "Isolator")).toBe("Изолятор");
+    expect(translateCategoryLabel("ar", "MCP")).toBe("نقطة نداء");
+    expect(translateCategoryLabel("de", "Custom Category")).toBe("Custom Category");
   });
 });

@@ -35,12 +35,12 @@
           <tr v-for="row in rows" :key="row.id">
             <td class="table-cell !py-3 text-center text-xs text-zinc-500">{{ row.sort_order }}</td>
             <td class="table-cell !py-3">
-              <input class="field cursor-not-allowed bg-zinc-50 text-zinc-400" disabled :value="row.category" />
+              <input class="field cursor-not-allowed bg-zinc-50 text-zinc-400" disabled :value="translateCurrentCategoryLabel(row.category)" />
             </td>
             <td class="table-cell !py-3">
               <select class="field" :value="row.product_id ?? ''" @change="onProductSelect(row.id, inputValue($event))">
                 <option v-for="product in productOptionsForRow(row)" :key="product.id" :value="product.id">
-                  {{ product.category }} - {{ product.customer_name }} - {{ product.product_name }}
+                  {{ translateCurrentCategoryLabel(product.category) }} - {{ product.customer_name }} - {{ product.product_name }}
                 </option>
               </select>
             </td>
@@ -89,7 +89,7 @@
 
 <script setup lang="ts">
 import { Trash2, HelpCircle } from "lucide-vue-next";
-import { translateMessage as t } from "../../i18n";
+import { translateCurrentCategoryLabel, translateMessage as t } from "../../i18n";
 import type { LoopDeviceRow } from "../../types/project";
 import type { ProductRecord } from "../../types/product";
 
