@@ -16,6 +16,18 @@ const products: ProductRecord[] = [
     ledCost: 1,
     type: "Detector",
     built_in: true
+  },
+  {
+    id: "product-2",
+    category: "MCP",
+    factory_name: "660-001",
+    customer_name: "660-001",
+    product_name: "Manual Call Point",
+    standby: 0.4,
+    alarm: 2,
+    ledCost: 1,
+    type: "MCP",
+    built_in: true
   }
 ];
 
@@ -33,6 +45,26 @@ const rows: LoopDeviceRow[] = [
     alarm_ma: 2,
     led_cost: 1,
     device_type: "Detector",
+    lead_dist_m: 10,
+    interval_dist_m: 10,
+    qty: 1
+  }
+];
+
+const mcpRows: LoopDeviceRow[] = [
+  {
+    id: "row-2",
+    sort_order: 1,
+    product_id: "product-2",
+    category: "MCP",
+    display_name: "Manual Call Point",
+    customer_name: "660-001",
+    factory_name: "660-001",
+    product_name: "Manual Call Point",
+    standby_ma: 0.4,
+    alarm_ma: 2,
+    led_cost: 1,
+    device_type: "MCP",
     lead_dist_m: 10,
     interval_dist_m: 10,
     qty: 1
@@ -84,5 +116,19 @@ describe("DeviceTable", () => {
 
     expect(selectSpy).toHaveBeenCalledTimes(3);
     expect(quantityInput.attributes("type")).toBe("text");
+  });
+
+  it("shows device options as product name followed by model code without category prefix", () => {
+    const wrapper = mount(DeviceTable, {
+      props: {
+        rows: mcpRows,
+        products,
+        categories: ["Detector", "MCP"]
+      }
+    });
+
+    const optionText = wrapper.get("option").text();
+    expect(optionText).toBe("Manual Call Point - 660-001");
+    expect(optionText).not.toContain("MCP -");
   });
 });

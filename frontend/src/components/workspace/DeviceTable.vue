@@ -40,7 +40,7 @@
             <td class="table-cell !py-3">
               <select class="field" :value="row.product_id ?? ''" @change="onProductSelect(row.id, inputValue($event))">
                 <option v-for="product in productOptionsForRow(row)" :key="product.id" :value="product.id">
-                  {{ translateCurrentCategoryLabel(product.category) }} - {{ product.customer_name }} - {{ product.product_name }}
+                  {{ formatProductOption(product) }}
                 </option>
               </select>
             </td>
@@ -89,7 +89,7 @@
 
 <script setup lang="ts">
 import { Trash2, HelpCircle } from "lucide-vue-next";
-import { translateCurrentCategoryLabel, translateMessage as t } from "../../i18n";
+import { translateCurrentCategoryLabel, translateCurrentProductNameLabel, translateMessage as t } from "../../i18n";
 import type { LoopDeviceRow } from "../../types/project";
 import type { ProductRecord } from "../../types/product";
 
@@ -151,5 +151,11 @@ function onProductSelect(rowId: string, productId: string) {
 
 function productOptionsForRow(row: LoopDeviceRow) {
   return props.products.filter((product) => product.category === row.category);
+}
+
+function formatProductOption(product: ProductRecord) {
+  const productName = translateCurrentProductNameLabel(product.product_name || product.customer_name || product.factory_name || product.id);
+  const modelCode = product.customer_name || product.factory_name;
+  return modelCode ? `${productName} - ${modelCode}` : productName;
 }
 </script>

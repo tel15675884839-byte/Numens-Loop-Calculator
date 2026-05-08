@@ -20,7 +20,7 @@
           <td>{{ row.sort_order }}</td>
           <td>{{ translateCurrentCategoryLabel(row.category) }}</td>
           <td>
-            <div class="font-semibold text-zinc-900">{{ row.product_name || row.display_name || t("print.unassignedDevice") }}</div>
+            <div class="font-semibold text-zinc-900">{{ translateCurrentProductNameLabel(row.product_name || row.display_name || t("print.unassignedDevice")) }}</div>
             <div class="text-[10px] text-zinc-500">{{ row.customer_name || row.factory_name || row.device_type }}</div>
           </td>
           <td class="text-right tabular-nums">{{ row.qty }}</td>
@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 import type { LoopDeviceRow } from "../../types/project";
-import { translateCurrentCategoryLabel, translateMessage as t } from "../../i18n";
+import { translateCurrentCategoryLabel, translateCurrentProductNameLabel, translateMessage as t } from "../../i18n";
 import { formatNumber } from "../../utils/format";
 
 defineProps<{

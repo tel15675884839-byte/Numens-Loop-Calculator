@@ -6,6 +6,7 @@ import {
   SUPPORTED_LOCALES,
   getTextDirection,
   translateCategoryLabel,
+  translateProductNameLabel,
   normalizeLocale,
   setLocale,
   translate
@@ -55,5 +56,28 @@ describe("i18n", () => {
     expect(translateCategoryLabel("ru", "Isolator")).toBe("Изолятор");
     expect(translateCategoryLabel("ar", "MCP")).toBe("نقطة نداء");
     expect(translateCategoryLabel("de", "Custom Category")).toBe("Custom Category");
+  });
+
+  it("translates built-in product names without changing model codes", () => {
+    expect(translateProductNameLabel("de", "Manual Call Point")).toBe("Handmelder");
+    expect(translateProductNameLabel("fr", "Heat Detector")).toBe("Détecteur de chaleur");
+    expect(translateProductNameLabel("es", "Smoke Detector")).toBe("Detector de humo");
+    expect(translateProductNameLabel("ru", "Input Module")).toBe("Модуль ввода");
+    expect(translateProductNameLabel("ar", "Output Module")).toBe("وحدة إخراج");
+    expect(translateProductNameLabel("de", "Custom Product 660-001")).toBe("Custom Product 660-001");
+  });
+
+  it("translates compound built-in product names by phrase", () => {
+    expect(translateProductNameLabel("ru", "Heat Detector, Remote LED Output")).toBe("Тепловой детектор, выносной светодиодный выход");
+    expect(translateProductNameLabel("ru", "Smoke/Heat Detector, Remote LED Output")).toBe("Дымовой/тепловой детектор, выносной светодиодный выход");
+    expect(translateProductNameLabel("ru", "Alarm Zone Input Module, Externally Powered")).toBe("Модуль входа зоны тревоги, внешнее питание");
+    expect(translateProductNameLabel("ru", "Input/Output Module, Twin Input/Outputs, Isolator")).toBe("Модуль ввода/вывода, два входа/выхода, изолятор");
+    expect(translateProductNameLabel("ru", "Mains Switching Input/Output Module, Twin Input/Outputs, Isolator")).toBe("Модуль ввода/вывода коммутации сети, два входа/выхода, изолятор");
+    expect(translateProductNameLabel("ru", "Mini Input Module, Single Contact Input")).toBe("Мини-модуль ввода, один контактный вход");
+    expect(translateProductNameLabel("ru", "Sounder, Audible/Visual Alarm, Weatherproof")).toBe("Оповещатель, звуковая/световая тревога, погодозащищенный");
+    expect(translateProductNameLabel("ru", "Manual Call Point, with Isolator")).toBe("Ручной извещатель, с изолятором");
+    expect(translateProductNameLabel("ru", "Mini Input Module, Detector Input, without Enclosure")).toBe("Мини-модуль ввода, вход детектора, без корпуса");
+    expect(translateProductNameLabel("ru", "Sounder, Audible Alarm, Red")).toBe("Оповещатель, звуковая тревога, красный");
+    expect(translateProductNameLabel("ru", "Sounder, Audible/Visual Alarm Device, Red/White")).toBe("Оповещатель, устройство звуковой/световой тревоги, красный/белый");
   });
 });

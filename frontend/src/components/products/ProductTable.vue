@@ -58,7 +58,7 @@
                   :value="product.product_name"
                   @change="updateField(product, 'product_name', $event)"
                 />
-                <span v-else class="text-left font-medium text-zinc-900">{{ product.product_name }}</span>
+                <span v-else class="text-left font-medium text-zinc-900">{{ translateCurrentProductNameLabel(product.product_name) }}</span>
               </td>
               <td class="table-cell">
                 <input
@@ -112,7 +112,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { ChevronDown, Trash2 } from "lucide-vue-next";
-import { translateCurrentCategoryLabel, translateMessage as t } from "../../i18n";
+import { translateCurrentCategoryLabel, translateCurrentProductNameLabel, translateMessage as t } from "../../i18n";
 import type { ProductRecord } from "../../types/product";
 
 const props = defineProps<{

@@ -53,8 +53,26 @@ export function translateCategoryLabel(locale: LocaleCode, category: string) {
   return key ? translate(locale, key) : category;
 }
 
+export function translateProductNameLabel(locale: LocaleCode, productName: string) {
+  const trimmed = productName.trim();
+  const directKey = PRODUCT_NAME_KEYS[trimmed.toLowerCase()];
+  if (directKey) return translate(locale, directKey);
+
+  const sourceParts = trimmed.split(",").map((part) => part.trim());
+  const translatedParts = sourceParts.map((part) => {
+    const key = PRODUCT_NAME_KEYS[part.toLowerCase()];
+    return key ? translate(locale, key) : part;
+  });
+  const hasTranslation = translatedParts.some((part, index) => part !== sourceParts[index]);
+  return hasTranslation ? translatedParts.join(", ") : productName;
+}
+
 export function translateCurrentCategoryLabel(category: string) {
   return translateCategoryLabel(i18n.global.locale.value, category);
+}
+
+export function translateCurrentProductNameLabel(productName: string) {
+  return translateProductNameLabel(i18n.global.locale.value, productName);
 }
 
 export function translateMessage(key: string, values?: Record<string, string | number>) {
@@ -86,4 +104,50 @@ const CATEGORY_KEYS: Record<string, string> = {
   mcp: "categories.mcp",
   "i/o module": "categories.ioModule",
   isolator: "categories.isolator"
+};
+
+const PRODUCT_NAME_KEYS: Record<string, string> = {
+  "alarm zone input module": "productNames.alarmZoneInputModule",
+  "audio/visual alarm control module": "productNames.audioVisualAlarmControlModule",
+  "audible alarm": "productNames.audibleAlarm",
+  "audible/visual alarm": "productNames.audibleVisualAlarm",
+  "audible/visual alarm device": "productNames.audibleVisualAlarmDevice",
+  "audible/visual alarm/visual alarm device": "productNames.audibleVisualAlarmVisualAlarmDevice",
+  "detector input": "productNames.detectorInput",
+  "externally powered": "productNames.externallyPowered",
+  "heat detector": "productNames.heatDetector",
+  "isolator monitored input": "productNames.isolatorMonitoredInput",
+  "input/output module": "productNames.inputOutputModule",
+  "input module": "productNames.inputModule",
+  "isolator": "productNames.isolator",
+  lsm: "productNames.lsm",
+  "loop isolator": "productNames.loopIsolator",
+  "loop powered": "productNames.loopPowered",
+  "mains switching input/output module": "productNames.mainsSwitchingInputOutputModule",
+  "manual call point": "productNames.manualCallPoint",
+  "mini input module": "productNames.miniInputModule",
+  "mini output module": "productNames.miniOutputModule",
+  "output module": "productNames.outputModule",
+  red: "productNames.red",
+  "red/white": "productNames.redWhite",
+  "remote led output": "productNames.remoteLedOutput",
+  "single contact input": "productNames.singleContactInput",
+  "single detector input": "productNames.singleDetectorInput",
+  "single input": "productNames.singleInput",
+  "single input monitored": "productNames.singleInputMonitored",
+  "single input/output": "productNames.singleInputOutput",
+  "single output": "productNames.singleOutput",
+  "smoke detector": "productNames.smokeDetector",
+  "smoke/heat detector": "productNames.smokeHeatDetector",
+  sounder: "productNames.sounder",
+  "switched external dc supply": "productNames.switchedExternalDcSupply",
+  "twin inputs": "productNames.twinInputs",
+  "twin input/outputs": "productNames.twinInputOutputs",
+  "visual alarm": "productNames.visualAlarm",
+  "visual alarm/audio alarm device": "productNames.visualAlarmAudioAlarmDevice",
+  weatherproof: "productNames.weatherproof",
+  white: "productNames.white",
+  "with isolator": "productNames.withIsolator",
+  "with output relay": "productNames.withOutputRelay",
+  "without enclosure": "productNames.withoutEnclosure"
 };
