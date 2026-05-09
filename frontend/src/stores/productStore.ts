@@ -10,6 +10,8 @@ import { createId } from "../utils/ids";
 const PRODUCTS_CACHE_KEY = "loop-calculator.products";
 const CATEGORIES_CACHE_KEY = "loop-calculator.categories";
 const PRODUCTS_META_CACHE_KEY = "loop-calculator.products.meta";
+const RETIRED_BUILT_IN_PRODUCT_IDS = new Set(["product-0013", "product-0014", "product-0015", "product-0016", "product-0017", "product-0018"]);
+const RETIRED_BUILT_IN_PRODUCT_CODES = new Set(["600-001", "600-002", "600-003", "600-004", "600-005", "600-006"]);
 
 interface ProductsCacheMeta {
   source: "api" | "seed";
@@ -33,11 +35,22 @@ function cloneProducts(products: ProductRecord[]) {
   return products.map((product) => ({ ...product }));
 }
 
+function isRetiredBuiltInProduct(product: ProductRecord) {
+  return product.built_in
+    && (RETIRED_BUILT_IN_PRODUCT_IDS.has(product.id)
+      || RETIRED_BUILT_IN_PRODUCT_CODES.has(product.factory_name)
+      || RETIRED_BUILT_IN_PRODUCT_CODES.has(product.customer_name));
+}
+
+function removeRetiredBuiltInProducts(items: ProductRecord[]) {
+  return items.filter((product) => !isRetiredBuiltInProduct(product));
+}
+
 function mergeBundledProducts(cachedProducts: ProductRecord[]) {
   const customProducts = cachedProducts.filter((product) => !product.built_in);
   const bundledIds = new Set(defaultProducts.map((product) => product.id));
   const customOnly = customProducts.filter((product) => !bundledIds.has(product.id));
-  return [...cloneProducts(defaultProducts), ...customOnly.map((product) => ({ ...product }))];
+  return [...cloneProducts(removeRetiredBuiltInProducts(defaultProducts)), ...customOnly.map((product) => ({ ...product }))];
 }
 
 function shouldRefreshBundledProducts(meta: ProductsCacheMeta | null) {
@@ -115,10 +128,11 @@ export const useProductStore = defineStore("products", () => {
   }
 
   function hydrateProducts(items: ProductRecord[], source: "api" | "cache" | "seed", metaSource: ProductsCacheMeta["source"] | null = source === "api" ? "api" : source === "seed" ? "seed" : null) {
-    products.value = cloneProducts(items);
-    categories.value = categoriesFromProducts(items);
+    const activeItems = removeRetiredBuiltInProducts(items);
+    products.value = cloneProducts(activeItems);
+    categories.value = categoriesFromProducts(activeItems);
     statusMessage.value = source === "api" ? "Loaded" : source === "cache" ? "Cache" : "Seeded";
-    writeJson(PRODUCTS_CACHE_KEY, items);
+    writeJson(PRODUCTS_CACHE_KEY, activeItems);
     writeJson(CATEGORIES_CACHE_KEY, categories.value);
     if (metaSource) {
       writeJson(PRODUCTS_META_CACHE_KEY, {

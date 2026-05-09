@@ -180,4 +180,82 @@ describe("productStore", () => {
 
     expect(store.products).toEqual([apiProduct]);
   });
+
+  it("does not include retired 600 detector products in the bundled static catalog", () => {
+    const retiredCodes = new Set(["600-001", "600-002", "600-003", "600-004", "600-005", "600-006"]);
+    const retiredIds = new Set(["product-0013", "product-0014", "product-0015", "product-0016", "product-0017", "product-0018"]);
+
+    expect(defaultProducts.some((product) => retiredIds.has(product.id))).toBe(false);
+    expect(defaultProducts.some((product) => retiredCodes.has(product.factory_name) || retiredCodes.has(product.customer_name))).toBe(false);
+  });
+
+  it("removes retired built-in 600 detectors from API catalogs while preserving custom 600 products", async () => {
+    const retiredBuiltIn: ProductRecord = {
+      id: "product-0013",
+      category: "Detector",
+      factory_name: "600-001",
+      customer_name: "600-001",
+      product_name: "Smoke/Heat Detector",
+      standby: 0.26,
+      alarm: 2,
+      ledCost: 1,
+      type: "Detector",
+      built_in: true
+    };
+    const custom600Product: ProductRecord = {
+      id: "custom-600",
+      category: "Detector",
+      factory_name: "600-CUSTOM",
+      customer_name: "600-CUSTOM",
+      product_name: "Custom 600 Detector",
+      standby: 0.5,
+      alarm: 2,
+      ledCost: 1,
+      type: "Detector",
+      built_in: false
+    };
+    vi.mocked(listProducts).mockResolvedValueOnce([retiredBuiltIn, custom600Product]);
+    const store = useProductStore();
+
+    await store.bootstrap();
+
+    expect(store.products).toEqual([custom600Product]);
+    expect(JSON.parse(window.localStorage.getItem("loop-calculator.products") ?? "[]")).toEqual([custom600Product]);
+  });
+
+  it("removes retired built-in 600 detectors from offline cached catalogs", async () => {
+    vi.mocked(listProducts).mockRejectedValueOnce(new Error("offline"));
+    const retiredBuiltIn: ProductRecord = {
+      id: "product-0018",
+      category: "Detector",
+      factory_name: "600-006",
+      customer_name: "600-006",
+      product_name: "Heat Detector, Remote LED Output",
+      standby: 0.26,
+      alarm: 5,
+      ledCost: 1,
+      type: "Detector",
+      built_in: true
+    };
+    const custom600Product: ProductRecord = {
+      id: "custom-600",
+      category: "Detector",
+      factory_name: "600-CUSTOM",
+      customer_name: "600-CUSTOM",
+      product_name: "Custom 600 Detector",
+      standby: 0.5,
+      alarm: 2,
+      ledCost: 1,
+      type: "Detector",
+      built_in: false
+    };
+    window.localStorage.setItem("loop-calculator.products", JSON.stringify([retiredBuiltIn, custom600Product]));
+    window.localStorage.setItem("loop-calculator.products.meta", JSON.stringify({ source: "api", seedSignature: null }));
+    const store = useProductStore();
+
+    await store.bootstrap();
+
+    expect(store.products).toEqual([custom600Product]);
+    expect(JSON.parse(window.localStorage.getItem("loop-calculator.products") ?? "[]")).toEqual([custom600Product]);
+  });
 });
