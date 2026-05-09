@@ -1,4 +1,4 @@
-const CACHE_VERSION = "loop-calculator-static-v2";
+const CACHE_VERSION = "loop-calculator-static-v3";
 const APP_SHELL_URLS = [
   "/",
   "/index.html",
