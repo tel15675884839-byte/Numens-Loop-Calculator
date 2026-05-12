@@ -62,6 +62,9 @@
         </div>
       </div>
     </div>
+    <div class="shrink-0 border-t border-zinc-200 px-3 py-2">
+      <p class="text-[11px] text-zinc-400">v{{ appVersion }}</p>
+    </div>
   </aside>
 </template>
 
@@ -72,11 +75,13 @@ import { Layers3, LibraryBig, Pencil, Printer, Trash2 } from "lucide-vue-next";
 import { translateMessage as t } from "../../i18n";
 import { useDialogStore } from "../../stores/dialogStore";
 import { useWorkspaceStore } from "../../stores/workspaceStore";
+import { APP_VERSION } from "../../config/version";
 import type { ProjectListItem } from "../../types/project";
 
 const route = useRoute();
 const dialog = useDialogStore();
 const workspace = useWorkspaceStore();
+const appVersion = APP_VERSION;
 
 const isWorkspace = computed(() => route.name === "workspace");
 const isProducts = computed(() => route.name === "products");
