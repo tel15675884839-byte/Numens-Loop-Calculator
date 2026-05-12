@@ -18,6 +18,15 @@
     </div>
 
     <div class="flex min-w-0 flex-wrap items-center gap-2" :data-tour="isPrint ? 'print-actions' : undefined">
+      <a
+        v-if="!isTauri"
+        href="https://github.com/tel15675884839-byte/Numens-Loop-Calculator/releases/latest/download/LoopCalculatorSetup.exe"
+        class="toolbar-button"
+        download
+      >
+        <Download class="h-4 w-4" />
+        <span>{{ t("topBar.downloadDesktop") }}</span>
+      </a>
       <button class="toolbar-button" @click="onboarding.startReplay(currentTourScope)">
         <CircleHelp class="h-4 w-4" />
         <span>{{ t("topBar.help") }}</span>
@@ -101,7 +110,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { RouterLink, useRoute } from "vue-router";
-import { ArrowLeft, ChevronDown, CircleHelp, CirclePlus, FileDown, FileUp, Moon, Save, Sun } from "lucide-vue-next";
+import { ArrowLeft, ChevronDown, CircleHelp, CirclePlus, Download, FileDown, FileUp, Moon, Save, Sun } from "lucide-vue-next";
 import { SUPPORTED_LOCALES, setLocale, useTranslation, type LocaleCode } from "../../i18n";
 import { useOnboardingStore } from "../../stores/onboardingStore";
 import { useThemeStore } from "../../stores/themeStore";
@@ -118,6 +127,7 @@ const { selectedLocale, t } = useTranslation();
 
 const isWorkspace = computed(() => route.name === "workspace");
 const isPrint = computed(() => route.name === "print");
+const isTauri = window.location.protocol === "tauri:" || "__TAURI_INTERNALS__" in window;
 const currentTourScope = computed(() => isPrint.value ? "print" : "workspace");
 const sectionLabel = computed(() => {
   if (isWorkspace.value) return t("topBar.loopDesigner");

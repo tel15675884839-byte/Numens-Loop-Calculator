@@ -13,6 +13,11 @@ backend/data/
 frontend/node_modules/
 frontend/dist/
 
+# Desktop build outputs
+dist-desktop/
+dist-installer/
+installer/
+
 # Local agent/design artifacts
 .superpowers/
 

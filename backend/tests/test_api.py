@@ -184,6 +184,31 @@ def test_calculation_api_rejects_negative_numeric_inputs(client: TestClient) -> 
     assert response.status_code == 422
 
 
+def test_app_update_config_exposes_windows_manifest_url(client: TestClient) -> None:
+    response = client.get("/api/app/update-config")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["platform"] == "windows"
+    assert "program_update_manifest_url" in data
+    assert "catalog_update_manifest_url" in data
+    assert data["program_update_manifest_url"].endswith("/updates/windows/latest.json")
+    assert data["catalog_update_manifest_url"].endswith("/updates/catalog/latest.json")
+
+
+def test_api_allows_tauri_desktop_origin(client: TestClient) -> None:
+    response = client.options(
+        "/api/products",
+        headers={
+            "Origin": "http://tauri.localhost",
+            "Access-Control-Request-Method": "GET",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://tauri.localhost"
+
+
 def test_seeded_products_support_search_and_builtin_delete_protection(client: TestClient) -> None:
     seeded = client.get("/api/products")
     assert seeded.status_code == 200

@@ -1,0 +1,7 @@
+{
+  "platform": "windows",
+  "catalog_version": "2026.05.12",
+  "catalog_url": "https://numens-loop-calculator.vercel.app/updates/catalog/products_db.json",
+  "sha256": "4b81d81acde909c69e51c15c9fe85c608ec825f993bae72892256923ef247133",
+  "release_notes": "Initial product catalog"
+}

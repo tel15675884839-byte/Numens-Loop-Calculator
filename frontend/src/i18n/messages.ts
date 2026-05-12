@@ -27,6 +27,7 @@ export const messages = {
     topBar: {
       dark: "Dark",
       deviceCatalog: "Device Catalog",
+      downloadDesktop: "Download Desktop",
       export: "Export",
       help: "Help",
       import: "Import",
@@ -267,8 +268,9 @@ export const messages = {
       unsaved: "غير محفوظ"
     },
     topBar: {
-      dark: "داكن",
+      dark: "даكن",
       deviceCatalog: "كتالوج الأجهزة",
+      downloadDesktop: "تنزيل سطح المكتب",
       export: "تصدير",
       help: "مساعدة",
       import: "استيراد",
@@ -511,6 +513,7 @@ export const messages = {
     topBar: {
       dark: "Темная",
       deviceCatalog: "Каталог устройств",
+      downloadDesktop: "Скачать десктоп",
       export: "Экспорт",
       help: "Помощь",
       import: "Импорт",
@@ -753,6 +756,7 @@ export const messages = {
     topBar: {
       dark: "Dunkel",
       deviceCatalog: "Gerätekatalog",
+      downloadDesktop: "Desktop herunterladen",
       export: "Export",
       help: "Hilfe",
       import: "Import",
@@ -995,6 +999,7 @@ export const messages = {
     topBar: {
       dark: "Sombre",
       deviceCatalog: "Catalogue",
+      downloadDesktop: "Télécharger le bureau",
       export: "Exporter",
       help: "Aide",
       import: "Importer",
@@ -1237,6 +1242,7 @@ export const messages = {
     topBar: {
       dark: "Oscuro",
       deviceCatalog: "Catálogo",
+      downloadDesktop: "Descargar escritorio",
       export: "Exportar",
       help: "Ayuda",
       import: "Importar",

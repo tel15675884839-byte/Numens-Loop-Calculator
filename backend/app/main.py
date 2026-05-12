@@ -12,6 +12,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.app.schemas import (
+    AppUpdateConfigRead,
     CalculationRequest,
     CategoryBase,
     CategoryRead,
@@ -26,6 +27,7 @@ from backend.app.schemas import (
 )
 from backend.app.services import BackendService
 from backend.app.storage import NotFoundError, ProductProtectedError, SQLiteStore, ValidationError
+from backend.app.update_config import WINDOWS_CATALOG_UPDATE_MANIFEST_URL, WINDOWS_PROGRAM_UPDATE_MANIFEST_URL
 
 ADMIN_PASSWORD_ENV = "LOOP_CALCULATOR_ADMIN_PASSWORD"
 DEFAULT_ADMIN_PASSWORD = "numens888"
@@ -73,7 +75,13 @@ def create_app(db_path: Path | str | None = None, seed_path: Path | str | None =
     app = FastAPI(title="Loop Calculator Backend", lifespan=lifespan)
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+        allow_origins=[
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://tauri.localhost",
+            "https://tauri.localhost",
+            "tauri://localhost",
+        ],
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -84,6 +92,28 @@ def create_app(db_path: Path | str | None = None, seed_path: Path | str | None =
 
     def get_service(request: Request) -> BackendService:
         return request.app.state.service
+
+    @app.get("/api/app/update-config", response_model=AppUpdateConfigRead)
+    def get_update_config() -> AppUpdateConfigRead:
+        return AppUpdateConfigRead(
+            platform="windows",
+            program_update_manifest_url=WINDOWS_PROGRAM_UPDATE_MANIFEST_URL,
+            catalog_update_manifest_url=WINDOWS_CATALOG_UPDATE_MANIFEST_URL,
+        )
+
+    @app.get("/api/app/version")
+    def get_version() -> dict[str, str]:
+        return {"version": "1.0.0", "platform": "windows"}
+
+    @app.post("/api/app/sync-catalog")
+    def sync_catalog(
+        payload: dict[str, object], service: BackendService = Depends(get_service)
+    ) -> dict[str, object]:
+        products = payload.get("products", [])
+        if not isinstance(products, list):
+            raise HTTPException(status_code=422, detail="products must be a list")
+        service.store.sync_builtin_products_from_payload(products)
+        return {"synced": len(products), "status": "ok"}
 
     @app.get("/api/projects")
     def list_projects(service: BackendService = Depends(get_service)) -> list[dict[str, object]]:

@@ -10,6 +10,7 @@ import { createId } from "../utils/ids";
 const PRODUCTS_CACHE_KEY = "loop-calculator.products";
 const CATEGORIES_CACHE_KEY = "loop-calculator.categories";
 const PRODUCTS_META_CACHE_KEY = "loop-calculator.products.meta";
+const STATIC_ADMIN_PASSWORD = "numens888";
 const RETIRED_BUILT_IN_PRODUCT_IDS = new Set(["product-0013", "product-0014", "product-0015", "product-0016", "product-0017", "product-0018"]);
 const RETIRED_BUILT_IN_PRODUCT_CODES = new Set(["600-001", "600-002", "600-003", "600-004", "600-005", "600-006"]);
 
@@ -68,6 +69,10 @@ function isHttpError(cause: unknown) {
   return cause instanceof ApiError;
 }
 
+function isStaticBackendUnavailable(cause: unknown) {
+  return !isHttpError(cause);
+}
+
 export const useProductStore = defineStore("products", () => {
   const products = ref<ProductRecord[]>(cloneProducts(defaultProducts));
   const deletedProducts = ref<ProductRecord[]>([]);
@@ -88,7 +93,16 @@ export const useProductStore = defineStore("products", () => {
   }
 
   async function unlockAdmin(password: string) {
-    await verifyAdminPassword(password);
+    try {
+      await verifyAdminPassword(password);
+    } catch (cause) {
+      if (isStaticBackendUnavailable(cause) && password === STATIC_ADMIN_PASSWORD) {
+        setAdminAccess(password);
+        statusMessage.value = "Unlocked locally";
+        return;
+      }
+      throw cause;
+    }
     setAdminAccess(password);
   }
 

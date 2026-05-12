@@ -14,6 +14,12 @@ class CategoryRead(CategoryBase):
     id: int
 
 
+class AppUpdateConfigRead(BaseModel):
+    platform: str
+    program_update_manifest_url: str
+    catalog_update_manifest_url: str
+
+
 class ProductBase(BaseModel):
     category: str
     factory_name: str

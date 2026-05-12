@@ -101,6 +101,34 @@ describe("productStore", () => {
     expect(store.isAdmin).toBe(true);
   });
 
+  it("unlocks admin locally on static deployments when the backend verify endpoint is unavailable", async () => {
+    vi.mocked(verifyAdminPassword).mockRejectedValueOnce(new SyntaxError("Unexpected token '<'"));
+    const store = useProductStore();
+
+    await store.unlockAdmin("numens888");
+
+    expect(verifyAdminPassword).toHaveBeenCalledWith("numens888");
+    expect(store.isAdmin).toBe(true);
+  });
+
+  it("does not unlock locally when a real backend rejects the password", async () => {
+    vi.mocked(verifyAdminPassword).mockRejectedValueOnce(new ApiError("Request failed with status 403", 403, {}));
+    const store = useProductStore();
+
+    await expect(store.unlockAdmin("numens888")).rejects.toBeInstanceOf(ApiError);
+
+    expect(store.isAdmin).toBe(false);
+  });
+
+  it("does not unlock locally with the wrong static password", async () => {
+    vi.mocked(verifyAdminPassword).mockRejectedValueOnce(new SyntaxError("Unexpected token '<'"));
+    const store = useProductStore();
+
+    await expect(store.unlockAdmin("wrong-password")).rejects.toBeInstanceOf(SyntaxError);
+
+    expect(store.isAdmin).toBe(false);
+  });
+
   it("does not silently save locally when the backend rejects a product write", async () => {
     vi.mocked(createProduct).mockRejectedValueOnce(new ApiError("Request failed with status 422", 422, {}));
     const store = useProductStore();

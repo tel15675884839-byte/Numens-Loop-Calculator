@@ -1,0 +1,7 @@
+{
+  "platform": "windows",
+  "app_version": "1.0.0",
+  "installer_url": "https://github.com/tel15675884839-byte/Numens-Loop-Calculator/releases/download/v1.0.0/LoopCalculatorSetup.exe",
+  "sha256": "cdd223556e2b9218df3523c558a6b7d53551baca59524be67f30bb27282e96d6",
+  "release_notes": "Initial desktop release with auto-update support"
+}

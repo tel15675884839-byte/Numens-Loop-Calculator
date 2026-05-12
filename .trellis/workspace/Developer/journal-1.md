@@ -526,3 +526,151 @@ Added Vue i18n infrastructure and a top-toolbar language selector for English, A
 - Run a browser visual QA pass for Arabic and German on desktop and narrow widths, focusing on the top toolbar, right inspector cards, device table, product filters, and print preview.
 - If market-quality translations are required, have a native speaker or technical translator review the locale strings before release.
 
+---
+
+## Session 8: Windows Desktop Update Address
+
+**Date**: 2026-05-12
+**Task**: Record canonical Windows desktop update endpoint
+
+### Summary
+
+Added a single backend-owned Windows update manifest URL and documented the desktop update contract for future Agent handoffs.
+
+### Main Changes
+
+- Added `backend/app/update_config.py` with `WINDOWS_UPDATE_MANIFEST_URL` set to `https://updates.numens.com/loop-calculator/windows/latest.json`.
+- Added `GET /api/app/update-config` so future Windows desktop shells or updater workers can read the canonical address from the local backend.
+- Added `docs/windows-desktop-update.md` covering the update URL, expected backend response, future manifest shape, and offline/online update rules.
+- Added `backend.app.update_config` to `loop_calculator.spec` hidden imports for packaged Windows builds.
+- Added a backend API regression test for the update config endpoint.
+
+### Verification
+
+- [OK] Command: `pytest backend/tests/test_api.py -k update_config`
+      Result: failed before implementation because the SPA fallback returned HTML, then passed after adding the API route.
+- [OK] Command: `pytest backend/tests/`
+      Result: 11 passed.
+
+### Pitfalls
+
+- API routes that are not registered before the SPA catch-all can return `index.html` with status 200, so update clients should call explicit `/api/` endpoints and tests should parse the expected JSON response.
+
+### Next Plan
+
+- When implementing the actual desktop updater, keep Windows as the only platform and read `/api/app/update-config` instead of duplicating the URL.
+
+---
+
+## Session 9: Independent Windows Desktop Build
+
+**Date**: 2026-05-12
+**Task**: Build a real desktop app instead of browser-launched local server package
+
+### Summary
+
+Added a Tauri-based Windows desktop shell that loads the Vue build directly in a native WebView window. This is separate from the legacy `build.bat` PyInstaller package that starts `run_server.py` and opens an external browser.
+
+### Main Changes
+
+- Added `frontend/src-tauri/` with minimal Tauri 2 configuration, Rust entrypoint, and Windows icon.
+- Added `frontend` npm scripts: `desktop:build` for standalone EXE and `desktop:installer` for optional NSIS installer builds.
+- Added `build-desktop.bat` as the canonical independent desktop build command.
+- Changed Vite `base` to `./` so bundled desktop assets load from the Tauri app package.
+- Updated `docs/windows-desktop-update.md` to distinguish the desktop build from the old local-server browser package.
+- Copied the built desktop executable to `dist-desktop/LoopCalculatorDesktop.exe`.
+
+### Verification
+
+- [OK] Command: `npm run desktop:build`
+      Result: Tauri built `frontend/src-tauri/target/release/loop-calculator-desktop.exe` successfully.
+- [OK] Check: `dist-desktop/LoopCalculatorDesktop.exe`
+      Result: file exists, size 17,846,272 bytes.
+
+### Pitfalls
+
+- `build.bat` is not a desktop shell; it packages a server launcher and opens a browser.
+- Tauri NSIS installer bundling failed because first-time NSIS downloads from GitHub timed out in this environment. The standalone EXE build works with `--no-bundle`.
+- The existing `favicon.ico` was not accepted by Windows Resource Compiler, so a proper Windows `.ico` was generated from `frontend/public/icon.png`.
+
+### Next Plan
+
+- If an installer is required, retry `cd frontend && npm run desktop:installer` on a network that can download Tauri's NSIS tools, or pre-cache those tools.
+- Future update implementation should use the documented Windows update manifest URL and Tauri updater patterns, not the old browser-launched server executable.
+
+---
+
+## Session 10: Desktop SQLite Backend And Split Updates
+
+**Date**: 2026-05-12
+**Task**: Ensure Windows desktop uses local SQLite and split program/catalog update contracts
+
+### Summary
+
+Connected the Tauri desktop shell to a bundled local FastAPI backend sidecar so the desktop app uses SQLite offline. Split update configuration into separate program-update and product-catalog-update manifest URLs.
+
+### Main Changes
+
+- Added `run_backend.py`, a no-browser backend launcher for desktop sidecar use on `127.0.0.1:8765`.
+- Added `loop_calculator_backend.spec` to package `LoopCalculatorBackend.exe` with `products_db.json` and backend/core modules.
+- Updated `build-desktop.bat` to build both `LoopCalculatorDesktop.exe` and `LoopCalculatorBackend.exe`, then copy both into `dist-desktop/`.
+- Updated Tauri Rust startup to launch `LoopCalculatorBackend.exe` beside the desktop EXE and stop it when the desktop window closes.
+- Updated frontend API base resolution so Tauri builds call `http://127.0.0.1:8765` while Web production keeps using `window.location.origin`.
+- Updated backend CORS for Tauri desktop origins.
+- Split update config into `program_update_manifest_url` and `catalog_update_manifest_url`.
+- Updated `docs/windows-desktop-update.md` with desktop SQLite runtime, sidecar packaging, and separate update manifests.
+
+### Verification
+
+- [OK] Command: `pytest backend/tests/test_api.py -k "update_config or tauri_desktop_origin"`
+      Result: 2 passed after red/green cycle.
+- [OK] Command: `pytest backend/tests/test_desktop_backend.py`
+      Result: 1 passed after adding no-browser desktop backend launcher.
+- [OK] Command: `cmd /c "build-desktop.bat < NUL"`
+      Result: built `dist-desktop/LoopCalculatorDesktop.exe` and `dist-desktop/LoopCalculatorBackend.exe`.
+- [OK] Runtime check: launched `dist-desktop/LoopCalculatorDesktop.exe` and polled `http://127.0.0.1:8765/api/app/update-config` plus `/api/products`.
+      Result: desktop started backend, returned split update URLs, loaded 43 products, and created `dist-desktop/data/loop_calculator.sqlite3`.
+- [OK] Command: `pytest backend/tests/`
+      Result: 13 passed.
+- [OK] Command: `cd frontend && npm test -- --maxWorkers=1`
+      Result: 22 files and 114 tests passed.
+
+### Pitfalls
+
+- The first sidecar build used a windowed PyInstaller executable that exited silently; console subsystem plus Tauri `CREATE_NO_WINDOW` gives debuggable builds without showing a console to customers.
+- A stale `LoopCalculatorBackend.exe` process can lock the output file and cause PyInstaller `PermissionError`; stop stale desktop/backend processes before rebuilding.
+
+### Next Plan
+
+- Implement actual downloader/installer UI later: program updates should replace binaries, catalog updates should merge built-in products into SQLite while preserving customer-created rows.
+
+---
+
+## Session 11: Windows Installer Package
+
+**Date**: 2026-05-12
+**Task**: Replace two-EXE delivery with single Windows installer package
+
+### Summary
+
+Added a proper Windows installer (Inno Setup) so customers receive a single `LoopCalculatorSetup.exe` instead of two separate executables. The installer places both desktop and backend EXEs into a user-local program directory and creates a single shortcut.
+
+### Main Changes
+
+- Added `installer/loop-calculator.iss` (Inno Setup script) with lzma2 solid compression, user-level install, desktop shortcut
+- Rewrote `build-installer.bat` to use Inno Setup instead of IExpress (IExpress failed to produce output in this environment)
+- Generated `frontend/public/app.ico` from `icon.png` for proper Windows ICO format
+- Updated `docs/windows-desktop-update.md` with installer build instructions
+
+### Verification
+
+- [OK] `build-installer.bat` produced `dist-installer\LoopCalculatorSetup.exe` (50.8MB, vs 57.5MB raw total)
+- [OK] `pytest backend/tests/` → 13 passed
+- [OK] `cd frontend && npm test -- --maxWorkers=1` → 114 passed
+
+### Pitfalls
+
+- IExpress (`iexpress.exe`) failed to produce any output even with a minimal test SED on this Windows environment; switched to Inno Setup which is more reliable and has better compression
+- `favicon.ico` in the project was not a valid Windows ICO 3.00 format; had to regenerate from `icon.png`
+- Inno Setup was installed via `winget install JRSoftware.InnoSetup` since it was not pre-installed
+

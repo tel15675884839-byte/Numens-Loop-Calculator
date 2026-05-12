@@ -122,6 +122,50 @@ class SQLiteStore:
                 conn.execute("DELETE FROM products WHERE built_in = 1")
         self.seed_from_json(path)
 
+    def sync_builtin_products_from_payload(self, products: list[dict[str, Any]]) -> None:
+        product_ids = [str(product["id"]) for product in products]
+        with self._connect() as conn:
+            if product_ids:
+                conn.execute(
+                    f"DELETE FROM products WHERE built_in = 1 AND id NOT IN ({','.join('?' for _ in product_ids)})",
+                    product_ids,
+                )
+            else:
+                conn.execute("DELETE FROM products WHERE built_in = 1")
+
+            for product in products:
+                conn.execute(
+                    """
+                    INSERT INTO products (
+                        id, category, factory_name, customer_name, product_name,
+                        standby_ma, alarm_ma, led_cost, device_type, built_in
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        category=excluded.category,
+                        factory_name=excluded.factory_name,
+                        customer_name=excluded.customer_name,
+                        product_name=excluded.product_name,
+                        standby_ma=excluded.standby_ma,
+                        alarm_ma=excluded.alarm_ma,
+                        led_cost=excluded.led_cost,
+                        device_type=excluded.device_type,
+                        built_in=excluded.built_in,
+                        updated_at=datetime('now')
+                    """,
+                    (
+                        product["id"],
+                        product.get("category", "Other"),
+                        product.get("factory_name", ""),
+                        product.get("customer_name", ""),
+                        product.get("product_name", product.get("factory_name", "")),
+                        float(product.get("standby_ma", product.get("standby", 0.5))),
+                        float(product.get("alarm_ma", product.get("alarm", 2.0))),
+                        int(product.get("led_cost", product.get("ledCost", 1))),
+                        product.get("device_type", product.get("type", "")),
+                        1,
+                    ),
+                )
+
     def seed_from_json(self, path: Path) -> None:
         with path.open("r", encoding="utf-8-sig") as handle:
             payload = json.load(handle)

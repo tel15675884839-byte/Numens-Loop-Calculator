@@ -1,5 +1,21 @@
 const isDev = import.meta.env.DEV;
-const DEFAULT_API_BASE_URL = isDev ? "http://127.0.0.1:8000" : window.location.origin;
+const DESKTOP_API_BASE_URL = "http://127.0.0.1:8765";
+
+interface ApiBaseContext {
+  isDev: boolean;
+  origin: string;
+  isTauri: boolean;
+}
+
+export function resolveApiBaseUrl(context: ApiBaseContext) {
+  if (context.isTauri) {
+    return DESKTOP_API_BASE_URL;
+  }
+  return context.isDev ? "http://127.0.0.1:8000" : context.origin;
+}
+
+const isTauri = window.location.protocol === "tauri:" || "__TAURI_INTERNALS__" in window;
+const DEFAULT_API_BASE_URL = resolveApiBaseUrl({ isDev, origin: window.location.origin, isTauri });
 
 export const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL).replace(/\/+$/, "");
 
