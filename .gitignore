@@ -17,6 +17,7 @@ frontend/dist/
 dist-desktop/
 dist-installer/
 installer/
+frontend/src-tauri/target/
 
 # Local agent/design artifacts
 .superpowers/

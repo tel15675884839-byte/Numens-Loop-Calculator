@@ -11,7 +11,7 @@ const leftNav = readFileSync(resolve(process.cwd(), "src/components/layout/LeftN
 
 describe("responsive app layout", () => {
   it("keeps desktop two-column shells behind the large-screen breakpoint", () => {
-    expect(appShell).toContain("lg:grid-cols-[18rem_minmax(0,1fr)]");
+    expect(appShell).toContain("lg:grid-cols-[14.4rem_minmax(0,1fr)]");
     expect(workspaceView).toContain("lg:grid-cols-[minmax(0,1fr)_22rem]");
     expect(printPreviewView).toContain("lg:grid-cols-[20rem_minmax(0,1fr)]");
   });
