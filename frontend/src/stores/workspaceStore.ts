@@ -15,6 +15,7 @@ import type { ProductRecord } from "../types/product";
 
 const WORKSPACE_CACHE_KEY = "loop-calculator.workspace.v2";
 const MAX_LOOPS = 6;
+const MAX_SOUNDER_PER_LOOP = 32;
 
 type SaveState = "idle" | "dirty" | "saving" | "saved" | "error";
 type ProjectMode = "new" | "edit";
@@ -538,8 +539,8 @@ export const useWorkspaceStore = defineStore("workspace", () => {
     
     if (isSounder(row)) {
       const sounderTotal = loop.device_rows.reduce((sum, r) => isSounder(r) ? sum + r.qty : sum, 0);
-      if (sounderTotal >= 32) {
-        error.value = "Sounder limit (32) reached for this loop.";
+      if (sounderTotal >= MAX_SOUNDER_PER_LOOP) {
+        error.value = `Sounder limit (${MAX_SOUNDER_PER_LOOP}) reached for this loop.`;
         return false;
       }
     }
@@ -576,7 +577,7 @@ export const useWorkspaceStore = defineStore("workspace", () => {
         if (r.id !== rowId && isSounder(r)) return sum + r.qty;
         return sum;
       }, 0);
-      maxSounderAllowed = Math.max(1, 32 - otherSounderTotal);
+      maxSounderAllowed = Math.max(1, MAX_SOUNDER_PER_LOOP - otherSounderTotal);
     }
     
     const finalAllowedQty = Math.min(maxAllowed, maxSounderAllowed);

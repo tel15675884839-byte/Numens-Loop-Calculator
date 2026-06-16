@@ -359,6 +359,56 @@ def test_project_save_and_reload_round_trip_preserves_loops_and_rows(client: Tes
     assert loop["device_rows"][0]["product_name"] == "Input Module, Single Input"
 
 
+def test_project_save_and_reload_preserves_250_point_loop_limit(client: TestClient) -> None:
+    create_response = client.post(
+        "/api/projects",
+        json={
+            "name": "250 Point Project",
+            "active_loop_id": None,
+            "loops": [
+                {
+                    "name": "Loop A",
+                    "sort_order": 1,
+                    "address_limit": 250,
+                    "max_current_ma": 400,
+                    "min_voltage_v": 17,
+                    "cable_size": "1.5",
+                    "cable_resistance_ohm_per_km": 12.1,
+                    "aux_current_ma": 0,
+                    "device_rows": [
+                        {
+                            "sort_order": 1,
+                            "product_id": "product-0001",
+                            "category": "I/O Module",
+                            "display_name": "Input Module, Single Input",
+                            "customer_name": "626-001",
+                            "factory_name": "626-001",
+                            "product_name": "Input Module, Single Input",
+                            "standby_ma": 0.5,
+                            "alarm_ma": 2.1,
+                            "led_cost": 1,
+                            "device_type": "I/O Module",
+                            "lead_dist_m": 10.0,
+                            "interval_dist_m": 5.0,
+                            "qty": 130,
+                        }
+                    ],
+                }
+            ],
+        },
+    )
+
+    assert create_response.status_code == 201
+    created = create_response.json()
+
+    reload_response = client.get(f"/api/projects/{created['id']}")
+    assert reload_response.status_code == 200
+    loop = reload_response.json()["loops"][0]
+
+    assert loop["address_limit"] == 250
+    assert loop["device_rows"][0]["qty"] == 130
+
+
 def test_loop_endpoints_reuse_project_validation_rules(client: TestClient) -> None:
     create_project_response = client.post(
         "/api/projects",

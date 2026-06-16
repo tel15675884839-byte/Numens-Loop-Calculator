@@ -5,6 +5,48 @@
     </div>
     <div class="flex flex-wrap items-end justify-between gap-x-4 gap-y-3 px-4 py-4">
       <div class="flex flex-wrap items-end gap-x-3 gap-y-3">
+        <!-- Host Capacity Select -->
+        <div ref="hostMenuRef" class="relative flex w-40 flex-col gap-1">
+          <span :id="hostCapacityLabelId" class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("systemParameters.hostCapacity") }}</span>
+          <button
+            type="button"
+            data-testid="host-capacity-trigger"
+            class="flex h-[38px] w-full items-center justify-between gap-2 border border-zinc-200 bg-white px-3 text-left text-sm tabular-nums text-zinc-800 transition hover:border-zinc-300 hover:bg-zinc-50 focus-visible:border-blue-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-blue-600"
+            :aria-labelledby="hostCapacityLabelId"
+            :aria-expanded="isHostMenuOpen"
+            :aria-controls="hostMenuId"
+            aria-haspopup="true"
+            @click="toggleHostMenu"
+            @keydown.down.prevent="openHostMenu"
+            @keydown.escape.stop.prevent="closeHostMenu"
+          >
+            <span class="min-w-0 truncate">{{ selectedHostCapacityLabel }}</span>
+            <ChevronDown class="h-4 w-4 shrink-0 text-zinc-400 transition-transform" :class="{ 'rotate-180': isHostMenuOpen }" aria-hidden="true" />
+          </button>
+
+          <div
+            v-if="isHostMenuOpen"
+            :id="hostMenuId"
+            data-testid="host-capacity-menu"
+            class="absolute left-0 top-full z-30 mt-1 w-full overflow-hidden border border-zinc-200 bg-white py-1 shadow-lg"
+            @keydown.escape.stop.prevent="closeHostMenu"
+          >
+            <button
+              v-for="opt in hostCapacityOptions"
+              :key="opt.limit"
+              type="button"
+              data-testid="host-capacity-option"
+              :data-limit="opt.limit"
+              class="flex h-9 w-full items-center justify-between gap-2 px-3 text-left text-sm tabular-nums transition hover:bg-zinc-50 focus-visible:bg-blue-50 focus-visible:outline-none"
+              :class="opt.limit === selectedHostCapacity ? 'bg-blue-50 font-semibold text-blue-700' : 'text-zinc-700'"
+              @click="selectHostCapacity(opt.limit)"
+            >
+              <span class="min-w-0 truncate">{{ opt.label }}</span>
+              <Check v-if="opt.limit === selectedHostCapacity" class="h-4 w-4 shrink-0" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+
         <!-- Cable Size Select -->
         <div ref="cableMenuRef" class="relative flex w-56 flex-col gap-1">
           <span :id="cableSizeLabelId" class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("systemParameters.cableSize") }}</span>
@@ -122,8 +164,12 @@ const emit = defineEmits<{
   "add-category": [category: string];
 }>();
 
+const hostMenuRef = ref<HTMLElement | null>(null);
 const cableMenuRef = ref<HTMLElement | null>(null);
+const isHostMenuOpen = ref(false);
 const isCableMenuOpen = ref(false);
+const hostMenuId = "system-host-capacity-menu";
+const hostCapacityLabelId = "system-host-capacity-label";
 const cableMenuId = "system-cable-size-menu";
 const cableSizeLabelId = "system-cable-size-label";
 
@@ -141,6 +187,17 @@ const cableOptions = [
   { size: "Custom", resistance: 0, label: "Custom..." },
 ];
 
+const hostCapacityOptions = [
+  { limit: 125, label: "125 points" },
+  { limit: 250, label: "250 points" }
+];
+
+const selectedHostCapacity = computed(() => props.loop?.address_limit ?? 125);
+
+const selectedHostCapacityLabel = computed(() => {
+  return hostCapacityOptions.find((option) => option.limit === selectedHostCapacity.value)?.label ?? `${selectedHostCapacity.value} points`;
+});
+
 const selectedCableValue = computed(() => (isCustomCable.value ? "Custom" : (props.loop?.cable_size || "1.5")));
 
 const selectedCableLabel = computed(() => {
@@ -152,12 +209,29 @@ function toggleCableMenu() {
   isCableMenuOpen.value = !isCableMenuOpen.value;
 }
 
+function toggleHostMenu() {
+  isHostMenuOpen.value = !isHostMenuOpen.value;
+}
+
 function openCableMenu() {
   isCableMenuOpen.value = true;
 }
 
+function openHostMenu() {
+  isHostMenuOpen.value = true;
+}
+
 function closeCableMenu() {
   isCableMenuOpen.value = false;
+}
+
+function closeHostMenu() {
+  isHostMenuOpen.value = false;
+}
+
+function selectHostCapacity(limit: number) {
+  emit("update", { address_limit: limit });
+  closeHostMenu();
 }
 
 function selectCableSize(selectedSize: string) {
@@ -182,6 +256,9 @@ function selectCableSize(selectedSize: string) {
 function onDocumentMouseDown(event: MouseEvent) {
   const target = event.target;
   if (!(target instanceof Node)) return;
+  if (hostMenuRef.value && !hostMenuRef.value.contains(target)) {
+    closeHostMenu();
+  }
   if (cableMenuRef.value && !cableMenuRef.value.contains(target)) {
     closeCableMenu();
   }

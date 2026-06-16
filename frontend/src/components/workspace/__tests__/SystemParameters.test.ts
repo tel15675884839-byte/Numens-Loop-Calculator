@@ -20,6 +20,31 @@ const loop: ProjectLoop = {
 };
 
 describe("SystemParameters", () => {
+  it("lets the user switch the host capacity to 250 points", async () => {
+    const wrapper = mount(SystemParameters, {
+      props: {
+        loop,
+        categories: []
+      }
+    });
+
+    expect(wrapper.get('[data-testid="host-capacity-trigger"]').text()).toContain("125 points");
+
+    await wrapper.get('[data-testid="host-capacity-trigger"]').trigger("click");
+
+    const menu = wrapper.get('[data-testid="host-capacity-menu"]');
+    expect(menu.text()).toContain("250 points");
+
+    await wrapper.get('[data-testid="host-capacity-option"][data-limit="250"]').trigger("click");
+
+    expect(wrapper.emitted("update")?.[0]).toEqual([
+      {
+        address_limit: 250
+      }
+    ]);
+    expect(wrapper.find('[data-testid="host-capacity-menu"]').exists()).toBe(false);
+  });
+
   it("shows cable size in a compact project-styled menu", async () => {
     const wrapper = mount(SystemParameters, {
       props: {

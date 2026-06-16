@@ -55,6 +55,39 @@ describe("workspaceStore", () => {
     expect(store.error).toBe("Address limit reached for this loop.");
   });
 
+  it("allows device quantities above 125 when the active loop is switched to 250 points", () => {
+    const store = useWorkspaceStore();
+    store.createBlankProject();
+    const loopId = store.activeLoopId;
+
+    store.addDeviceRowForCategory(loopId, "Detector", [
+      { id: "detector-1", category: "Detector", factory_name: "D1", customer_name: "D1", product_name: "Detector 1", standby: 0.5, alarm: 2, ledCost: 1, type: "Detector", built_in: true }
+    ]);
+    const rowId = store.activeLoop?.device_rows[0].id ?? "";
+
+    store.updateSystemParameters(loopId, { address_limit: 250 });
+    store.updateDeviceRow(loopId, rowId, { qty: 130 });
+
+    expect(store.activeLoop?.address_limit).toBe(250);
+    expect(store.activeLoop?.device_rows[0].qty).toBe(130);
+  });
+
+  it("keeps the sounder quantity limit at 32 per loop", () => {
+    const store = useWorkspaceStore();
+    store.createBlankProject();
+    const loopId = store.activeLoopId;
+    store.updateSystemParameters(loopId, { address_limit: 250 });
+
+    store.addDeviceRowForCategory(loopId, "Sounder", [
+      { id: "sounder-1", category: "Sounder", factory_name: "S1", customer_name: "S1", product_name: "Sounder 1", standby: 0.5, alarm: 8, ledCost: 1, type: "Sounder", built_in: true }
+    ]);
+    const rowId = store.activeLoop?.device_rows[0].id ?? "";
+
+    store.updateDeviceRow(loopId, rowId, { qty: 40 });
+
+    expect(store.activeLoop?.device_rows[0].qty).toBe(32);
+  });
+
   it("starts with an empty loop when no backend or local project exists", async () => {
     const store = useWorkspaceStore();
 
