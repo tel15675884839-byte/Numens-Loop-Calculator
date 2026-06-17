@@ -359,11 +359,11 @@ def test_project_save_and_reload_round_trip_preserves_loops_and_rows(client: Tes
     assert loop["device_rows"][0]["product_name"] == "Input Module, Single Input"
 
 
-def test_project_save_and_reload_preserves_250_point_loop_limit(client: TestClient) -> None:
+def test_project_save_and_reload_preserves_250_device_loop_limit(client: TestClient) -> None:
     create_response = client.post(
         "/api/projects",
         json={
-            "name": "250 Point Project",
+            "name": "250 Device Project",
             "active_loop_id": None,
             "loops": [
                 {

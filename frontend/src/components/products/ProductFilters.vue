@@ -53,7 +53,7 @@
       <div class="flex items-center gap-2">
         <button v-if="isAdmin" class="toolbar-button px-3 py-1.5 text-xs" @click="$emit('openDeletedProducts')">
           <RotateCcw class="h-4 w-4 text-zinc-500" />
-          <span>{{ t("products.deleted") }}</span>
+          <span>{{ t("products.restore") }}</span>
         </button>
         <button v-if="isAdmin" class="toolbar-button px-3 py-1.5 text-xs" @click="$emit('adminUnlock')">
           <Lock class="h-4 w-4 text-zinc-500" />

@@ -208,6 +208,9 @@ export const useProductStore = defineStore("products", () => {
   }
 
   function closeEditor() {
+    if (editorMode.value === "new" && activeId.value) {
+      products.value = products.value.filter((p) => p.id !== activeId.value);
+    }
     editorOpen.value = false;
     activeId.value = null;
   }

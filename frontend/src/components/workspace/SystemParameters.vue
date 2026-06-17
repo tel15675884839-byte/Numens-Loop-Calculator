@@ -95,7 +95,7 @@
             <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("systemParameters.area") }}</span>
             <input
               class="field-number h-[38px] px-2 text-center"
-              :value="loop?.cable_size"
+              :value="customAreaText"
               inputmode="decimal"
               placeholder="e.g. 6.0"
               @input="onCustomAreaInput"
@@ -105,7 +105,7 @@
             <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("systemParameters.resistance") }}</span>
             <input
               class="field-number h-[38px] px-2 text-center"
-              :value="loop?.cable_resistance_ohm_per_km"
+              :value="customResText"
               inputmode="decimal"
               @input="onCustomResistanceInput"
             />
@@ -118,7 +118,7 @@
           <div class="relative" data-testid="aux-current-field">
             <input
               class="field-number h-[38px] pr-10 pl-3"
-              :value="loop?.aux_current_ma ?? 0"
+              :value="auxText"
               inputmode="decimal"
               @input="onAuxInput"
             />
@@ -145,7 +145,7 @@
 
 <script setup lang="ts">
 import { ChevronDown, Check } from "lucide-vue-next";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { translateCurrentCategoryLabel, translateMessage as t } from "../../i18n";
 import type { ProjectLoop } from "../../types/project";
 
@@ -173,6 +173,28 @@ const hostCapacityLabelId = "system-host-capacity-label";
 const cableMenuId = "system-cable-size-menu";
 const cableSizeLabelId = "system-cable-size-label";
 
+const customAreaText = ref("");
+const customResText = ref("");
+const auxText = ref("");
+
+watch(
+  () => props.loop,
+  (loop) => {
+    if (loop) {
+      if (Number(customAreaText.value) !== Number(loop.cable_size)) {
+        customAreaText.value = loop.cable_size || "";
+      }
+      if (Number(customResText.value) !== loop.cable_resistance_ohm_per_km) {
+        customResText.value = loop.cable_resistance_ohm_per_km?.toString() ?? "0";
+      }
+      if (Number(auxText.value) !== loop.aux_current_ma) {
+        auxText.value = loop.aux_current_ma?.toString() ?? "0";
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
+
 const isCustomCable = computed(() => {
   if (!props.loop) return false;
   const standardSizes = ["1.0", "1.5", "2.5", "4.0"];
@@ -188,14 +210,14 @@ const cableOptions = [
 ];
 
 const hostCapacityOptions = [
-  { limit: 125, label: "125 points" },
-  { limit: 250, label: "250 points" }
+  { limit: 125, label: "125 devices" },
+  { limit: 250, label: "250 devices" }
 ];
 
 const selectedHostCapacity = computed(() => props.loop?.address_limit ?? 125);
 
 const selectedHostCapacityLabel = computed(() => {
-  return hostCapacityOptions.find((option) => option.limit === selectedHostCapacity.value)?.label ?? `${selectedHostCapacity.value} points`;
+  return hostCapacityOptions.find((option) => option.limit === selectedHostCapacity.value)?.label ?? `${selectedHostCapacity.value} devices`;
 });
 
 const selectedCableValue = computed(() => (isCustomCable.value ? "Custom" : (props.loop?.cable_size || "1.5")));
@@ -266,6 +288,7 @@ function onDocumentMouseDown(event: MouseEvent) {
 
 function onCustomAreaInput(event: Event) {
   const value = (event.target as HTMLInputElement).value;
+  customAreaText.value = value;
   const area = Number(value);
   if (value && !isNaN(area) && area > 0) {
     const calculatedRes = Number((18.1 / area).toFixed(2));
@@ -280,6 +303,7 @@ function onCustomAreaInput(event: Event) {
 
 function onCustomResistanceInput(event: Event) {
   const value = (event.target as HTMLInputElement).value;
+  customResText.value = value;
   const res = Number(value);
   if (value && !isNaN(res)) {
     emit("update", { cable_resistance_ohm_per_km: res });
@@ -288,10 +312,13 @@ function onCustomResistanceInput(event: Event) {
 
 function onAuxInput(event: Event) {
   const value = (event.target as HTMLInputElement).value;
+  auxText.value = value;
   const numeric = value === "" ? 0 : Number(value);
-  emit("update", { 
-    aux_current_ma: Number.isFinite(numeric) ? numeric : 0 
-  });
+  if (!isNaN(numeric)) {
+    emit("update", { 
+      aux_current_ma: numeric 
+    });
+  }
 }
 
 onMounted(() => {

@@ -55,7 +55,7 @@ describe("workspaceStore", () => {
     expect(store.error).toBe("Address limit reached for this loop.");
   });
 
-  it("allows device quantities above 125 when the active loop is switched to 250 points", () => {
+  it("allows device quantities above 125 when the active loop is switched to 250 devices", () => {
     const store = useWorkspaceStore();
     store.createBlankProject();
     const loopId = store.activeLoopId;

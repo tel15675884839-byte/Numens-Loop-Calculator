@@ -85,16 +85,17 @@ describe("ProductLibraryView", () => {
       }
     });
 
-    const deletedButton = wrapper.findAll("button").find((button) => button.text().includes("Deleted"));
+    const deletedButton = wrapper.findAll("button").find((button) => button.text().includes("Restore"));
     expect(deletedButton).toBeTruthy();
     await deletedButton!.trigger("click");
 
     expect(loadDeletedSpy).toHaveBeenCalled();
     expect(wrapper.text()).toContain("Built-in Detector");
 
-    const restoreButton = wrapper.findAll("button").find((button) => button.text().includes("Restore"));
-    expect(restoreButton).toBeTruthy();
-    await restoreButton!.trigger("click");
+    const buttons = wrapper.findAll("button").filter((button) => button.text().includes("Restore"));
+    expect(buttons.length).toBe(2);
+    const restoreButton = buttons[1];
+    await restoreButton.trigger("click");
 
     expect(restoreSpy).toHaveBeenCalledWith("product-0001");
   });

@@ -168,14 +168,35 @@ async function handleAdminUnlock() {
 }
 
 async function saveProduct() {
-  await productStore.saveProduct(draft.value);
-  productStore.closeEditor();
+  try {
+    await productStore.saveProduct(draft.value);
+    productStore.closeEditor();
+  } catch (err: any) {
+    let msg = err.message || "Failed to save product.";
+    if (err && err.status === 403) {
+      msg = t("products.unlockMessage");
+    }
+    await dialog.alert({
+      title: t("products.accessDenied") || "Save Failed",
+      message: msg
+    });
+  }
 }
 
 async function saveProductInTable(product: ProductRecord) {
-  // Overwrite local mode to edit before updating
-  productStore.editorMode = "edit";
-  await productStore.saveProduct(product);
+  try {
+    productStore.editorMode = "edit";
+    await productStore.saveProduct(product);
+  } catch (err: any) {
+    let msg = err.message || "Failed to save product.";
+    if (err && err.status === 403) {
+      msg = t("products.unlockMessage");
+    }
+    await dialog.alert({
+      title: t("products.accessDenied") || "Save Failed",
+      message: msg
+    });
+  }
 }
 
 async function deleteProduct() {

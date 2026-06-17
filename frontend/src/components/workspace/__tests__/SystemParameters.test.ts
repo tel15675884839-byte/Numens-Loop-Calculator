@@ -20,7 +20,7 @@ const loop: ProjectLoop = {
 };
 
 describe("SystemParameters", () => {
-  it("lets the user switch the host capacity to 250 points", async () => {
+  it("lets the user switch the host capacity to 250 devices", async () => {
     const wrapper = mount(SystemParameters, {
       props: {
         loop,
@@ -28,12 +28,12 @@ describe("SystemParameters", () => {
       }
     });
 
-    expect(wrapper.get('[data-testid="host-capacity-trigger"]').text()).toContain("125 points");
+    expect(wrapper.get('[data-testid="host-capacity-trigger"]').text()).toContain("125 devices");
 
     await wrapper.get('[data-testid="host-capacity-trigger"]').trigger("click");
 
     const menu = wrapper.get('[data-testid="host-capacity-menu"]');
-    expect(menu.text()).toContain("250 points");
+    expect(menu.text()).toContain("250 devices");
 
     await wrapper.get('[data-testid="host-capacity-option"][data-limit="250"]').trigger("click");
 

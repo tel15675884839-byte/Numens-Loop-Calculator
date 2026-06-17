@@ -46,7 +46,7 @@
             </td>
             <td class="table-cell !py-3">
               <div class="relative" data-testid="lead-field">
-                <input class="field-number pr-8" :value="row.lead_dist_m" @focus="selectInputText" @mousedown.prevent="focusAndSelectInputText" @mouseup.prevent="focusAndSelectInputText" @click="focusAndSelectInputText" @input="updateNumber(row.id, 'lead_dist_m', inputValue($event))" />
+                <input class="field-number pr-8" :value="leadTexts[row.id] ?? row.lead_dist_m" @focus="selectInputText" @mousedown.prevent="focusAndSelectInputText" @mouseup.prevent="focusAndSelectInputText" @click="focusAndSelectInputText" @input="onLeadInput(row.id, $event)" />
                 <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-zinc-400">m</span>
               </div>
             </td>
@@ -56,12 +56,12 @@
                   class="field-number pr-8" 
                   :disabled="row.qty <= 1"
                   :class="{ 'cursor-not-allowed bg-zinc-50 text-zinc-400': row.qty <= 1 }"
-                  :value="row.qty <= 1 ? 0 : row.interval_dist_m" 
+                  :value="row.qty <= 1 ? '0' : (intervalTexts[row.id] ?? row.interval_dist_m)" 
                   @focus="selectInputText"
                   @mousedown.prevent="focusAndSelectInputText"
                   @mouseup.prevent="focusAndSelectInputText"
                   @click="focusAndSelectInputText"
-                  @input="updateNumber(row.id, 'interval_dist_m', inputValue($event))" 
+                  @input="onIntervalInput(row.id, $event)" 
                 />
                 <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-zinc-400">m</span>
               </div>
@@ -88,6 +88,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from "vue";
 import { Trash2, HelpCircle } from "lucide-vue-next";
 import { translateCurrentCategoryLabel, translateCurrentProductNameLabel, translateMessage as t } from "../../i18n";
 import type { LoopDeviceRow } from "../../types/project";
@@ -106,6 +107,42 @@ const emit = defineEmits<{
   "update-row": [rowId: string, patch: Partial<LoopDeviceRow>];
   "select-product": [rowId: string, productId: string];
 }>();
+
+const leadTexts = ref<Record<string, string>>({});
+const intervalTexts = ref<Record<string, string>>({});
+
+watch(
+  () => props.rows,
+  (newRows) => {
+    for (const row of newRows) {
+      if (Number(leadTexts.value[row.id]) !== row.lead_dist_m) {
+        leadTexts.value[row.id] = row.lead_dist_m?.toString() ?? "0";
+      }
+      if (Number(intervalTexts.value[row.id]) !== row.interval_dist_m) {
+        intervalTexts.value[row.id] = row.interval_dist_m?.toString() ?? "0";
+      }
+    }
+  },
+  { immediate: true, deep: true }
+);
+
+function onLeadInput(rowId: string, event: Event) {
+  const value = (event.target as HTMLInputElement).value;
+  leadTexts.value[rowId] = value;
+  const num = Number(value);
+  if (!isNaN(num)) {
+    emit("update-row", rowId, { lead_dist_m: num });
+  }
+}
+
+function onIntervalInput(rowId: string, event: Event) {
+  const value = (event.target as HTMLInputElement).value;
+  intervalTexts.value[rowId] = value;
+  const num = Number(value);
+  if (!isNaN(num)) {
+    emit("update-row", rowId, { interval_dist_m: num });
+  }
+}
 
 function inputValue(event: Event) {
   return (event.target as HTMLInputElement | HTMLSelectElement).value;

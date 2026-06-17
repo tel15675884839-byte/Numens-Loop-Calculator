@@ -1,6 +1,6 @@
 <template>
   <Transition name="ios-drawer">
-    <div v-if="open" class="absolute inset-y-0 right-0 z-20 w-[24rem] border-l border-zinc-200 bg-white shadow-2xl">
+    <div v-if="open" class="fixed inset-y-0 right-0 z-40 w-[24rem] border-l border-zinc-200 bg-white shadow-2xl">
       <div class="flex h-full min-h-0 flex-col">
         <div class="flex items-center justify-between border-b border-zinc-200 px-4 py-3">
           <div>
@@ -43,11 +43,11 @@
             <div class="grid grid-cols-2 gap-3">
               <label class="flex flex-col gap-1">
                 <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("products.standbyMa") }}</span>
-                <input class="field-number" inputmode="decimal" :value="draft.standby" @input="patchNumber('standby', $event)" />
+                <input class="field-number" inputmode="decimal" :value="standbyText" @input="onStandbyInput" />
               </label>
               <label class="flex flex-col gap-1">
                 <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("deviceTable.alarm") }} mA</span>
-                <input class="field-number" inputmode="decimal" :value="draft.alarm" @input="patchNumber('alarm', $event)" />
+                <input class="field-number" inputmode="decimal" :value="alarmText" @input="onAlarmInput" />
               </label>
             </div>
 
@@ -83,7 +83,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { Save, Trash2, X } from "lucide-vue-next";
 import { translateMessage as t } from "../../i18n";
 import type { ProductDraft } from "../../types/product";
@@ -101,6 +101,46 @@ const emit = defineEmits<{
   delete: [];
   patch: [patch: Partial<ProductDraft>];
 }>();
+
+const standbyText = ref("");
+const alarmText = ref("");
+
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) {
+      standbyText.value = props.draft.standby?.toString() ?? "0";
+      alarmText.value = props.draft.alarm?.toString() ?? "0";
+    }
+  },
+  { immediate: true }
+);
+
+watch(
+  () => props.draft.id,
+  () => {
+    standbyText.value = props.draft.standby?.toString() ?? "0";
+    alarmText.value = props.draft.alarm?.toString() ?? "0";
+  }
+);
+
+watch(
+  () => props.draft.standby,
+  (newVal) => {
+    if (Number(standbyText.value) !== newVal) {
+      standbyText.value = newVal?.toString() ?? "0";
+    }
+  }
+);
+
+watch(
+  () => props.draft.alarm,
+  (newVal) => {
+    if (Number(alarmText.value) !== newVal) {
+      alarmText.value = newVal?.toString() ?? "0";
+    }
+  }
+);
 
 const categoryOptions = computed(() => ["Detector", ...props.categories.filter((category) => category !== "Detector")]);
 
@@ -120,9 +160,22 @@ function patch(patchValue: Partial<ProductDraft>) {
   emit("patch", patchValue);
 }
 
-function patchNumber(key: "standby" | "alarm", event: Event) {
-  const numeric = Number(inputValue(event));
-  patch({ [key]: Number.isFinite(numeric) ? numeric : 0 } as Partial<ProductDraft>);
+function onStandbyInput(event: Event) {
+  const val = inputValue(event);
+  standbyText.value = val;
+  const num = Number(val);
+  if (!isNaN(num)) {
+    patch({ standby: num });
+  }
+}
+
+function onAlarmInput(event: Event) {
+  const val = inputValue(event);
+  alarmText.value = val;
+  const num = Number(val);
+  if (!isNaN(num)) {
+    patch({ alarm: num });
+  }
 }
 
 function patchInteger(key: "ledCost", event: Event) {
