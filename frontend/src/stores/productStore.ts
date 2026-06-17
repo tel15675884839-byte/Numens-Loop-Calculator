@@ -70,7 +70,10 @@ function isHttpError(cause: unknown) {
 }
 
 function isStaticBackendUnavailable(cause: unknown) {
-  return !isHttpError(cause);
+  if (cause instanceof ApiError) {
+    return cause.status === 404 || cause.status === 405;
+  }
+  return true;
 }
 
 export const useProductStore = defineStore("products", () => {
