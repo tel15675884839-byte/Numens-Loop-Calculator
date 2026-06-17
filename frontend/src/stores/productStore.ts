@@ -267,7 +267,7 @@ export const useProductStore = defineStore("products", () => {
       statusMessage.value = "Saved";
       return result;
     } catch (cause) {
-      if (isHttpError(cause)) {
+      if (isHttpError(cause) && !isStaticBackendUnavailable(cause)) {
         statusMessage.value = "Save rejected";
         error.value = cause.message;
         throw cause;
@@ -302,7 +302,7 @@ export const useProductStore = defineStore("products", () => {
         statusMessage.value = "Delete rejected";
         return { removed: false, message: "Backend rejected product deletion." };
       }
-      if (isHttpError(cause)) {
+      if (isHttpError(cause) && !isStaticBackendUnavailable(cause)) {
         statusMessage.value = "Delete rejected";
         error.value = cause.message;
         return { removed: false, message: "Backend rejected product deletion." };
@@ -331,16 +331,36 @@ export const useProductStore = defineStore("products", () => {
   }
 
   async function restoreProductRecord(productId: string) {
-    const restored = await restoreProduct(productId, adminPassword.value);
-    products.value = products.value.some((product) => product.id === restored.id)
-      ? products.value.map((product) => (product.id === restored.id ? restored : product))
-      : [...products.value, restored];
-    deletedProducts.value = deletedProducts.value.filter((product) => product.id !== restored.id);
-    categories.value = categoriesFromProducts(products.value);
-    writeJson(PRODUCTS_CACHE_KEY, products.value);
-    writeJson(CATEGORIES_CACHE_KEY, categories.value);
-    statusMessage.value = "Restored";
-    return { restored: true, message: "Product restored." };
+    try {
+      const restored = await restoreProduct(productId, adminPassword.value);
+      products.value = products.value.some((product) => product.id === restored.id)
+        ? products.value.map((product) => (product.id === restored.id ? restored : product))
+        : [...products.value, restored];
+      deletedProducts.value = deletedProducts.value.filter((product) => product.id !== restored.id);
+      categories.value = categoriesFromProducts(products.value);
+      writeJson(PRODUCTS_CACHE_KEY, products.value);
+      writeJson(CATEGORIES_CACHE_KEY, categories.value);
+      statusMessage.value = "Restored";
+      return { restored: true, message: "Product restored." };
+    } catch (cause) {
+      if (isHttpError(cause) && !isStaticBackendUnavailable(cause)) {
+        statusMessage.value = "Restore rejected";
+        throw cause;
+      }
+      const product = deletedProducts.value.find((p) => p.id === productId);
+      if (product) {
+        const restored = { ...product, deleted_at: undefined };
+        products.value = products.value.some((p) => p.id === restored.id)
+          ? products.value.map((p) => (p.id === restored.id ? restored : p))
+          : [...products.value, restored];
+        deletedProducts.value = deletedProducts.value.filter((p) => p.id !== restored.id);
+        categories.value = categoriesFromProducts(products.value);
+        writeJson(PRODUCTS_CACHE_KEY, products.value);
+        writeJson(CATEGORIES_CACHE_KEY, categories.value);
+      }
+      statusMessage.value = "Restored locally";
+      return { restored: true, message: "Product restored locally." };
+    }
   }
 
   async function addCategory(name: string) {
@@ -351,7 +371,7 @@ export const useProductStore = defineStore("products", () => {
     try {
       await createCategory(trimmed, adminPassword.value);
     } catch (cause) {
-      if (isHttpError(cause)) {
+      if (isHttpError(cause) && !isStaticBackendUnavailable(cause)) {
         statusMessage.value = "Category rejected";
         error.value = cause.message;
         throw cause;
