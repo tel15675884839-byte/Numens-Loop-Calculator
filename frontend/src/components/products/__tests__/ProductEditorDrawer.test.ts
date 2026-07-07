@@ -57,4 +57,23 @@ describe("ProductEditorDrawer", () => {
 
     setLocale("en");
   });
+
+  it("keeps current units in professional mA case inside uppercase field labels", () => {
+    const wrapper = mount(ProductEditorDrawer, {
+      props: {
+        open: true,
+        draft: builtInDraft,
+        categories: ["Detector"],
+        isAdmin: true
+      }
+    });
+
+    const standbyUnit = wrapper.get('[data-testid="standby-current-unit"]');
+    const alarmUnit = wrapper.get('[data-testid="alarm-current-unit"]');
+
+    expect(standbyUnit.text()).toBe("mA");
+    expect(alarmUnit.text()).toBe("mA");
+    expect(standbyUnit.classes()).toContain("normal-case");
+    expect(alarmUnit.classes()).toContain("normal-case");
+  });
 });

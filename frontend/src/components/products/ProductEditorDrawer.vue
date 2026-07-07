@@ -42,11 +42,15 @@
 
             <div class="grid grid-cols-2 gap-3">
               <label class="flex flex-col gap-1">
-                <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("products.standbyMa") }}</span>
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                  {{ t("common.standby") }} <span data-testid="standby-current-unit" class="normal-case">mA</span>
+                </span>
                 <input class="field-number" inputmode="decimal" :value="standbyText" @input="onStandbyInput" />
               </label>
               <label class="flex flex-col gap-1">
-                <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">{{ t("deviceTable.alarm") }} mA</span>
+                <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                  {{ t("deviceTable.alarm") }} <span data-testid="alarm-current-unit" class="normal-case">mA</span>
+                </span>
                 <input class="field-number" inputmode="decimal" :value="alarmText" @input="onAlarmInput" />
               </label>
             </div>
