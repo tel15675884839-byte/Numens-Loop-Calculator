@@ -196,6 +196,13 @@ def test_app_update_config_exposes_windows_manifest_url(client: TestClient) -> N
     assert data["catalog_update_manifest_url"].endswith("/updates/catalog/latest.json")
 
 
+def test_app_version_reports_current_windows_release(client: TestClient) -> None:
+    response = client.get("/api/app/version")
+
+    assert response.status_code == 200
+    assert response.json() == {"version": "1.1.1", "platform": "windows"}
+
+
 def test_api_allows_tauri_desktop_origin(client: TestClient) -> None:
     response = client.options(
         "/api/products",

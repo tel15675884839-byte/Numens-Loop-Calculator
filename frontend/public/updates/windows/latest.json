@@ -1,7 +1,7 @@
 {
   "platform": "windows",
-  "app_version": "1.1.0",
-  "installer_url": "https://github.com/tel15675884839-byte/Numens-Loop-Calculator/releases/download/v1.1.0/LoopCalculatorSetup.exe",
-  "sha256": "19a6565016498c90e115a97bf03887aca0e2197f225f1778e2ce3331531d9385",
-  "release_notes": "Fix decimal inputs, update UI terminology (CIE Capacity, devices units, Restore button), hide default admin password hint, and resolve local write fallbacks on static Vercel deployments."
+  "app_version": "1.1.1",
+  "installer_url": "https://github.com/tel15675884839-byte/Numens-Loop-Calculator/releases/download/v1.1.1/LoopCalculatorSetup.exe",
+  "sha256": "16b2dbb349f5961e16e8a9d0c693a15d59f5244875b8ba2e74885d3e9ebac184",
+  "release_notes": "Preserve the mA unit casing in current labels and synchronize the reported application version across the desktop app, backend, and installer."
 }

@@ -103,7 +103,7 @@ def create_app(db_path: Path | str | None = None, seed_path: Path | str | None =
 
     @app.get("/api/app/version")
     def get_version() -> dict[str, str]:
-        return {"version": "1.0.0", "platform": "windows"}
+        return {"version": "1.1.1", "platform": "windows"}
 
     @app.post("/api/app/sync-catalog")
     def sync_catalog(

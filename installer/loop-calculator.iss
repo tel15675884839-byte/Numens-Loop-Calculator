@@ -1,7 +1,7 @@
 [Setup]
 AppId={{B7A3F0D1-2E4C-4A5B-9F6D-1C8E3A7B5D9F}
 AppName=Loop Calculator
-AppVersion=1.1.0
+AppVersion=1.1.1
 AppPublisher=Numens
 DefaultDirName={localappdata}\Programs\Loop Calculator
 DefaultGroupName=Loop Calculator
